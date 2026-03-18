@@ -197,23 +197,26 @@ def api_ai_chat(request):
 
 def _simulated_ai_response(company, message):
     """Génère une réponse riche simulant un LLM avec accès aux données ERP"""
-    if 'cash' in message or 'trésorerie' in message or 'forecast' in message or 'prévision' in message:
+    
+    # 1. CASHFLOW & FORECAST
+    if any(k in message for k in ['cash', 'trésorerie', 'forecast', 'prévision']):
         forecast, confidence = _simulated_forecast(6)
         return {
-            'text': f"D'après mes analyses prédictives, votre trésorerie devrait rester stable au cours des 6 prochains mois avec un indice de confiance de **{confidence}%**. Cependant, je note une légère pression sur le mois de Mai due aux échéances fiscales prévues.",
+            'text': f"L'analyse prédictive de votre trésorerie sur 6 mois indique une trajectoire **stable**. L'indice de confiance est de **{confidence}%**.",
             'type': 'chart',
             'chart_type': 'line',
             'data': forecast,
             'insights': [
-                "Flux d'exploitation positif maintenu à +12% YoY.",
-                "Attention aux délais de paiement clients (DSO) qui s'allongent de 4 jours.",
-                "Optimisation possible: Renegocier les contrats fournisseurs avant fin Q2."
+                "Flux d'exploitation positif maintenu (+12% YoY).",
+                "Attention aux délais de paiement clients (DSO) en hausse.",
+                "Optimisation possible des contrats fournisseurs à l'échéance Q2."
             ]
         }
     
-    if 'ebitda' in message or 'marge' in message or 'profit' in message or 'rentabilité' in message:
+    # 2. EBITDA & MARGINS
+    if any(k in message for k in ['ebitda', 'marge', 'profit', 'rentabilité']):
         return {
-            'text': "Votre marge EBITDA s'est stabilisée à **24.3%** sur le dernier trimestre. L'augmentation des coûts logistiques a été compensée par une hausse du panier moyen.",
+            'text': "Votre marge EBITDA s'est stabilisée à **24.3%** sur le dernier trimestre. La structure de coûts est maîtrisée malgré l'inflation sectorielle.",
             'type': 'chart',
             'chart_type': 'bar',
             'data': {
@@ -227,28 +230,55 @@ def _simulated_ai_response(company, message):
             ]
         }
 
-    if 'risk' in message or 'risque' in message or 'alerte' in message or 'anomalie' in message:
+    # 3. BURN RATE & RUNWAY
+    if any(k in message for k in ['burn', 'runway', 'autonomie', 'dépense']):
+        return {
+            'text': "Votre **Burn Rate** moyen est de **450k XOF / mois**. Avec votre cash actuel, votre autonomie financière (**Runway**) est estimée à **18 mois**.",
+            'type': 'list',
+            'items': [
+                {'title': 'Net Burn Rate', 'desc': 'Sorties nettes mensuelles stables.'},
+                {'title': 'Cash Runway', 'desc': 'Sécurité financière jusqu\'en Septembre 2027.'},
+                {'title': 'Recommandation', 'desc': 'Maintenir le gel des recrutements non-essentiels.'}
+            ],
+            'insights': ["Score de résilience: 8.5/10"]
+        }
+
+    # 4. RISKS & ANOMALIES
+    if any(k in message for k in ['risk', 'risque', 'alerte', 'anomalie']):
         anomalies = AnomalyDetection.objects.filter(company=company)[:3] if company else []
-        if anomalies:
-            text = f"J'ai détecté **{len(anomalies)} anomalies** nécessitant votre attention immédiate."
-        else:
-            text = "Aucun risque majeur détecté. Toutes les transactions récentes respectent les patterns de conformité."
+        text = f"J'ai détecté **{len(anomalies) if anomalies else 2} points de vigilance** nécessitant votre attention."
         
         return {
             'text': text,
             'type': 'list',
             'items': [
                 {'title': 'Facture inhabituelle #882', 'desc': 'Montant +45% au dessus de la moyenne fournisseur.'},
-                {'title': 'Délai TVA Sénégal', 'desc': 'Échéance dans 2 jours. Provision de 4.2M XOF requise.'},
-                {'title': 'Ecart Inventaire', 'desc': 'Démarque inconnue de 1.2% sur l\'entrepôt B.'}
+                {'title': 'Délai TVA Sénégal', 'desc': 'Échéance dans 48h. Provision requise.'}
             ],
-            'insights': ["Lancez un auto-audit pour plus de détails."]
+            'insights': ["Un auto-audit profond est recommandé pour le cycle fournisseurs."]
         }
 
-    # Réponses génériques
-    greetings = ["Bonjour ! Comment puis-je vous aider dans votre analyse financière aujourd'hui ?", "Je suis prêt à analyser vos indicateurs. Que souhaitez-vous savoir ?", "Prêt pour une analyse. Tapez 'forecast', 'marge' ou 'risques' pour commencer."]
+    # 5. PERFORMANCE & KPIs
+    if any(k in message for k in ['perf', 'kpi', 'indicateur', 'santé']):
+        return {
+            'text': "La performance globale est excellente. L'indice de santé financière FinanceOS est à **82/100**.",
+            'type': 'chart',
+            'chart_type': 'bar',
+            'data': {
+                'labels': ['Croissance', 'Liquidité', 'Solvabilité', 'Efficience'],
+                'values': [85, 92, 78, 88]
+            },
+            'insights': ["Top Quartile par rapport au benchmark secteur."]
+        }
+
+    # DEFAULT GREETINGS
+    greetings = [
+        "Bonjour ! Je suis prêt pour l'analyse. Que souhaitez-vous auditer ?",
+        "Neural Core en ligne. Prêt pour des projections de trésorerie ou de marge.",
+        "Prêt. Tapez 'forecast' pour voir l'avenir ou 'risques' pour sécuriser le présent."
+    ]
     return {
         'text': random.choice(greetings),
         'type': 'text',
-        'suggestions': ["Prévision de trésorerie", "Analyse de marge", "Détection de risques"]
+        'suggestions': ["Prévision de trésorerie", "Analyse de marge", "Calcul du Burn Rate", "Risques récents"]
     }
