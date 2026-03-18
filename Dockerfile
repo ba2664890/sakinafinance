@@ -30,5 +30,10 @@ RUN chmod +x /app/entrypoint.sh
 # Entrypoint setup
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Run gunicorn with dynamic port for Render
-CMD gunicorn financeos.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+# Run gunicorn with increased timeout and optimized worker config for RAM
+CMD gunicorn financeos.wsgi:application \
+    --bind 0.0.0.0:${PORT:-8000} \
+    --workers 1 \
+    --threads 4 \
+    --timeout 120 \
+    --log-level info

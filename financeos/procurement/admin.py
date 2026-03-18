@@ -4,7 +4,8 @@ Procurement Admin — FinanceOS IA
 from django.contrib import admin
 from .models import (
     SupplierCategory, Supplier, PurchaseRFQ,
-    PurchaseOrder, PurchaseOrderLine, GoodsReceipt
+    PurchaseOrder, PurchaseOrderLine, GoodsReceipt,
+    InventoryItem, StockTransaction
 )
 
 
@@ -85,3 +86,19 @@ class GoodsReceiptAdmin(admin.ModelAdmin):
     list_filter = ['status']
     search_fields = ['reference']
     readonly_fields = ['created_at']
+
+
+@admin.register(InventoryItem)
+class InventoryItemAdmin(admin.ModelAdmin):
+    list_display = ['sku', 'name', 'item_type', 'current_stock', 'unit_measure', 'unit_cost', 'is_active']
+    list_filter = ['company', 'item_type', 'is_active']
+    search_fields = ['sku', 'name']
+    readonly_fields = ['current_stock', 'created_at', 'updated_at']
+
+
+@admin.register(StockTransaction)
+class StockTransactionAdmin(admin.ModelAdmin):
+    list_display = ['timestamp', 'item', 'transaction_type', 'quantity', 'unit_cost', 'reference']
+    list_filter = ['transaction_type']
+    search_fields = ['item__name', 'reference']
+    readonly_fields = ['timestamp']

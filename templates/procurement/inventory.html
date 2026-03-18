@@ -1,0 +1,257 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Inventaire & Stock — FinanceOS IA{% endblock %}
+{% block page_title %}Gestion d'Inventaire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inventory-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .i-kpi-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .i-kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        border-color: var(--primary-color);
+    }
+
+    .i-kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .i-kpi-info h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #1e293b; }
+    .i-kpi-info p { margin: 0; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .i-panel {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .i-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .i-header h5 { margin: 0; font-weight: 800; color: #0f172a; }
+
+    .i-table { width: 100%; border-collapse: collapse; }
+    .i-table th { text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 1rem 1.5rem; background: #f8fafc; }
+    .i-table td { padding: 1.25rem 1.5rem; font-size: 0.875rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+    .stock-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .stock-good { background: #ecfdf5; color: #059669; }
+    .stock-low { background: #fffbeb; color: #d97706; }
+    .stock-critical { background: #fef2f2; color: #dc2626; }
+
+    .trans-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .trans-item:last-child { border-bottom: none; }
+    .trans-info { display: flex; flex-direction: column; }
+    .trans-name { font-weight: 700; color: #1e293b; font-size: 0.875rem; }
+    .trans-meta { font-size: 0.75rem; color: #94a3b8; }
+    .trans-qty { font-weight: 800; font-size: 0.9rem; }
+    .qty-in { color: #10b981; }
+    .qty-out { color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top KPIs -->
+    <div class="inventory-kpis">
+        <div class="i-kpi-card">
+            <div class="i-kpi-icon bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="i-kpi-info">
+                <h3 id="inv-total-items">--</h3>
+                <p>Articles Total</p>
+            </div>
+        </div>
+        <div class="i-kpi-card">
+            <div class="i-kpi-icon bg-warning bg-opacity-10 text-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="i-kpi-info">
+                <h3 id="inv-low-stock">--</h3>
+                <p>Stock Faible</p>
+            </div>
+        </div>
+        <div class="i-kpi-card">
+            <div class="i-kpi-icon bg-danger bg-opacity-10 text-danger">
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="i-kpi-info">
+                <h3 id="inv-out-stock">--</h3>
+                <p>Rupture</p>
+            </div>
+        </div>
+        <div class="i-kpi-card">
+            <div class="i-kpi-icon bg-success bg-opacity-10 text-success">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div class="i-kpi-info">
+                <h3 id="inv-value">--</h3>
+                <p>Valeur Stock</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="inventory-grid">
+        <!-- Stock List -->
+        <div class="left-col">
+            <div class="i-panel">
+                <div class="i-header">
+                    <h5>Articles & Disponibilités</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Nouvel Article</button>
+                        <button class="btn btn-sm btn-light border"><i class="bi bi-download"></i></button>
+                    </div>
+                </div>
+                <div class="p-0 overflow-auto">
+                    <table class="i-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Article</th>
+                                <th>Catégorie</th>
+                                <th>Stock</th>
+                                <th>Valeur Est.</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory_body">
+                            <!-- Dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="right-col">
+            <div class="i-panel">
+                <div class="i-header">
+                    <h5>Derniers Mouvements</h5>
+                </div>
+                <div class="p-0" id="transaction_container">
+                    <!-- Dynamic -->
+                </div>
+                <div class="p-3 border-top text-center">
+                    <a href="#" class="small fw-bold text-primary text-decoration-none">Voir tout l'historique</a>
+                </div>
+            </div>
+
+            <div class="i-panel mt-4 bg-primary text-white p-4">
+                <h6 class="fw-800 mb-2">IA Insights</h6>
+                <p class="small mb-3 opacity-90">Basé sur vos tendances d'achat, 3 articles seront en rupture d'ici 10 jours.</p>
+                <button class="btn btn-light btn-sm w-100 fw-700">Générer Bons de Commande</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadInventoryData();
+
+    async function loadInventoryData() {
+        try {
+            const response = await fetch('/procurement/api/inventory/');
+            const data = await response.json();
+
+            // KPIs
+            document.getElementById('inv-total-items').textContent = data.total_items;
+            document.getElementById('inv-low-stock').textContent = data.low_stock_count;
+            document.getElementById('inv-out-stock').textContent = data.out_of_stock_count;
+            document.getElementById('inv-value').textContent = `${data.inventory_value.toLocaleString()} XOF`;
+
+            // Items
+            const inventoryBody = document.getElementById('inventory_body');
+            inventoryBody.innerHTML = data.items.map(item => `
+                <tr>
+                    <td class="text-mono small">${item.sku}</td>
+                    <td>
+                        <div class="fw-bold">${item.name}</div>
+                        <div class="small text-muted">${item.type}</div>
+                    </td>
+                    <td class="small">${item.type}</td>
+                    <td>
+                        <div class="fw-bold">${item.stock} ${item.unit}</div>
+                        <div class="small text-muted">Alerte à ${item.min}</div>
+                    </td>
+                    <td class="fw-bold">${item.value.toLocaleString()}</td>
+                    <td>
+                        <span class="stock-badge stock-${item.status}">
+                            ${item.status === 'critical' ? 'Critique' : 'Bon'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Transactions
+            const transContainer = document.getElementById('transaction_container');
+            transContainer.innerHTML = data.transactions.map(t => `
+                <div class="trans-item">
+                    <div class="trans-info">
+                        <span class="trans-name">${t.item}</span>
+                        <span class="trans-meta text-muted">${t.date} • ${t.ref}</span>
+                    </div>
+                    <div class="trans-qty ${t.type.includes('Entrée') ? 'qty-in' : 'qty-out'}">
+                        ${t.type.includes('Entrée') ? '+' : '-'}${t.qty}
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('Error loading inventory data:', error);
+        }
+    }
+});
+</script>
+{% endblock %}

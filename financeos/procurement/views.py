@@ -3,12 +3,12 @@ Procurement Views — FinanceOS IA (DB-connected)
 """
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Count, Q
+from django.db import models
 from django.utils import timezone
 from django.http import JsonResponse
 from decimal import Decimal
 
-from .models import Supplier, PurchaseOrder, PurchaseRFQ, SupplierCategory
+from .models import Supplier, PurchaseOrder, PurchaseRFQ, SupplierCategory, InventoryItem, StockTransaction
 
 def _get_company(request):
     return getattr(request.user, 'company', None)
@@ -143,3 +143,63 @@ def po_detail(request, pk):
         'lines': po.lines.all(),
     }
     return render(request, 'procurement/po_detail.html', context)
+
+
+@login_required
+def inventory_view(request):
+    """Vue principale de l'inventaire"""
+    return render(request, 'procurement/inventory.html', {'page_title': 'Inventaire & Stock'})
+
+
+@login_required
+def api_inventory_data(request):
+    """API: Get Inventory Stats and Items"""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'error': 'No company'}, status=400)
+
+    items = InventoryItem.objects.filter(company=company)
+    
+    # Stats
+    total_items = items.count()
+    low_stock_items = items.filter(current_stock__lte=models.F('min_stock_level')).count()
+    out_of_stock = items.filter(current_stock=0).count()
+    
+    # Calculate value
+    total_value = sum(item.current_stock * item.unit_cost for item in items)
+
+    # Item list
+    item_list = []
+    for item in items[:20]: # Limit for demo
+        item_list.append({
+            'sku': item.sku,
+            'name': item.name,
+            'type': item.get_item_type_display(),
+            'stock': float(item.current_stock),
+            'min': float(item.min_stock_level),
+            'unit': item.unit_measure,
+            'value': float(item.current_stock * item.unit_cost),
+            'status': 'critical' if item.current_stock <= item.min_stock_level else 'good'
+        })
+
+    # Recent transactions
+    transactions = StockTransaction.objects.filter(item__company=company).order_by('-timestamp')[:10]
+    transaction_data = []
+    for t in transactions:
+        transaction_data.append({
+            'item': t.item.name,
+            'type': t.get_transaction_type_display(),
+            'qty': float(t.quantity),
+            'date': t.timestamp.strftime('%d/%m/%Y %H:%M'),
+            'ref': t.reference or '—'
+        })
+
+    data = {
+        'total_items': total_items,
+        'low_stock_count': low_stock_items,
+        'out_of_stock_count': out_of_stock,
+        'inventory_value': float(total_value),
+        'items': item_list,
+        'transactions': transaction_data,
+    }
+    return JsonResponse(data)

@@ -299,3 +299,82 @@ class GoodsReceipt(models.Model):
 
     def __str__(self):
         return f"{self.reference} — {self.purchase_order.supplier.name}"
+
+
+class InventoryItem(models.Model):
+    """Article en stock / Produit"""
+
+    class ItemType(models.TextChoices):
+        RAW_MATERIAL = 'raw', _('Matière première')
+        FINISHED_GOOD = 'finished', _('Produit fini')
+        SERVICE = 'service', _('Service')
+        CONSUMABLE = 'consumable', _('Consommable')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='inventory_items'
+    )
+    name = models.CharField(max_length=255)
+    sku = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+    item_type = models.CharField(max_length=20, choices=ItemType.choices, default=ItemType.FINISHED_GOOD)
+    
+    # Stock levels
+    current_stock = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    min_stock_level = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    reorder_level = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    
+    # Pricing
+    unit_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    unit_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    unit_measure = models.CharField(max_length=20, default='unit')
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.sku} — {self.name}"
+
+
+class StockTransaction(models.Model):
+    """Mouvement de stock (Entrée/Sortie)"""
+
+    class TransactionType(models.TextChoices):
+        IN = 'in', _('Entrée (Achat)')
+        OUT = 'out', _('Sortie (Vente)')
+        ADJUSTMENT = 'adj', _('Ajustement Inventaire')
+        RETURN = 'return', _('Retour')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='transactions')
+    transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
+    quantity = models.DecimalField(max_digits=12, decimal_places=3)
+    unit_cost = models.DecimalField(max_digits=15, decimal_places=2)
+    
+    reference = models.CharField(max_length=100, blank=True) # Ex: PO-123, BL-456
+    notes = models.TextField(blank=True)
+    
+    performed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def save(self, *args, **kwargs):
+        # Update current stock level in InventoryItem
+        is_new = self._state.adding
+        if is_new:
+            item = self.item
+            if self.transaction_type in ['in', 'return']:
+                item.current_stock += self.quantity
+            else:
+                item.current_stock -= self.quantity
+            item.save(update_fields=['current_stock'])
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.transaction_type} - {self.item.name} ({self.quantity})"
