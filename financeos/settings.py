@@ -215,6 +215,13 @@ TWO_FACTOR_REMEMBER_COOKIE_PREFIX = 'tf_cookie'
 # Google OAuth2 Settings
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APPS': [
+            {
+                'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
+                'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
+                'key': ''
+            },
+        ],
         'SCOPE': [
             'profile',
             'email',

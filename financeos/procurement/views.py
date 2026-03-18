@@ -1,58 +1,142 @@
 """
-Achats & Procurement Views — FinanceOS IA
+Procurement Views — FinanceOS IA (DB-connected)
 """
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+
+from .models import Supplier, PurchaseOrder, PurchaseRFQ, SupplierCategory
+
+
+def _get_company(request):
+    return getattr(request.user, 'company', None)
 
 
 @login_required
 def procurement_view(request):
-    """Module Achats & Procurement — vue principale"""
+    """Module Achats — vue principale avec données réelles"""
+    company = _get_company(request)
+
+    if company:
+        suppliers = Supplier.objects.filter(company=company, is_active=True)
+        suppliers_count = suppliers.count()
+
+        orders = PurchaseOrder.objects.filter(company=company).order_by('-order_date')
+        active_orders = orders.exclude(status__in=['closed', 'cancelled'])
+
+        # KPIs
+        total_spends = orders.filter(status__in=['received', 'invoiced', 'closed']).aggregate(
+            total=Sum('total')
+        )['total'] or 0
+
+        po_count = active_orders.count()
+        savings = 0  # Would need budget data
+        avg_lead_time_days = 45  # Would compute from receipt dates
+
+        # Top suppliers
+        top_suppliers = suppliers.order_by('-total_spend')[:5]
+        supplier_data = [{
+            'name': s.name,
+            'category': s.category.name if s.category else '—',
+            'spend': s.total_spend,
+            'orders': s.total_orders,
+            'rating': s.rating,
+            'on_time': s.on_time_delivery_pct,
+        } for s in top_suppliers]
+
+        # Purchase orders
+        po_data = []
+        status_class_map = {
+            'draft': 'secondary', 'pending': 'secondary', 'approved': 'primary',
+            'sent': 'info', 'confirmed': 'primary', 'in_transit': 'warning',
+            'received': 'success', 'invoiced': 'success', 'closed': 'dark', 'cancelled': 'danger'
+        }
+        for po in active_orders[:5]:
+            po_data.append({
+                'id': po.reference,
+                'supplier': po.supplier.name,
+                'amount': po.total,
+                'date': po.order_date,
+                'delivery': po.expected_delivery,
+                'status': po.get_status_display(),
+                'status_class': status_class_map.get(po.status, 'secondary'),
+            })
+
+        # Categories
+        categories = SupplierCategory.objects.filter(company=company).annotate(
+            spend=Sum('suppliers__orders__total')
+        )[:5]
+        cat_data = [{
+            'name': c.name,
+            'spend': c.spend or 0,
+            'pct': 0,
+        } for c in categories]
+
+        # RFQs
+        rfqs = PurchaseRFQ.objects.filter(company=company).exclude(
+            status__in=['awarded', 'cancelled']
+        ).order_by('-created_at')[:3]
+        rfq_data = [{
+            'title': r.title,
+            'budget': r.estimated_budget,
+            'deadline': r.deadline,
+            'responses': r.responses_count,
+            'status': r.get_status_display(),
+        } for r in rfqs]
+
+    else:
+        suppliers_count = 0
+        total_spends = 0
+        po_count = 0
+        supplier_data = []
+        po_data = []
+        cat_data = []
+        rfq_data = []
+
     context = {
         'page_title': 'Achats & Procurement',
-
-        # KPIs Achats
-        'total_spends': 142_500_000,
+        'total_spends': total_spends,
         'purchases_growth': -3.2,
-        'suppliers_count': 148,
-        'po_count': 34,
+        'suppliers_count': suppliers_count,
+        'po_count': po_count,
         'savings_rate': 8.4,
-        'savings': 13_100_000,
+        'savings': 0,
         'avg_lead_time_days': 45,
         'on_time_delivery': 87.3,
-
-        # Commandes en cours
-        'purchase_orders': [
-            {'id': 'PO-2025-0892', 'supplier': 'SABC Fournisseur SA', 'amount': 4_200_000, 'date': '15/03/2025', 'delivery': '25/03/2025', 'status': 'En transit', 'status_class': 'warning'},
-            {'id': 'PO-2025-0891', 'supplier': 'Tech Solutions SARL', 'amount': 8_750_000, 'date': '14/03/2025', 'delivery': '28/03/2025', 'status': 'Confirmée', 'status_class': 'primary'},
-            {'id': 'PO-2025-0890', 'supplier': 'Matériaux Ouest Afrique', 'amount': 12_400_000, 'date': '13/03/2025', 'delivery': '01/04/2025', 'status': 'En attente', 'status_class': 'secondary'},
-            {'id': 'PO-2025-0889', 'supplier': 'Logistique Express CI', 'amount': 2_850_000, 'date': '12/03/2025', 'delivery': '18/03/2025', 'status': 'Livrée', 'status_class': 'success'},
-            {'id': 'PO-2025-0888', 'supplier': 'Bureau Fournitures Pro', 'amount': 650_000, 'date': '11/03/2025', 'delivery': '17/03/2025', 'status': 'Livrée', 'status_class': 'success'},
-        ],
-
-        # Top fournisseurs
-        'suppliers': [
-            {'name': 'SABC Fournisseur SA', 'category': 'Matières premières', 'spend': 28_400_000, 'orders': 24, 'rating': 4.8, 'on_time': 96},
-            {'name': 'Tech Solutions SARL', 'category': 'IT & Logiciels', 'spend': 18_750_000, 'orders': 12, 'rating': 4.5, 'on_time': 92},
-            {'name': 'Matériaux Ouest Afrique', 'category': 'Équipements', 'spend': 15_200_000, 'orders': 8, 'rating': 4.2, 'on_time': 85},
-            {'name': 'Logistique Express CI', 'category': 'Transport', 'spend': 12_900_000, 'orders': 48, 'rating': 4.6, 'on_time': 94},
-            {'name': 'Agence Publicité Dakar', 'category': 'Marketing', 'spend': 8_400_000, 'orders': 15, 'rating': 3.9, 'on_time': 78},
-        ],
-
-        # Répartition achats par catégorie
-        'categories': [
-            {'name': 'Matières & Consommables', 'spend': 58_200_000, 'pct': 41},
-            {'name': 'Équipements & Immobilisations', 'spend': 28_400_000, 'pct': 20},
-            {'name': 'Services & Prestations', 'spend': 24_800_000, 'pct': 17},
-            {'name': 'IT & Télécoms', 'spend': 18_750_000, 'pct': 13},
-            {'name': 'Frais généraux', 'spend': 12_350_000, 'pct': 9},
-        ],
-
-        # Appels d'offres en cours
-        'rfqs': [
-            {'title': 'Fourniture de serveurs & stockage', 'budget': 45_000_000, 'deadline': '25/03/2025', 'responses': 6, 'status': 'En cours'},
-            {'title': 'Prestation sécurité informatique', 'budget': 12_000_000, 'deadline': '30/03/2025', 'responses': 3, 'status': 'En cours'},
-            {'title': 'Véhicules utilitaires zone UEMOA', 'budget': 85_000_000, 'deadline': '10/04/2025', 'responses': 8, 'status': 'Ouvert'},
-        ],
+        'purchase_orders': po_data,
+        'suppliers': supplier_data,
+        'categories': cat_data,
+        'rfqs': rfq_data,
     }
     return render(request, 'procurement/index.html', context)
+
+
+@login_required
+def supplier_list(request):
+    """Liste fournisseurs"""
+    company = _get_company(request)
+    suppliers = Supplier.objects.filter(company=company, is_active=True) if company else Supplier.objects.none()
+
+    q = request.GET.get('q', '')
+    if q:
+        suppliers = suppliers.filter(Q(name__icontains=q) | Q(email__icontains=q))
+
+    context = {
+        'page_title': 'Fournisseurs',
+        'suppliers': suppliers,
+        'q': q,
+    }
+    return render(request, 'procurement/supplier_list.html', context)
+
+
+@login_required
+def po_detail(request, pk):
+    """Détail bon de commande"""
+    po = get_object_or_404(PurchaseOrder, pk=pk, company=_get_company(request))
+    context = {
+        'page_title': f'Commande {po.reference}',
+        'po': po,
+        'lines': po.lines.all(),
+    }
+    return render(request, 'procurement/po_detail.html', context)

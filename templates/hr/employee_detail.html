@@ -1,0 +1,139 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}{{ page_title }} — FinanceOS IA{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour liste
+        </a>
+        <a href="/admin/hr/employee/{{ employee.pk }}/change/" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Employee Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm text-center" style="border-radius:16px;">
+                <div class="card-body p-4">
+                    <div class="mx-auto mb-3" style="width:80px;height:80px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:1.8rem;">
+                        {{ employee.first_name|first }}{{ employee.last_name|first }}
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ employee.get_full_name }}</h5>
+                    <p class="text-muted small mb-3">{{ employee.position.title|default:'—' }}</p>
+                    {% if employee.status == 'active' %}
+                        <span class="badge bg-success">Actif</span>
+                    {% elif employee.status == 'on_leave' %}
+                        <span class="badge bg-warning">En congé</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ employee.get_status_display }}</span>
+                    {% endif %}
+                    <hr>
+                    <div class="text-start">
+                        <div class="mb-2 small"><i class="bi bi-card-text me-2 text-muted"></i><strong>Matricule:</strong> {{ employee.employee_number }}</div>
+                        <div class="mb-2 small"><i class="bi bi-building me-2 text-muted"></i><strong>Département:</strong> {{ employee.department.name|default:'—' }}</div>
+                        <div class="mb-2 small"><i class="bi bi-envelope me-2 text-muted"></i>{{ employee.email|default:'—' }}</div>
+                        <div class="mb-2 small"><i class="bi bi-phone me-2 text-muted"></i>{{ employee.phone|default:'—' }}</div>
+                        <div class="mb-2 small"><i class="bi bi-calendar me-2 text-muted"></i>Embauché le {{ employee.hire_date }}</div>
+                        <div class="mb-2 small"><i class="bi bi-briefcase me-2 text-muted"></i>{{ employee.get_contract_type_display }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Card -->
+            <div class="card border-0 shadow-sm mt-3" style="border-radius:16px;">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">Rémunération</h6>
+                    <div class="text-center mb-3">
+                        <div style="font-size:1.75rem;font-weight:900;color:#1e293b;">{{ employee.base_salary|floatformat:0|intcomma }}</div>
+                        <div class="text-muted small">{{ employee.currency }} / mois (brut)</div>
+                    </div>
+                    <div class="small text-muted">
+                        <div class="mb-1"><strong>Banque:</strong> {{ employee.bank_name|default:'—' }}</div>
+                        <div class="mb-1"><strong>CNSS:</strong> {{ employee.cnss_number|default:'—' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="col-lg-8">
+            <!-- Payslips -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h6 class="fw-bold mb-0">Bulletins de Paie</h6>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead style="background:#f8fafc;">
+                            <tr>
+                                <th class="px-4 py-2 text-muted small border-0">Période</th>
+                                <th class="py-2 text-muted small border-0">Brut</th>
+                                <th class="py-2 text-muted small border-0">Retenues</th>
+                                <th class="py-2 text-muted small border-0">Net</th>
+                                <th class="py-2 text-muted small border-0">Statut</th>
+                                <th class="py-2 border-0"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for slip in payslips %}
+                            <tr>
+                                <td class="px-4 py-3 fw-bold small">{{ slip.period.name }}</td>
+                                <td class="py-3 small">{{ slip.gross_salary|floatformat:0|intcomma }}</td>
+                                <td class="py-3 small text-danger">-{{ slip.total_deductions|floatformat:0|intcomma }}</td>
+                                <td class="py-3 fw-bold small text-success">{{ slip.net_salary|floatformat:0|intcomma }}</td>
+                                <td class="py-3">
+                                    <span class="badge {% if slip.status == 'paid' %}bg-success{% elif slip.status == 'confirmed' %}bg-primary{% else %}bg-secondary{% endif %}" style="font-size:.65rem;">{{ slip.get_status_display }}</span>
+                                </td>
+                                <td class="py-3"><a href="{% url 'payslip_detail' slip.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:.7rem;">Voir</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-4 small">Aucun bulletin de paie</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Leaves -->
+            <div class="card border-0 shadow-sm" style="border-radius:16px;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h6 class="fw-bold mb-0">Congés & Absences</h6>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead style="background:#f8fafc;">
+                            <tr>
+                                <th class="px-4 py-2 text-muted small border-0">Type</th>
+                                <th class="py-2 text-muted small border-0">Du</th>
+                                <th class="py-2 text-muted small border-0">Au</th>
+                                <th class="py-2 text-muted small border-0">Jours</th>
+                                <th class="py-2 text-muted small border-0">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leaves %}
+                            <tr>
+                                <td class="px-4 py-3 small fw-bold">{{ leave.leave_type.name }}</td>
+                                <td class="py-3 small">{{ leave.start_date }}</td>
+                                <td class="py-3 small">{{ leave.end_date }}</td>
+                                <td class="py-3 small">{{ leave.days }}</td>
+                                <td class="py-3">
+                                    <span class="badge {% if leave.status == 'approved' %}bg-success{% elif leave.status == 'pending' %}bg-warning text-dark{% elif leave.status == 'rejected' %}bg-danger{% else %}bg-secondary{% endif %}" style="font-size:.65rem;">{{ leave.get_status_display }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-4 small">Aucune demande de congé</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

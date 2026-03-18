@@ -6,6 +6,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Root redirect
+    path('', views.pricing_view, name='payments_index'),
+    
     # Pricing
     path('pricing/', views.pricing_view, name='pricing'),
     

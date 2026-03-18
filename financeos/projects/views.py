@@ -1,128 +1,113 @@
 """
-Projets Views — FinanceOS IA
+Projects Views — FinanceOS IA (DB-connected)
 """
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Count, Q
+
+from .models import Project, Task, Milestone, ProjectCategory
+
+
+def _get_company(request):
+    return getattr(request.user, 'company', None)
 
 
 @login_required
 def projects_view(request):
-    """Module Projets — vue principale"""
+    """Module Projets — vue principale avec données réelles"""
+    company = _get_company(request)
+
+    if company:
+        all_projects = Project.objects.filter(company=company, is_active=True)
+        total_projects = all_projects.count()
+        active_projects_qs = all_projects.filter(status__in=['in_progress', 'planning', 'finalizing'])
+        active_projects_count = active_projects_qs.count()
+        completed_ytd = all_projects.filter(status='completed').count()
+
+        total_budget = all_projects.aggregate(t=Sum('budget_total'))['t'] or 0
+        spent_budget = all_projects.aggregate(s=Sum('budget_spent'))['s'] or 0
+        budget_pct = round(float(spent_budget) / max(float(total_budget), 1) * 100) if total_budget else 0
+
+        on_schedule = active_projects_qs.filter(health__in=['excellent', 'stable']).count()
+        delayed = active_projects_qs.filter(health__in=['at_risk', 'critical']).count()
+        overdue_tasks = Task.objects.filter(
+            project__company=company, status__in=['todo', 'in_progress']
+        ).filter(due_date__lt=__import__('django.utils.timezone', fromlist=['now']).timezone.now().date()).count()
+
+        active_projects = []
+        priority_class_map = {'low': 'secondary', 'normal': 'secondary', 'high': 'warning', 'critical': 'danger'}
+        status_class_map = {
+            'planning': 'secondary', 'in_progress': 'primary',
+            'on_hold': 'warning', 'finalizing': 'success',
+            'completed': 'success', 'cancelled': 'danger'
+        }
+        health_map = {'excellent': 'Excellent', 'stable': 'Stable', 'at_risk': 'À risque', 'critical': 'Critique'}
+        for p in active_projects_qs.select_related('manager')[:6]:
+            active_projects.append({
+                'name': p.name,
+                'client': p.client_name or '—',
+                'manager': p.manager.get_full_name() if p.manager else '—',
+                'budget': p.budget_total,
+                'spent': p.budget_spent,
+                'progress': p.progress_pct,
+                'deadline': p.end_date,
+                'status': p.get_status_display(),
+                'status_class': status_class_map.get(p.status, 'secondary'),
+                'health': health_map.get(p.health, p.health),
+                'priority': p.get_priority_display(),
+                'priority_class': priority_class_map.get(p.priority, 'secondary'),
+                'team': p.members.count(),
+            })
+
+        milestones = Milestone.objects.filter(
+            project__company=company
+        ).exclude(status__in=['completed', 'cancelled']).order_by('due_date')[:4]
+        milestone_data = [{
+            'project': m.project.name,
+            'title': m.name,
+            'date': m.due_date,
+            'status': m.get_status_display(),
+        } for m in milestones]
+
+    else:
+        total_projects = active_projects_count = completed_ytd = 0
+        total_budget = spent_budget = budget_pct = 0
+        on_schedule = delayed = overdue_tasks = 0
+        active_projects = []
+        milestone_data = []
+
     context = {
         'page_title': 'Gestion de Projets',
-
-        # KPIs Projets
-        'total_projects': 24,
-        'active_projects_count': 14,
-        'completed_ytd': 7,
-        'total_budget': 485_000_000,
-        'spent_budget': 298_400_000,
-        'budget_pct': 62,
-        'on_schedule': 10,
-        'delayed': 4,
-        'overdue_tasks': 4,
-        'completion_rate': 68,
-
-        # Liste des projets actifs
-        'active_projects': [
-            {
-                'name': 'Déploiement ERP Zone UEMOA',
-                'client': 'Gouvernement Sénégal',
-                'manager': 'A. Diallo',
-                'budget': 85_000_000,
-                'spent': 52_400_000,
-                'progress': 62,
-                'deadline': '30/06/2025',
-                'status': 'En cours',
-                'status_class': 'primary',
-                'health': 'Excellent',
-                'priority': 'Critique',
-                'priority_class': 'danger',
-                'team': 8,
-            },
-            {
-                'name': 'Refonte Système Comptable',
-                'client': 'Port Autonome',
-                'manager': 'M. Traoré',
-                'budget': 42_000_000,
-                'spent': 18_900_000,
-                'progress': 45,
-                'deadline': '15/05/2025',
-                'status': 'En cours',
-                'status_class': 'primary',
-                'health': 'Stable',
-                'priority': 'Haute',
-                'priority_class': 'warning',
-                'team': 5,
-            },
-            {
-                'name': 'Migration Cloud Infrastructure',
-                'client': 'Interne',
-                'manager': 'K. Coulibaly',
-                'budget': 68_000_000,
-                'spent': 71_200_000,
-                'progress': 105,
-                'deadline': '31/03/2025',
-                'status': 'En retard',
-                'status_class': 'danger',
-                'health': 'Critique',
-                'priority': 'Critique',
-                'priority_class': 'danger',
-                'team': 6,
-            },
-            {
-                'name': 'Expansion Centre Logistique Abidjan',
-                'client': 'Logistics SA',
-                'manager': 'F. Koné',
-                'budget': 124_000_000,
-                'spent': 89_200_000,
-                'progress': 72,
-                'deadline': '31/08/2025',
-                'status': 'En cours',
-                'status_class': 'primary',
-                'health': 'Excellent',
-                'priority': 'Haute',
-                'priority_class': 'warning',
-                'team': 12,
-            },
-            {
-                'name': 'Programme Formation Leadership',
-                'client': 'UEMOA Academy',
-                'manager': 'I. Sawadogo',
-                'budget': 15_000_000,
-                'spent': 14_200_000,
-                'progress': 95,
-                'deadline': '30/04/2025',
-                'status': 'Finalisation',
-                'status_class': 'success',
-                'health': 'Excellent',
-                'priority': 'Normale',
-                'priority_class': 'secondary',
-                'team': 3,
-            },
-            {
-                'name': 'Audit ISO 9001:2015',
-                'client': 'Certification Pro',
-                'manager': 'O. Bamba',
-                'budget': 8_500_000,
-                'spent': 3_200_000,
-                'progress': 38,
-                'deadline': '20/05/2025',
-                'status': 'En cours',
-                'status_class': 'primary',
-                'health': 'Stable',
-                'priority': 'Haute',
-                'priority_class': 'warning',
-                'team': 4,
-            },
-        ],
-
-        # Jalons à venir
-        'milestones': [
-            {'project': 'Déploiement ERP Zone UEMOA', 'title': 'Go-Live Sénégal', 'date': '01/04/2025', 'status': 'À venir'},
-            {'project': 'Migration Cloud', 'title': 'Revue post-migration', 'date': '05/04/2025', 'status': 'En retard'},
-            {'project': 'Refonte Système Comptable', 'title': 'UAT Validation', 'date': '15/04/2025', 'status': 'Planifié'},
-            {'project': 'Audit ISO 9001', 'title': 'Pré-audit interne', 'date': '20/04/2025', 'status': 'Planifié'},
-        ],
+        'total_projects': total_projects,
+        'active_projects_count': active_projects_count,
+        'completed_ytd': completed_ytd,
+        'total_budget': total_budget,
+        'spent_budget': spent_budget,
+        'budget_pct': budget_pct,
+        'on_schedule': on_schedule,
+        'delayed': delayed,
+        'overdue_tasks': overdue_tasks,
+        'completion_rate': budget_pct,
+        'active_projects': active_projects,
+        'milestones': milestone_data,
     }
     return render(request, 'projects/index.html', context)
+
+
+@login_required
+def project_detail(request, pk):
+    """Détail d'un projet"""
+    project = get_object_or_404(Project, pk=pk, company=_get_company(request))
+    tasks = project.tasks.select_related('assigned_to').order_by('status', 'due_date')
+    milestones = project.milestones.order_by('due_date')
+    budget_lines = project.budget_lines.all()
+    members = project.members.select_related('user')
+    context = {
+        'page_title': project.name,
+        'project': project,
+        'tasks': tasks,
+        'milestones': milestones,
+        'budget_lines': budget_lines,
+        'members': members,
+    }
+    return render(request, 'projects/project_detail.html', context)

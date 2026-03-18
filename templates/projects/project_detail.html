@@ -1,0 +1,164 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}{{ project.name }} — FinanceOS IA{% endblock %}
+{% block page_title %}{{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'projects' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour Projets
+        </a>
+        <a href="/admin/projects/project/{{ project.pk }}/change/" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </a>
+    </div>
+
+    <!-- Project Header -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="mb-2">
+                        <span class="badge bg-white bg-opacity-15 text-white me-2">{{ project.get_status_display }}</span>
+                        <span class="badge {% if project.priority == 'critical' %}bg-danger{% elif project.priority == 'high' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ project.get_priority_display }}</span>
+                    </div>
+                    <h3 class="text-white fw-bold mb-1">{{ project.name }}</h3>
+                    <p class="text-white opacity-75 mb-3">{{ project.client_name }} {% if project.manager %}· Chef: {{ project.manager.get_full_name }}{% endif %}</p>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small text-white opacity-75">Avancement</span>
+                            <span class="small text-white fw-bold">{{ project.progress_pct }}%</span>
+                        </div>
+                        <div style="height:8px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;">
+                            <div style="height:100%;width:{{ project.progress_pct }}%;background:{% if project.progress_pct >= 80 %}#10b981{% elif project.progress_pct >= 50 %}#f59e0b{% else %}#3b82f6{% endif %};border-radius:99px;transition:width .5s;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="text-white opacity-75 small mb-1">Budget Total</div>
+                    <div style="font-size:2rem;font-weight:900;" class="text-white">{{ project.budget_total|floatformat:0|intcomma }}</div>
+                    <div class="text-white opacity-75 small">{{ project.currency }}</div>
+                    {% if project.is_over_budget %}
+                    <span class="badge bg-danger mt-2">⚠️ Hors Budget</span>
+                    {% endif %}
+                    {% if project.is_overdue %}
+                    <span class="badge bg-warning text-dark mt-2">⏰ En Retard</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Tasks -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius:16px;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0">Tâches ({{ tasks.count }})</h6>
+                    <a href="/admin/projects/task/add/" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;">+ Tâche</a>
+                </div>
+                <div class="card-body p-0">
+                    {% for task in tasks %}
+                    <div class="d-flex align-items-center gap-3 px-4 py-3" style="border-bottom:1px solid #f8fafc;">
+                        <div>
+                            {% if task.status == 'done' %}
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            {% elif task.is_overdue %}
+                                <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                            {% elif task.status == 'in_progress' %}
+                                <i class="bi bi-play-circle-fill text-primary"></i>
+                            {% else %}
+                                <i class="bi bi-circle text-muted"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small {% if task.status == 'done' %}text-muted text-decoration-line-through{% endif %}">{{ task.title }}</div>
+                            {% if task.assigned_to %}
+                            <div class="text-muted" style="font-size:.75rem;"><i class="bi bi-person me-1"></i>{{ task.assigned_to.get_full_name }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <div class="small fw-bold">{{ task.estimated_hours }}h estimé</div>
+                            {% if task.due_date %}
+                            <div class="small {% if task.is_overdue %}text-danger{% else %}text-muted{% endif %}">{{ task.due_date }}</div>
+                            {% endif %}
+                        </div>
+                        <span class="badge {% if task.priority == 'urgent' %}bg-danger{% elif task.priority == 'high' %}bg-warning text-dark{% else %}bg-light text-dark border{% endif %}" style="font-size:.65rem;">{{ task.get_priority_display }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted"><i class="bi bi-list-check fs-3 d-block mb-2"></i>Aucune tâche. <a href="/admin/projects/task/add/" class="text-primary">Créer la première tâche</a></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Milestones -->
+            <div class="card border-0 shadow-sm mb-3" style="border-radius:16px;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Jalons</h6>
+                    {% for m in milestones %}
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div style="width:8px;height:8px;border-radius:50%;background:{% if m.status == 'completed' %}#10b981{% elif m.status == 'delayed' %}#ef4444{% else %}#2563eb{% endif %};flex-shrink:0;"></div>
+                        <div class="flex-grow-1">
+                            <div class="small fw-bold">{{ m.name }}</div>
+                            <div class="text-muted" style="font-size:.7rem;">{{ m.due_date }}</div>
+                        </div>
+                        <span class="badge {% if m.status == 'completed' %}bg-success{% elif m.status == 'delayed' %}bg-danger{% else %}bg-primary{% endif %}" style="font-size:.6rem;">{{ m.get_status_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small text-center">Aucun jalon</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Budget -->
+            <div class="card border-0 shadow-sm mb-3" style="border-radius:16px;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Budget</h6>
+                    {% for bl in budget_lines %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small">{{ bl.get_category_display }}</span>
+                        <span class="small fw-bold {% if bl.actual_amount > bl.planned_amount %}text-danger{% else %}text-muted{% endif %}">
+                            {{ bl.actual_amount|floatformat:0|intcomma }} / {{ bl.planned_amount|floatformat:0|intcomma }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small text-center">Aucune ligne budgétaire</p>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Total Dépensé</span>
+                        <span class="{% if project.is_over_budget %}text-danger{% else %}text-success{% endif %}">
+                            {{ project.budget_spent|floatformat:0|intcomma }} / {{ project.budget_total|floatformat:0|intcomma }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team -->
+            <div class="card border-0 shadow-sm" style="border-radius:16px;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Équipe ({{ members.count }})</h6>
+                    {% for m in members %}
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div style="width:32px;height:32px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:.7rem;font-weight:700;">
+                            {{ m.user.first_name|first }}{{ m.user.last_name|first }}
+                        </div>
+                        <div>
+                            <div class="small fw-bold">{{ m.user.get_full_name }}</div>
+                            <div class="text-muted" style="font-size:.7rem;">{{ m.get_role_display }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small text-center">Aucun membre d'équipe</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -470,3 +470,281 @@ class TaxDeclaration(models.Model):
     
     def __str__(self):
         return f"{self.get_tax_type_display()} - {self.period_start} to {self.period_end}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMMOBILISATIONS (FIXED ASSETS)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AssetCategory(models.Model):
+    """Catégorie d'immobilisation"""
+
+    class DepreciationMethod(models.TextChoices):
+        LINEAR = 'linear', _('Linéaire')
+        DECLINING = 'declining', _('Dégressif')
+        UNITS = 'units', _('Unités de production')
+
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='asset_categories'
+    )
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=10)
+    useful_life_years = models.IntegerField(default=5)
+    depreciation_method = models.CharField(
+        max_length=20, choices=DepreciationMethod.choices, default=DepreciationMethod.LINEAR
+    )
+    depreciation_rate = models.DecimalField(max_digits=5, decimal_places=2, default=20)
+
+    # Default accounts
+    asset_account = models.ForeignKey(
+        Account, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='category_asset'
+    )
+    depreciation_account = models.ForeignKey(
+        Account, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='category_depreciation'
+    )
+    accumulated_depreciation_account = models.ForeignKey(
+        Account, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='category_accum_depreciation'
+    )
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.code} — {self.name}"
+
+
+class FixedAsset(models.Model):
+    """Immobilisation"""
+
+    class Status(models.TextChoices):
+        ACTIVE = 'active', _('En service')
+        IDLE = 'idle', _('Non utilisé')
+        UNDER_REPAIR = 'under_repair', _('En réparation')
+        DISPOSED = 'disposed', _('Cédé')
+        FULLY_DEPRECIATED = 'fully_depreciated', _('Totalement amorti')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='fixed_assets'
+    )
+    entity = models.ForeignKey(
+        'accounts.Entity', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='fixed_assets'
+    )
+    category = models.ForeignKey(
+        AssetCategory, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='assets'
+    )
+
+    # Identification
+    asset_code = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    serial_number = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=200, blank=True)
+
+    # Acquisition
+    acquisition_date = models.DateField()
+    acquisition_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    residual_value = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    currency = models.CharField(max_length=3, default='XOF')
+
+    # Depreciation
+    useful_life_years = models.IntegerField(default=5)
+    depreciation_method = models.CharField(
+        max_length=20,
+        choices=AssetCategory.DepreciationMethod.choices,
+        default=AssetCategory.DepreciationMethod.LINEAR
+    )
+    depreciation_start_date = models.DateField()
+    accumulated_depreciation = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    net_book_value = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+
+    # Disposal
+    disposal_date = models.DateField(null=True, blank=True)
+    disposal_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    disposal_gain_loss = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.ACTIVE
+    )
+    linked_transaction = models.ForeignKey(
+        Transaction, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['asset_code']
+
+    def __str__(self):
+        return f"{self.asset_code} — {self.name}"
+
+    def depreciable_amount(self):
+        return self.acquisition_cost - self.residual_value
+
+    def annual_depreciation(self):
+        """Calcule l'amortissement annuel selon la méthode"""
+        if self.useful_life_years <= 0:
+            return 0
+        if self.depreciation_method == 'linear':
+            return round(self.depreciable_amount() / self.useful_life_years, 2)
+        elif self.depreciation_method == 'declining':
+            rate = 2 / self.useful_life_years  # Double declining
+            return round(float(self.net_book_value) * rate, 2)
+        return 0
+
+    def monthly_depreciation(self):
+        return round(float(self.annual_depreciation()) / 12, 2)
+
+    def save(self, *args, **kwargs):
+        self.net_book_value = self.acquisition_cost - self.accumulated_depreciation
+        super().save(*args, **kwargs)
+
+
+class AssetDepreciation(models.Model):
+    """Ligne d'amortissement mensuel"""
+
+    asset = models.ForeignKey(
+        FixedAsset, on_delete=models.CASCADE, related_name='depreciations'
+    )
+    period = models.DateField()  # Premier jour du mois
+    amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    accumulated = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    net_book_value = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    linked_transaction = models.ForeignKey(
+        Transaction, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    is_posted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['asset', 'period']
+        ordering = ['period']
+
+    def __str__(self):
+        return f"{self.asset} — {self.period} — {self.amount}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONSOLIDATION GROUPE (IFRS 10)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class InterCompanyElimination(models.Model):
+    """Élimination des flux inter-compagnies (IFRS 10)"""
+
+    class EliminationType(models.TextChoices):
+        RECEIVABLE_PAYABLE = 'receivable_payable', _('Créances / Dettes intra-groupe')
+        REVENUE_EXPENSE = 'revenue_expense', _('Produits / Charges intra-groupe')
+        INVESTMENT = 'investment', _('Titres de participation')
+        DIVIDEND = 'dividend', _('Dividendes intra-groupe')
+        UNREALIZED_PROFIT = 'unrealized_profit', _('Bénéfices non réalisés')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='eliminations'
+    )
+    elimination_type = models.CharField(max_length=30, choices=EliminationType.choices)
+
+    # Entities involved
+    entity_source = models.ForeignKey(
+        'accounts.Entity', on_delete=models.CASCADE, related_name='eliminations_source'
+    )
+    entity_target = models.ForeignKey(
+        'accounts.Entity', on_delete=models.CASCADE, related_name='eliminations_target'
+    )
+
+    # Period
+    period_start = models.DateField()
+    period_end = models.DateField()
+
+    # Amount
+    amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    currency = models.CharField(max_length=3, default='XOF')
+
+    # Accounts
+    debit_account = models.ForeignKey(
+        Account, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='elimination_debit'
+    )
+    credit_account = models.ForeignKey(
+        Account, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='elimination_credit'
+    )
+
+    description = models.TextField(blank=True)
+    is_posted = models.BooleanField(default=False)
+    linked_transaction = models.ForeignKey(
+        Transaction, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-period_end', 'elimination_type']
+
+    def __str__(self):
+        return (
+            f"{self.get_elimination_type_display()} — "
+            f"{self.entity_source} → {self.entity_target} — {self.amount}"
+        )
+
+
+class ConsolidationReport(models.Model):
+    """Rapport de consolidation groupe"""
+
+    class Status(models.TextChoices):
+        DRAFT = 'draft', _('Brouillon')
+        IN_REVIEW = 'in_review', _('En revue')
+        APPROVED = 'approved', _('Approuvé')
+        PUBLISHED = 'published', _('Publié')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='consolidation_reports'
+    )
+    period_start = models.DateField()
+    period_end = models.DateField()
+    title = models.CharField(max_length=255)
+
+    # Scope
+    included_entities = models.ManyToManyField(
+        'accounts.Entity', blank=True, related_name='consolidation_reports'
+    )
+    accounting_standard = models.CharField(
+        max_length=20,
+        choices=[
+            ('ifrs', 'IFRS'), ('ohada', 'OHADA'), ('syscohada', 'SYSCOHADA')
+        ],
+        default='ifrs'
+    )
+
+    # Financial data
+    consolidated_data = models.JSONField(default=dict, blank=True)
+    eliminations_total = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    consolidated_revenue = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    consolidated_net_income = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    consolidated_total_assets = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.DRAFT
+    )
+    generated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    generated_at = models.DateTimeField(auto_now_add=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='approved_consolidations'
+    )
+
+    class Meta:
+        ordering = ['-period_end']
+
+    def __str__(self):
+        return f"{self.title} — {self.period_start} → {self.period_end}"

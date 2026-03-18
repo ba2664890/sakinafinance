@@ -1,0 +1,113 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Employés — FinanceOS IA{% endblock %}
+{% block page_title %}Employés{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold mb-1">Gestion des Employés</h5>
+            <p class="text-muted small mb-0">{{ employees.count }} employé(s) actif(s) trouvé(s)</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr_payroll' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Retour RH
+            </a>
+            <a href="/admin/hr/employee/add/" class="btn btn-primary">
+                <i class="bi bi-person-plus me-1"></i>Ajouter
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-muted">Rechercher</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" value="{{ q }}" class="form-control bg-light border-0" placeholder="Nom, prénom, matricule...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Département</label>
+                    <select name="dept" class="form-select bg-light border-0">
+                        <option value="">Tous les départements</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if dept_filter == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Employee Table -->
+    <div class="card border-0 shadow-sm" style="border-radius:16px;">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" style="border-radius:16px;overflow:hidden;">
+                <thead style="background:#f8fafc;">
+                    <tr>
+                        <th class="px-4 py-3 text-muted" style="font-size:.7rem;font-weight:700;text-transform:uppercase;border:0;">Employé</th>
+                        <th class="py-3 text-muted" style="font-size:.7rem;font-weight:700;text-transform:uppercase;border:0;">Département</th>
+                        <th class="py-3 text-muted" style="font-size:.7rem;font-weight:700;text-transform:uppercase;border:0;">Poste</th>
+                        <th class="py-3 text-muted" style="font-size:.7rem;font-weight:700;text-transform:uppercase;border:0;">Contrat</th>
+                        <th class="py-3 text-muted" style="font-size:.7rem;font-weight:700;text-transform:uppercase;border:0;">Salaire Base</th>
+                        <th class="py-3 text-muted" style="font-size:.7rem;font-weight:700;text-transform:uppercase;border:0;">Statut</th>
+                        <th class="py-3 border:0;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td class="px-4 py-3" style="border-color:#f8fafc;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:38px;height:38px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.8rem;flex-shrink:0;">
+                                    {{ emp.first_name|first }}{{ emp.last_name|first }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="font-size:.9rem;">{{ emp.get_full_name }}</div>
+                                    <div class="text-muted" style="font-size:.75rem;">{{ emp.employee_number }} · {{ emp.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3" style="border-color:#f8fafc;font-size:.85rem;">{{ emp.department.name|default:'—' }}</td>
+                        <td class="py-3" style="border-color:#f8fafc;font-size:.85rem;">{{ emp.position.title|default:'—' }}</td>
+                        <td class="py-3" style="border-color:#f8fafc;">
+                            <span class="badge bg-light text-dark border" style="font-size:.7rem;">{{ emp.get_contract_type_display }}</span>
+                        </td>
+                        <td class="py-3 fw-bold" style="border-color:#f8fafc;font-size:.9rem;">{{ emp.base_salary|floatformat:0|intcomma }} {{ emp.currency }}</td>
+                        <td class="py-3" style="border-color:#f8fafc;">
+                            {% if emp.status == 'active' %}
+                                <span class="badge bg-success bg-opacity-15 text-success" style="font-size:.7rem;">Actif</span>
+                            {% elif emp.status == 'on_leave' %}
+                                <span class="badge bg-warning bg-opacity-15 text-warning" style="font-size:.7rem;">En congé</span>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-15 text-secondary" style="font-size:.7rem;">{{ emp.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3" style="border-color:#f8fafc;">
+                            <a href="{% url 'employee_detail' emp.pk %}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;">Voir fiche</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-people fs-2 d-block mb-2"></i>
+                            Aucun employé trouvé. <a href="/admin/hr/employee/add/" class="text-primary">Ajouter le premier employé</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
