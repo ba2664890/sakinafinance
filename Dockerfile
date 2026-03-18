@@ -30,5 +30,5 @@ RUN chmod +x /app/entrypoint.sh
 # Entrypoint setup
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Run gunicorn
-CMD ["gunicorn", "financeos.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Run gunicorn with dynamic port for Render
+CMD gunicorn financeos.wsgi:application --bind 0.0.0.0:${PORT:-8000}
