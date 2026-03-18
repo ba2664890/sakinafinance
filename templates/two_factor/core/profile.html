@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load two_factor_tags %}
+
+{% block title %}{% trans "Two-Factor Authentication" %} - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="row g-0">
+                        <!-- Left Info Panel -->
+                        <div class="col-lg-4 bg-primary text-white p-4 p-lg-5 d-none d-lg-flex flex-column justify-content-between">
+                            <div>
+                                <div class="brand-logo mb-4" style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                                <h3 class="fw-bold mb-4">Protection Active</h3>
+                                <p class="opacity-75 mb-4">Votre compte FinanceOS IA est protégé par une double couche de sécurité.</p>
+                                
+                                <div class="security-status mb-4">
+                                    <div class="d-flex align-items-center gap-2 text-white">
+                                        <i class="bi bi-patch-check-fill text-info"></i>
+                                        <span class="small font-monospace">STATUS: SECURE</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto pt-4 border-top border-white border-opacity-10 text-center text-lg-start">
+                                <p class="small opacity-50 mb-0">FinanceOS IA v3.0</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Management Panel -->
+                        <div class="col-lg-8 bg-white">
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="text-center text-lg-start mb-4">
+                                    <h3 class="fw-bold text-dark">Gérer votre Sécurité</h3>
+                                    <p class="text-muted">Gérez vos appareils et méthodes de double authentification.</p>
+                                </div>
+
+                                {% if default_device %}
+                                    <div class="device-card p-4 border rounded-3 mb-4 bg-light">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="device-icon bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                                <i class="bi bi-phone fs-3"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">Méthode Principale</h6>
+                                                <div class="text-muted small">
+                                                    {% if default_device_type == 'TOTPDevice' %}
+                                                        Application d'authentification (TOTP)
+                                                    {% elif default_device_type == 'PhoneDevice' %}
+                                                        SMS ou Appel ({{ default_device.number }})
+                                                    {% else %}
+                                                        {{ default_device }}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="actions-list d-grid gap-3">
+                                        <a href="{% url 'two_factor:backup_tokens' %}" class="btn btn-outline-dark py-3 d-flex align-items-center justify-content-between px-4 hover-elevate">
+                                            <span><i class="bi bi-key-fill me-2"></i> Codes de secours</span>
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+
+                                        <a href="{% url 'two_factor:disable' %}" class="btn btn-outline-danger py-3 d-flex align-items-center justify-content-between px-4 hover-elevate">
+                                            <span><i class="bi bi-shield-slash-fill me-2"></i> Désactiver la 2FA</span>
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <div class="mb-4">
+                                            <i class="bi bi-shield-exclamation text-warning" style="font-size: 4rem;"></i>
+                                        </div>
+                                        <h5 class="fw-bold">La 2FA n'est pas encore activée</h5>
+                                        <p class="text-muted small mb-4">Protégez votre compte et vos données financières avec la double authentification.</p>
+                                        <a href="{% url 'two_factor:setup' %}" class="btn btn-primary px-5 py-3 fw-bold rounded-3 shadow hover-elevate">
+                                            Activer Maintenant
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                <div class="mt-5 pt-4 border-top">
+                                    <a href="{% url 'profile' %}" class="text-muted small text-decoration-none">
+                                        <i class="bi bi-arrow-left me-1"></i>Retour au profil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-primary {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    .btn-primary:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+    }
+    .hover-elevate {
+        transition: all 0.3s ease;
+    }
+    .hover-elevate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+</style>
+{% endblock %}

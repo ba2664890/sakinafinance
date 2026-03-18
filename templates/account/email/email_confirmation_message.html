@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-primary">FinanceOS IA</h2>
+                    <p class="text-muted">Système d'Intelligence Financière Universel</p>
+                </div>
+
+                <div class="mb-4">
+                    <p>Bonjour,</p>
+                    <p>Merci de vous être inscrit sur FinanceOS IA ! Pour finaliser la création de votre compte et accéder à votre tableau de bord, veuillez confirmer votre adresse email en cliquant sur le bouton ci-dessous :</p>
+                </div>
+
+                <div class="text-center my-5">
+                    <a href="{{ activate_url }}" class="btn btn-primary btn-lg px-5 py-3 rounded-3 shadow-sm fw-bold">
+                        Confirmer mon adresse email
+                    </a>
+                </div>
+
+                <div class="mb-4">
+                    <p class="small text-muted">Si le bouton ne fonctionne pas, copiez et collez le lien suivant dans votre navigateur :</p>
+                    <p class="small text-break"><a href="{{ activate_url }}">{{ activate_url }}</a></p>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <div class="text-center small text-muted">
+                    <p class="mb-1">L'équipe FinanceOS IA</p>
+                    <p class="mb-0">Ceci est un mail automatique, merci de ne pas y répondre.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

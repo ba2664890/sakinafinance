@@ -1,0 +1,239 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}RH & Paie — FinanceOS IA{% endblock %}
+{% block page_title %}RH & Paie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hr-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card-glass {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card-glass::after {
+        content: "";
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: rgba(37, 99, 235, 0.03);
+        border-radius: 50%;
+    }
+
+    .stat-val { font-size: 1.75rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
+    .stat-lbl { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-sub { font-size: 0.7rem; color: #94a3b8; margin-top: 0.5rem; }
+
+    .hr-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; height: 100%; }
+    .hr-panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .hr-panel-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+    .hr-panel-content { padding: 1.5rem; }
+
+    .payroll-table { width: 100%; border-collapse: collapse; }
+    .payroll-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .payroll-table td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+    
+    .status-pill-hr { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.7rem; font-weight: 700; }
+    .pill-paid { background: #f0fdf4; color: #16a34a; }
+    .pill-pending { background: #fffbeb; color: #d97706; }
+
+    .dept-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .dept-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .dept-info { flex: 1; }
+    .dept-name { font-size: 0.8rem; font-weight: 600; color: #475569; }
+    .dept-bar { height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 0.25rem; }
+    .dept-fill { height: 100%; border-radius: 99px; }
+
+    .recruitment-card { border: 1px solid #f1f5f9; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+    .recruitment-card:hover { border-color: var(--primary-color); }
+    .recruit-title { font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 0.25rem; }
+    .recruit-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top Stats -->
+    <div class="hr-stats-grid">
+        <div class="stat-card-glass">
+            <div class="stat-val">{{ total_employees }}</div>
+            <div class="stat-lbl">Effectif Total</div>
+            <div class="stat-sub text-success fw-bold">+{{ new_hires }} ce mois</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="stat-val">{{ payroll_total|floatformat:0 }} $</div>
+            <div class="stat-lbl">Masse Salariale / Mois</div>
+            <div class="stat-sub text-danger fw-bold">+{{ payroll_growth }}% vs N-1</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="stat-val">{{ turnover_rate }}%</div>
+            <div class="stat-lbl">Taux de Turnover</div>
+            <div class="stat-sub text-muted">Moyenne secteur: 8.5%</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="stat-val">{{ satisfaction_score }}/100</div>
+            <div class="stat-lbl">eNPS (Engagement)</div>
+            <div class="stat-sub text-success fw-bold">Stable</div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Payroll History -->
+        <div class="col-lg-8">
+            <div class="hr-panel">
+                <div class="hr-panel-header">
+                    <h6>Historique des Paies (Payroll)</h6>
+                    <button class="btn btn-sm btn-primary">Lancer la Paie Avr 2025</button>
+                </div>
+                <div class="hr-panel-content p-0">
+                    <table class="payroll-table">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Effectif</th>
+                                <th>Brut Total</th>
+                                <th>Net à Payer</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for run in payroll_runs %}
+                            <tr>
+                                <td class="fw-bold">{{ run.period }}</td>
+                                <td>{{ run.employees }}</td>
+                                <td>{{ run.gross|floatformat:0 }}</td>
+                                <td class="fw-bold">{{ run.net|floatformat:0 }}</td>
+                                <td>
+                                    <span class="status-pill-hr {% if run.status == 'Payé' %}pill-paid{% else %}pill-pending{% endif %}">
+                                        {{ run.status }}
+                                    </span>
+                                </td>
+                                <td><button class="btn btn-sm text-primary p-0"><i class="bi bi-file-earmark-spreadsheet"></i></button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top text-center"><a href="#" class="small fw-bold text-primary text-decoration-none">Tous les bulletins consolidés</a></div>
+            </div>
+        </div>
+
+        <!-- Dept Distribution -->
+        <div class="col-lg-4">
+            <div class="hr-panel">
+                <div class="hr-panel-header"><h6>Répartition par Département</h6></div>
+                <div class="hr-panel-content">
+                    <canvas id="deptChart" style="max-height: 180px; margin-bottom: 1.5rem;"></canvas>
+                    {% for dept in departments %}
+                    <div class="dept-item">
+                        <div class="dept-color bg-{{ dept.color }}"></div>
+                        <div class="dept-info">
+                            <div class="d-flex justify-content-between">
+                                <span class="dept-name">{{ dept.name }}</span>
+                                <span class="small text-muted">{{ dept.count }}</span>
+                            </div>
+                            <div class="dept-bar"><div class="dept-fill bg-{{ dept.color }}" style="width: {{ dept.pct }}%"></div></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Leave Summary -->
+        <div class="col-lg-6">
+            <div class="hr-panel">
+                <div class="hr-panel-header"><h6>Congés &amp; Absences</h6></div>
+                <div class="hr-panel-content">
+                    <div class="row text-center mb-4">
+                        <div class="col-4 border-end">
+                            <div class="h4 fw-bold mb-0">15</div>
+                            <div class="small text-muted">En attente</div>
+                        </div>
+                        <div class="col-4 border-end">
+                            <div class="h4 fw-bold mb-0 text-success">44</div>
+                            <div class="small text-muted">Approuvés</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="h4 fw-bold mb-0 text-primary">15</div>
+                            <div class="small text-muted">En cours</div>
+                        </div>
+                    </div>
+                    {% for leave in leave_summary %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-light border-start border-4 border-primary">
+                        <div class="fw-bold small">{{ leave.type }}</div>
+                        <div class="small text-muted">
+                            <span class="badge bg-white text-dark border">{{ leave.pending }}</span>
+                            <span class="badge bg-success">{{ leave.approved }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recruitments -->
+        <div class="col-lg-6">
+            <div class="hr-panel">
+                <div class="hr-panel-header">
+                    <h6>Recrutements Actifs</h6>
+                    <span class="badge bg-soft-blue text-primary">{{ recruitments|length }} Postes</span>
+                </div>
+                <div class="hr-panel-content">
+                    {% for job in recruitments %}
+                    <div class="recruitment-card">
+                        <div class="recruit-title">{{ job.title }}</div>
+                        <div class="recruit-meta">
+                            <span><i class="bi bi-building me-1"></i>{{ job.dept }}</span>
+                            <span><i class="bi bi-people me-1"></i>{{ job.candidates }} Candidats</span>
+                            <span class="fw-bold text-primary">{{ job.stage }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-outline-primary w-100 btn-sm mt-2">Gérer le portail carrière</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('deptChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [{% for d in departments %}"{{ d.name }}",{% endfor %}],
+            datasets: [{
+                data: [{% for d in departments %}{{ d.count }},{% endfor %}],
+                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#06b6d4', '#64748b', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+});
+</script>
+{% endblock %}

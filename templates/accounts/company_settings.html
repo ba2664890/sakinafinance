@@ -1,0 +1,139 @@
+{% extends 'dashboard_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Paramètres de l'Entreprise - FinanceOS IA{% endblock %}
+{% block page_title %}Paramètres de l'Entreprise{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-9 col-lg-10 mx-auto">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom p-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-3" style="font-size: 1.5rem;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1 fw-bold">Gestion de l'Entreprise</h4>
+                        <p class="text-muted mb-0 small text-uppercase fw-semibold tracking-wider">Identité, Fiscalité et Préférences</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4 p-lg-5">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2">Identité de l'Entreprise</h5>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.legal_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.legal_form|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.capital|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.company_type|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2">Informations Fiscales & Légales</h5>
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.registration_number|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.tax_id|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.vat_number|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.accounting_standard|as_crispy_field }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.fiscal_year_start|as_crispy_field }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.fiscal_year_end|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2">Coordonnées & Siège</h5>
+                        </div>
+                        <div class="col-md-12">
+                            {{ form.address|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.city|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.postal_code|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.country|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.phone|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.email|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.website|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-12">
+                            <h5 class="fw-bold mb-3 border-bottom pb-2">Préférences Système</h5>
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.base_currency|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.timezone|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.language|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="{% url 'dashboard' %}" class="btn btn-light px-4">Annuler</a>
+                        <button type="submit" class="btn btn-primary px-5">
+                            <i class="bi bi-save me-2"></i>Mettre à jour les paramètres
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05) !important;
+    }
+    .form-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #475569;
+    }
+</style>
+{% endblock %}

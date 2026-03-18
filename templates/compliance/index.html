@@ -1,0 +1,203 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Fiscalité & Conformité — FinanceOS IA{% endblock %}
+{% block page_title %}Fiscalité & Réglementaire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compliance-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .c-kpi-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+
+    .c-kpi-card:hover { transform: translateY(-3px); border-color: var(--primary-color); }
+
+    .c-kpi-val { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem; }
+    .c-kpi-lbl { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .compliance-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .c-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; height: 100%; }
+    .c-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .c-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+
+    .c-table { width: 100%; border-collapse: collapse; }
+    .c-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .c-table td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+
+    .badge-deadline { padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
+    .deadline-urgent { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    .deadline-normal { background: #f1f5f9; color: #475569; }
+
+    .risk-item { padding: 1rem; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; position: relative; border-left: 4px solid #e2e8f0; }
+    .risk-item-danger { border-left-color: #ef4444; background: #fffafb; }
+    .risk-item-warning { border-left-color: #f59e0b; background: #fffdfa; }
+    .risk-item-success { border-left-color: #10b981; background: #fafffc; }
+
+    .risk-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
+    .risk-meta { font-size: 0.75rem; color: #64748b; display: flex; justify-content: space-between; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top KPIs -->
+    <div class="compliance-kpis">
+        <div class="c-kpi-card">
+            <div class="c-kpi-val">{{ compliance_score }}%</div>
+            <div class="c-kpi-lbl">Score Conformité</div>
+        </div>
+        <div class="c-kpi-card">
+            <div class="c-kpi-val text-danger">{{ open_risks }}</div>
+            <div class="c-kpi-lbl">Risques Ouverts</div>
+        </div>
+        <div class="c-kpi-card">
+            <div class="c-kpi-val text-warning">{{ declarations_pending }}</div>
+            <div class="c-kpi-lbl">Décl. en attente</div>
+        </div>
+        <div class="c-kpi-card">
+            <div class="c-kpi-val">{{ tax_provision|floatformat:0 }} $</div>
+            <div class="c-kpi-lbl">Provision Impôts</div>
+        </div>
+        <div class="c-kpi-card">
+            <div class="c-kpi-val text-primary">{{ next_deadline_days }} Jrs</div>
+            <div class="c-kpi-lbl">Prochaine Échéance</div>
+        </div>
+    </div>
+
+    <div class="compliance-grid mb-4">
+        <!-- Tax Calendar -->
+        <div class="left-col">
+            <div class="c-panel">
+                <div class="c-header">
+                    <h6>Calendrier Fiscal & Social</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light border"><i class="bi bi-calendar3 me-1"></i> Calendrier</button>
+                    </div>
+                </div>
+                <div class="p-0">
+                    <table class="c-table">
+                        <thead>
+                            <tr>
+                                <th>Échéance</th>
+                                <th>Impôt / Taxe</th>
+                                <th>Entité</th>
+                                <th>Montant Est.</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in tax_calendar %}
+                            <tr>
+                                <td>
+                                    <span class="badge-deadline {% if item.urgent %}deadline-urgent{% else %}deadline-normal{% endif %}">
+                                        {{ item.deadline }}
+                                    </span>
+                                    <div class="small text-muted mt-1">{{ item.days_left }} jours restants</div>
+                                </td>
+                                <td class="fw-bold">{{ item.tax }}</td>
+                                <td class="small">{{ item.entity }}</td>
+                                <td class="fw-bold">{{ item.amount|floatformat:0 }}</td>
+                                <td><span class="badge bg-{{ item.status_class }}">{{ item.status }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top text-center"><a href="#" class="small fw-bold text-primary text-decoration-none">Voir tout l'historique des déclarations</a></div>
+            </div>
+        </div>
+
+        <!-- Risks & Regulation -->
+        <div class="right-col">
+            <div class="c-panel">
+                <div class="c-header"><h6>Analyse des Risques (Audit)</h6></div>
+                <div class="p-3">
+                    {% for risk in risks %}
+                    <div class="risk-item risk-item-{{ risk.level }}">
+                        <div class="risk-title">{{ risk.description }}</div>
+                        <div class="small text-muted">{{ risk.impact }}</div>
+                        <div class="risk-meta">
+                            <span class="fw-bold text-{{ risk.level }}">Proba: {{ risk.probability }}</span>
+                            <span class="badge bg-light text-dark border">{{ risk.status }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-outline-danger w-100 btn-sm mt-3"><i class="bi bi-shield-exclamation me-1"></i> Lancer Auto-Audit IA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recently Filed -->
+        <div class="col-lg-8">
+            <div class="c-panel">
+                <div class="c-header"><h6>Derniers Dépôts Validés</h6></div>
+                <div class="p-0">
+                    <table class="c-table">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Taxe</th>
+                                <th>Entité</th>
+                                <th>Montant Payé</th>
+                                <th>Date Dépôt</th>
+                                <th>Réception</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in filed_declarations %}
+                            <tr>
+                                <td class="fw-bold">{{ doc.period }}</td>
+                                <td>{{ doc.tax }}</td>
+                                <td>{{ doc.entity }}</td>
+                                <td class="fw-bold">{{ doc.amount|floatformat:0 }}</td>
+                                <td>{{ doc.filed }}</td>
+                                <td class="text-mono small">{{ doc.receipt }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legal Entities -->
+        <div class="col-lg-4">
+            <div class="c-panel">
+                <div class="c-header"><h6>Entités Légales & Identifiants</h6></div>
+                <div class="p-3">
+                    {% for ent in entities %}
+                    <div class="p-3 mb-3 border rounded shadow-sm">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="m-0 fw-bold">{{ ent.name }}</h6>
+                            <span class="badge bg-success">{{ ent.status }}</span>
+                        </div>
+                        <div class="small text-muted mb-1">Pays: {{ ent.country }}</div>
+                        <div class="small fw-bold">NIF/TIN: {{ ent.tin }}</div>
+                        <div class="small">TVA: {{ ent.vat_reg }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

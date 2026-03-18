@@ -1,0 +1,178 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Gestion de Projets — FinanceOS IA{% endblock %}
+{% block page_title %}Gestion de Projets & Investissements{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .proj-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+    .proj-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
+    .proj-lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+
+    .projects-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
+    .proj-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .proj-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+
+    .proj-table { width: 100%; border-collapse: collapse; }
+    .proj-table th { text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 1rem; border-bottom: 1px solid #f1f5f9; }
+    .proj-table td { padding: 1.25rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+
+    .proj-name { font-weight: 700; color: #1e293b; display: block; }
+    .proj-client { font-size: 0.75rem; color: #64748b; }
+
+    .progress-wrapper { width: 120px; }
+    .progress-label { font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 0.25rem; display: block; }
+
+    .milestone-item { padding: 1rem; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; position: relative; }
+    .milestone-date { width: 50px; text-align: center; border-right: 1px solid #f1f5f9; padding-right: 1rem; flex-shrink: 0; }
+    .milestone-date .day { font-size: 1.25rem; font-weight: 800; color: #0f172a; line-height: 1; }
+    .milestone-date .month { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+
+    .milestone-info h6 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.1rem; }
+    .milestone-info p { font-size: 0.75rem; color: #94a3b8; margin: 0; }
+
+    .budget-pill { background: #f1f5f9; color: #475569; padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top KPIs -->
+    <div class="project-kpis">
+        <div class="proj-card">
+            <div class="proj-val">{{ active_projects_count }}</div>
+            <div class="proj-lbl">Projets en Cours</div>
+            <div class="mt-3 small text-success fw-bold"><i class="bi bi-clock me-1"></i>En avance sur planning</div>
+        </div>
+        <div class="proj-card">
+            <div class="proj-val">{{ total_budget|floatformat:0 }} $</div>
+            <div class="proj-lbl">Budget Total Engagé</div>
+            <div class="mt-3 small text-muted">Répartition: 60% CAPEX / 40% OPEX</div>
+        </div>
+        <div class="proj-card">
+            <div class="proj-val">{{ completion_rate }}%</div>
+            <div class="proj-lbl">Taux de Complétion</div>
+            <div class="mt-3 progress" style="height: 6px;">
+                <div class="progress-bar bg-primary" style="width: {{ completion_rate }}%"></div>
+            </div>
+        </div>
+        <div class="proj-card">
+            <div class="proj-val text-danger">{{ overdue_tasks }}</div>
+            <div class="proj-lbl">Tâches en Retard</div>
+            <div class="mt-3 small text-muted">Priorité: Haute (7), Moyenne (4)</div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Active Projects Table -->
+        <div class="col-lg-8">
+            <div class="projects-panel">
+                <div class="proj-header">
+                    <h6>Suivi Opérationnel des Projets</h6>
+                    <button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Nouveau Projet</button>
+                </div>
+                <div class="p-0">
+                    <table class="proj-table">
+                        <thead>
+                            <tr>
+                                <th>Projet</th>
+                                <th>Budget</th>
+                                <th>Progression</th>
+                                <th>Santé</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in active_projects %}
+                            <tr>
+                                <td>
+                                    <span class="proj-name">{{ project.name }}</span>
+                                    <span class="proj-client">{{ project.client }}</span>
+                                </td>
+                                <td>
+                                    <span class="budget-pill">{{ project.budget|floatformat:0 }} $</span>
+                                </td>
+                                <td>
+                                    <div class="progress-wrapper">
+                                        <span class="progress-label">{{ project.progress }}%</span>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-primary" style="width: {{ project.progress }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if project.health == 'Excellent' %}success{% elif project.health == 'Stable' %}primary{% else %}warning{% endif %}" style="font-size: 0.7rem;">
+                                        {{ project.health }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-light border"><i class="bi bi-gear"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top text-center"><a href="#" class="small fw-bold text-primary text-decoration-none">Consulter le portfolio complet</a></div>
+            </div>
+        </div>
+
+        <!-- Milestones list -->
+        <div class="col-lg-4">
+            <div class="projects-panel">
+                <div class="proj-header"><h6>Jalons Prochains (Milestones)</h6></div>
+                <div class="p-3">
+                    {% for ms in milestones %}
+                    <div class="milestone-item">
+                        <div class="milestone-date">
+                            <div class="day">{{ ms.date|slice:":2" }}</div>
+                            <div class="month">{{ ms.date|slice:"3:6" }}</div>
+                        </div>
+                        <div class="milestone-info">
+                            <h6>{{ ms.title }}</h6>
+                            <p>{{ ms.project }}</p>
+                        </div>
+                        <div class="ms-auto"><i class="bi bi-chevron-right text-muted"></i></div>
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-outline-primary w-100 btn-sm mt-3">Calendrier d'investissements</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Project Analysis -->
+    <div class="row">
+        <div class="col-12">
+            <div class="projects-panel bg-dark text-white p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div style="font-size: 3.5rem; color: #60a5fa;"><i class="bi bi-robot"></i></div>
+                    </div>
+                    <div class="col-md-7">
+                        <h5 class="fw-bold mb-2">IA Project Insights: Risque de dérive budgétaire</h5>
+                        <p class="mb-0 opacity-75 small">L'analyse IA détecte une probabilité de <span class="text-warning fw-bold">15% de dépassement budgétaire</span> sur le projet "Cloud Migration" suite à l'augmentation des coûts GPU. Nous recommandons de recalculer les provisions de contingence pour le Q3.</p>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <button class="btn btn-primary">Simuler les Scénarios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

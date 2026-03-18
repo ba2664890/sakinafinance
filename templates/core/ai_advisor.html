@@ -1,0 +1,223 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}IA Advisor - FinanceOS IA{% endblock %}
+{% block page_title %}IA Advisor System{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Chat Interface -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-success bg-opacity-10 rounded p-1">
+                        <i class="bi bi-robot text-success"></i>
+                    </div>
+                    <span>IA Advisor</span>
+                    <span class="badge bg-success bg-opacity-10 text-success">Real-time ERP Connection: Active</span>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary me-2">
+                        <i class="bi bi-share me-1"></i>Share
+                    </button>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="bi bi-download me-1"></i>Export Analysis
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0 d-flex flex-column" style="height: 600px;">
+                <!-- Chat Messages -->
+                <div class="flex-grow-1 p-4 overflow-auto" id="chatMessages">
+                    <!-- User Message -->
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 rounded-circle p-2">
+                                <i class="bi bi-person text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="bg-light rounded p-3">
+                                <p class="mb-0">Can you explain why our EBITDA margin dropped by 12% in Q3 vs Q2, and show the major cost drivers?</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Response -->
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded-circle p-2">
+                                <i class="bi bi-robot text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="bg-light rounded p-3">
+                                <p class="mb-3">Analysis complete. Your EBITDA margin dropped from <strong class="text-primary">34.2%</strong> in Q2 to <strong class="text-danger">22.1%</strong> in Q3. The primary driver is a <strong class="text-danger">20.4% increase</strong> in Cost of Goods Sold (COGS), specifically concentrated in logistics and raw material procurement.</p>
+                                
+                                <!-- EBITDA Bridge Chart -->
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">EBITDA BRIDGE ANALYSIS</h6>
+                                        <small class="text-muted">All values in USD '000</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="ebitdaBridgeChart" height="200"></canvas>
+                                    </div>
+                                </div>
+                                
+                                <!-- Insights -->
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading"><i class="bi bi-lightbulb me-2"></i>INSIGHTS - CORE INTELLIGENCE EXTRACTS</h6>
+                                    <ul class="mb-0">
+                                        <li>Shipping costs increased by <strong>45%</strong> due to new carrier contracts initiated in July <a href="#" class="text-primary">[Ref 1]</a></li>
+                                        <li>Inventory write-downs of <strong>$42k</strong> occurred in the electronics division <a href="#" class="text-primary">[Ref 4]</a></li>
+                                        <li>Marketing spend exceeded budget by <strong>12%</strong> in the "Back to School" campaign <a href="#" class="text-primary">[Ref 7]</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="p-3 border-top">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Ask FinanceOS IA about your cash flow, burn rate, or budget...">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-mic"></i>
+                        </button>
+                        <button class="btn btn-primary" type="button">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Suggested Analysis -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Suggested Analysis</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-trending-down text-danger me-3"></i>
+                        <div>
+                            <p class="mb-0 fw-medium">Analyze EBITDA drop</p>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-cash-stack text-success me-3"></i>
+                        <div>
+                            <p class="mb-0 fw-medium">Predict Q4 Cash</p>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-graph-up text-primary me-3"></i>
+                        <div>
+                            <p class="mb-0 fw-medium">Forecast runway</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Database Intelligence -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">DATABASE INTELLIGENCE</h6>
+                <span class="badge bg-primary">7 CITATIONS</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary">[REF 01]</span>
+                        <small class="text-muted">Jul 12, 2023</small>
+                    </div>
+                    <h6 class="mb-1">Carrier Agreement - GlobalLogistics</h6>
+                    <p class="mb-2 small text-muted">"Updated fuel surcharge and baseline container rates reflected in invoice #GL-449..."</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light text-dark"><i class="bi bi-file-text me-1"></i>ACCOUNTS PAYABLE LEDGER</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary">[REF 04]</span>
+                        <small class="text-muted">Aug 30, 2023</small>
+                    </div>
+                    <h6 class="mb-1">Inventory Audit - Whse B</h6>
+                    <p class="mb-2 small text-muted">"Write-down adjustment for SKU-8822 (Obsolete status)..."</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light text-dark"><i class="bi bi-table me-1"></i>INVENTORY LEDGER</span>
+                    </div>
+                </div>
+                
+                <div class="p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-primary">[REF 07]</span>
+                        <small class="text-muted">Sep 15, 2023</small>
+                    </div>
+                    <h6 class="mb-1">AdWords Monthly Billing</h6>
+                    <p class="mb-2 small text-muted">"Total spend for campaign exceeded initial forecast by 12.4%..."</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light text-dark"><i class="bi bi-credit-card me-1"></i>MARKETING BUDGET</span>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline-primary w-100 mt-3">
+                    VIEW ALL 7 CITATIONS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // EBITDA Bridge Chart
+    const ctx = document.getElementById('ebitdaBridgeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Q2 EBITDA', 'COGS', 'OPEX', 'REVENUE', 'Q3 EBITDA'],
+            datasets: [{
+                label: 'Impact',
+                data: [1420, -320, -110, 85, 1075],
+                backgroundColor: [
+                    '#3b82f6',
+                    '#ef4444',
+                    '#ef4444',
+                    '#10b981',
+                    '#3b82f6'
+                ],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#e2e8f0'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

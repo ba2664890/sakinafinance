@@ -1,0 +1,23 @@
+{% extends 'dashboard_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ page_title|default:"Paramètres" }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">Paramètres de l'application</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted">Configuration générale de votre compte et de l'interface FinanceOS IA.</p>
+                <!-- Ajouter le formulaire de paramètres ici à l'avenir -->
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i> Les paramètres système seront bientôt disponibles dans cette section.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

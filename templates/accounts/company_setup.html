@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Configuration de l'Entreprise - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="row g-0">
+                        <!-- Left Info Panel -->
+                        <div class="col-md-4 bg-primary text-white p-4 p-lg-5 d-none d-md-flex flex-column justify-content-between">
+                            <div>
+                                <div class="brand-logo mb-4" style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                                    <i class="bi bi-bar-chart-fill"></i>
+                                </div>
+                                <h3 class="fw-bold mb-3">Dernière étape !</h3>
+                                <p class="opacity-75">Configurez votre environnement de travail pour commencer à utiliser FinanceOS IA.</p>
+                                
+                                <ul class="list-unstyled mt-5">
+                                    <li class="mb-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-white"></i>
+                                        <span>Paramètres fiscaux</span>
+                                    </li>
+                                    <li class="mb-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-white"></i>
+                                        <span>Devise de base</span>
+                                    </li>
+                                    <li class="mb-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-white"></i>
+                                        <span>Conformité légale</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <p class="small opacity-50 mb-0">FinanceOS IA v3.0</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Form Panel -->
+                        <div class="col-md-8 bg-white">
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="mb-4 d-md-none text-center">
+                                    <h4 class="fw-bold">Configuration de l'Entreprise</h4>
+                                </div>
+                                
+                                <form method="post" class="needs-validation" novalidate>
+                                    {% csrf_token %}
+                                    
+                                    <h5 class="fw-bold mb-3">Informations Générales</h5>
+                                    <div class="row mb-4">
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.name|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.legal_name|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    
+                                    <h5 class="fw-bold mb-3">Structure & Conformité</h5>
+                                    <div class="row mb-4">
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.company_type|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.accounting_standard|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.tax_id|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            {{ form.registration_number|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    
+                                    <h5 class="fw-bold mb-3">Paramètres Locaux</h5>
+                                    <div class="row mb-4">
+                                        <div class="col-md-4 mb-3">
+                                            {{ form.base_currency|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            {{ form.timezone|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            {{ form.language|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid mt-4">
+                                        <button type="submit" class="btn btn-primary py-3 fw-bold">
+                                            Terminer la configuration <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link text-white-50 small text-decoration-none">
+                            <i class="bi bi-box-arrow-left me-1"></i>Se déconnecter et terminer plus tard
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-primary {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    .btn-primary:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+    }
+    .text-primary {
+        color: #3b82f6 !important;
+    }
+</style>
+{% endblock %}

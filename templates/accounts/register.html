@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load socialaccount %}
+
+{% block title %}Créer un compte - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="row g-0">
+                        <!-- Left Info Panel -->
+                        <div class="col-lg-4 bg-primary text-white p-4 p-lg-5 d-none d-lg-flex flex-column justify-content-between">
+                            <div>
+                                <div class="brand-logo mb-4" style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                    <i class="bi bi-bar-chart-fill"></i>
+                                </div>
+                                <h2 class="fw-bold mb-4">Finance<span style="color: rgba(255,255,255,0.7);">OS</span></h2>
+                                <h4 class="fw-bold mb-3">Propulsez votre gestion financière par l'IA.</h4>
+                                <p class="opacity-75 mb-5">Rejoignez des milliers d'entreprises qui automatisent leur finance et leur conformité avec FinanceOS IA.</p>
+                                
+                                <div class="features-list">
+                                    <div class="d-flex align-items-start gap-3 mb-4">
+                                        <div class="feature-icon bg-white bg-opacity-25 rounded p-2">
+                                            <i class="bi bi-lightning-charge-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Analyse prédictive</h6>
+                                            <small class="opacity-75">Anticipez vos flux de trésorerie avec 98% de précision.</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start gap-3 mb-4">
+                                        <div class="feature-icon bg-white bg-opacity-25 rounded p-2">
+                                            <i class="bi bi-shield-lock-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Conformité Totale</h6>
+                                            <small class="opacity-75">SYSCOHADA, IFRS, et réglementations locales automatisées.</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="feature-icon bg-white bg-opacity-25 rounded p-2">
+                                            <i class="bi bi-cpu-fill"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Intelligence Artificielle</h6>
+                                            <small class="opacity-75">Un conseiller financier IA disponible 24h/7j.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto pt-5 border-top border-white border-opacity-10 text-center text-lg-start">
+                                <p class="small opacity-50 mb-0">FinanceOS IA v3.0 — Trusted by Enterprise</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Form Panel -->
+                        <div class="col-lg-8 bg-white">
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="text-center text-lg-start mb-5">
+                                    <h3 class="fw-bold text-dark">Créez votre compte gratuit</h3>
+                                    <p class="text-muted">Commencez votre essai de 14 jours, aucune carte requise.</p>
+                                </div>
+                                
+                                <!-- Social Signup Header -->
+                                <div class="d-grid gap-2 mb-4">
+                                    <a href="{% provider_login_url 'google' %}" class="btn btn-outline-light border text-dark py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm hover-elevate">
+                                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
+                                        <span class="fw-semibold">S'inscrire avec Google</span>
+                                    </a>
+                                </div>
+
+                                <div class="d-flex align-items-center mb-4">
+                                    <hr class="flex-grow-1 opacity-10">
+                                    <span class="mx-3 text-muted small text-uppercase fw-bold">ou via formulaire</span>
+                                    <hr class="flex-grow-1 opacity-10">
+                                </div>
+
+                                <form method="post" class="needs-validation" novalidate>
+                                    {% csrf_token %}
+                                    
+                                    {% if form.non_field_errors %}
+                                        <div class="alert alert-danger shadow-sm border-0 mb-4">
+                                            {% for error in form.non_field_errors %}
+                                                <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Section 1: User Info -->
+                                    <div class="form-section mb-5">
+                                        <div class="d-flex align-items-center gap-2 mb-4">
+                                            <span class="step-number">1</span>
+                                            <h5 class="fw-bold mb-0">Vos Informations</h5>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                {{ form.first_name|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.last_name|as_crispy_field }}
+                                            </div>
+                                            <div class="col-12">
+                                                {{ form.email|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.password1|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.password2|as_crispy_field }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr class="my-4 opacity-10">
+                                    
+                                    <!-- Section 2: Company Info -->
+                                    <div class="form-section mb-5">
+                                        <div class="d-flex align-items-center gap-2 mb-4">
+                                            <span class="step-number">2</span>
+                                            <h5 class="fw-bold mb-0">Votre Entreprise</h5>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-md-12">
+                                                {{ form.company_name|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.company_type|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.registration_number|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.city|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-6">
+                                                {{ form.country|as_crispy_field }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-check mb-4">
+                                        <input class="form-check-input" type="checkbox" id="terms" required>
+                                        <label class="form-check-label text-muted small" for="terms">
+                                            J'accepte les <a href="#" class="text-primary text-decoration-none fw-bold">Conditions Générales d'Utilisation</a> et la <a href="#" class="text-primary text-decoration-none fw-bold">Politique de Confidentialité</a>.
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-3">
+                                        <button type="submit" class="btn btn-primary py-3 fw-bold rounded-3 shadow">
+                                            Créer mon compte et mon entreprise <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                        <p class="text-center text-muted small mt-2">
+                                            Vous avez déjà un compte ? <a href="{% url 'login' %}" class="text-primary text-decoration-none fw-bold">Se connecter</a>
+                                        </p>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'home' %}" class="text-white-50 small text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-primary {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-primary:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3) !important;
+    }
+    .text-primary {
+        color: #3b82f6 !important;
+    }
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .feature-icon i {
+        font-size: 1.25rem;
+    }
+    .form-control, .form-select {
+        padding: 0.75rem 1rem;
+        border-color: #e2e8f0;
+        border-radius: 0.5rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .form-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}

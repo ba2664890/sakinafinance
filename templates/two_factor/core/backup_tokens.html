@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Backup Tokens" %} - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-6 col-lg-8">
+                <div class="card border-0 shadow-lg p-4 p-lg-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle d-inline-block mb-3">
+                            <i class="bi bi-key-fill fs-2"></i>
+                        </div>
+                        <h3 class="fw-bold">Codes de Secours</h3>
+                        <p class="text-muted small">Conservez ces codes précieusement. Ils vous permettront d'accéder à votre compte si vous perdez votre téléphone.</p>
+                    </div>
+
+                    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-3 mb-4">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Attention</h6>
+                            <small>Chaque code ne peut être utilisé qu'une seule fois. Imprimez-les ou copiez-les dans un gestionnaire de mots de passe sécurisé.</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4 font-monospace">
+                        {% for token in backup_tokens %}
+                            <div class="col-6">
+                                <div class="p-2 border rounded bg-light text-center fw-bold">{{ token }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button onclick="window.print()" class="btn btn-dark py-3 fw-bold rounded-3">
+                            <i class="bi bi-printer me-2"></i> Imprimer les codes
+                        </button>
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary py-3 fw-bold rounded-3 w-100">
+                                J'ai bien noté les codes <i class="bi bi-check2 ms-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

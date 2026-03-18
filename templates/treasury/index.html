@@ -1,0 +1,403 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Trésorerie & Cash Flow — FinanceOS IA{% endblock %}
+{% block page_title %}Trésorerie & Cash Flow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .treasury-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .premium-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .premium-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .icon-blue { background: rgba(37, 99, 235, 0.1); color: var(--primary-color); }
+    .icon-green { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+    .icon-purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+    .icon-orange { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+
+    .kpi-value-big {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.25rem;
+        color: #0f172a;
+    }
+
+    .kpi-label-refined {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+
+    .trend-indicator {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 99px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .trend-up { background: #f0fdf4; color: #16a34a; }
+    .trend-down { background: #fef2f2; color: #dc2626; }
+
+    .bank-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.2s;
+    }
+
+    .bank-item:last-child { border-bottom: none; }
+    .bank-item:hover { background: #f8fafc; }
+
+    .bank-info h6 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        color: #1e293b;
+    }
+
+    .bank-info p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0;
+    }
+
+    .bank-balance {
+        text-align: right;
+    }
+
+    .bank-balance .amount {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #0f172a;
+    }
+
+    .bank-balance .currency {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+
+    .tag-status {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 99px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-active { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .status-pending { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    .exposure-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        border: 1px solid #e2e8f0;
+        padding: 1.25rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .exposure-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .exposure-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #1e293b;
+    }
+
+    .exposure-amount {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- KPI Section -->
+    <div class="treasury-grid">
+        <div class="premium-card">
+            <div class="card-icon icon-blue">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="kpi-label-refined">Liquidité Totale</div>
+            <div class="kpi-value-big">{{ total_liquidity|floatformat:0 }} $</div>
+            <div class="trend-indicator trend-up">
+                <i class="bi bi-arrow-up"></i> {{ liquidity_growth }}%
+            </div>
+            <p class="mt-3 text-muted" style="font-size: 0.75rem;">Disponibilité immédiate consolidée</p>
+        </div>
+
+        <div class="premium-card">
+            <div class="card-icon icon-green">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="kpi-label-refined">Cash Flow Net (30j)</div>
+            <div class="kpi-value-big">+{{ net_cashflow_30d|floatformat:0 }} $</div>
+            <div class="trend-indicator trend-down">
+                <i class="bi bi-arrow-down"></i> {{ cashflow_growth }}%
+            </div>
+            <p class="mt-3 text-muted" style="font-size: 0.75rem;">Performance opérationnelle</p>
+        </div>
+
+        <div class="premium-card">
+            <div class="card-icon icon-purple">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="kpi-label-refined">DSO (Délai de Paiement)</div>
+            <div class="kpi-value-big">{{ dso_days }} Jours</div>
+            <div class="trend-indicator trend-up" style="background: #fffbeb; color: #d97706;">
+                Cible: {{ dso_target }} Jrs
+            </div>
+            <p class="mt-3 text-muted" style="font-size: 0.75rem;">Optimisation du poste client</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Cashflow Forecast Chart -->
+        <div class="col-lg-8">
+            <div class="premium-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="m-0 fw-bold">Prévisions de Flux de Trésorerie</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            6 prochains mois
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">3 mois</a></li>
+                            <li><a class="dropdown-item" href="#">6 mois</a></li>
+                            <li><a class="dropdown-item" href="#">12 mois</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cashflowChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Accounts -->
+        <div class="col-lg-4">
+            <div class="premium-card h-100">
+                <h5 class="mb-4 fw-bold">Comptes Bancaires</h5>
+                <div class="bank-list">
+                    {% for bank in bank_accounts %}
+                    <div class="bank-item">
+                        <div class="bank-info">
+                            <h6>{{ bank.bank }}</h6>
+                            <p>{{ bank.entity }}</p>
+                            <span class="tag-status status-{{ bank.status }}">{{ bank.status }}</span>
+                        </div>
+                        <div class="bank-balance">
+                            <div class="amount">{{ bank.balance|floatformat:0 }}</div>
+                            <div class="currency">{{ bank.currency }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="btn btn-outline-primary w-100 mt-3 btn-sm">Gérer les connexions</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Currency Exposure -->
+        <div class="col-lg-4">
+            <div class="premium-card">
+                <h5 class="mb-4 fw-bold">Exposition Devises</h5>
+                {% for item in currency_exposure %}
+                <div class="exposure-card">
+                    <div class="exposure-header">
+                        <span class="exposure-title">{{ item.currency }}</span>
+                        <span class="badge bg-{{ item.risk_class }} tag-status">{{ item.risk }}</span>
+                    </div>
+                    <div class="exposure-amount">{{ item.amount }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Working Capital -->
+        <div class="col-lg-8">
+            <div class="premium-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="m-0 fw-bold">Optimisation du BFR (Working Capital)</h5>
+                    <span class="badge bg-primary">IA INSIGHT</span>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4 text-center">
+                        <div class="mb-2 text-muted small uppercase fw-bold">DSO (Clients)</div>
+                        <div class="h3 fw-bold mb-1">{{ dso_days }}</div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mb-2 text-muted small uppercase fw-bold">DIO (Stocks)</div>
+                        <div class="h3 fw-bold mb-1">{{ dio_days }}</div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: 55%"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mb-2 text-muted small uppercase fw-bold">DPO (Fournisseurs)</div>
+                        <div class="h3 fw-bold mb-1">{{ dpo_days }}</div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-insight-card mt-4">
+                    <div class="ai-insight-header">
+                        <div class="ai-insight-icon">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div>
+                            <div class="ai-insight-title">Analyse prédictive IA</div>
+                            <div class="ai-insight-subtitle">Confiance: {{ ml_confidence }}%</div>
+                        </div>
+                    </div>
+                    <div class="ai-insight-content">
+                        L'IA prévoit un <span class="ai-highlight">excédent de liquidité</span> important fin Décembre. Nous recommandons d'optimiser le <span class="ai-highlight">Cycle de Conversion du Cash ({{ cash_cycle_days }} jours)</span> en renégociant les conditions de paiement avec les fournisseurs du top 5 pour maximiser les revenus financiers.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('cashflowChart').getContext('2d');
+    
+    fetch('{% url "treasury_cashflow_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Encaissements',
+                            data: data.inflows,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#2563eb',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Décaissements',
+                            data: data.outflows,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                boxWidth: 10,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 12,
+                            titleFont: { size: 14, weight: '700' },
+                            bodyFont: { size: 13 },
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'k';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock %}

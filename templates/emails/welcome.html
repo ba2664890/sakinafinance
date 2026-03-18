@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-rocket-takeoff text-primary" style="font-size: 3rem;"></i>
+                        <h2 class="fw-bold mt-3">Bienvenue sur FinanceOS IA</h2>
+                    </div>
+                    
+                    <p>Bonjour {{ first_name }},</p>
+                    
+                    <p>Nous sommes ravis de vous accueillir au sein de la communauté FinanceOS IA ! Votre compte a été créé avec succès et votre espace de travail est prêt.</p>
+                    
+                    <div class="bg-light p-4 rounded mb-4">
+                        <h6 class="fw-bold mb-3">Détails de votre compte :</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Email :</strong> {{ email }}</li>
+                            <li><strong>Entreprise :</strong> {{ company_name }}</li>
+                            <li><strong>Plan :</strong> Essai gratuit (14 jours)</li>
+                        </ul>
+                    </div>
+                    
+                    <p>FinanceOS IA vous aide à transformer votre gestion financière grâce à l'intelligence artificielle. Voici ce que vous pouvez faire dès maintenant :</p>
+                    
+                    <ul>
+                        <li>Configurer vos journaux comptables</li>
+                        <li>Importer vos premières transactions</li>
+                        <li>Activer l'IA Advisor pour des analyses en temps réel</li>
+                    </ul>
+                    
+                    <div class="text-center mt-5">
+                        <a href="{{ dashboard_url }}" class="btn btn-primary btn-lg px-5 fw-bold">Accéder à mon tableau de bord</a>
+                    </div>
+                    
+                    <hr class="my-5 opacity-10">
+                    
+                    <p class="text-muted small">Si vous avez des questions, notre équipe support est à votre disposition.</p>
+                    <p class="text-muted small mb-0">L'équipe FinanceOS IA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

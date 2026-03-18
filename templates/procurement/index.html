@@ -1,0 +1,206 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Achats & Approvisionnement — FinanceOS IA{% endblock %}
+{% block page_title %}Achats & Approvisionnement{% endblock %}
+
+{% block extra_css %}
+<style>
+    .procurement-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .p-stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .p-stat-val { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
+    .p-stat-lbl { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .procurement-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; height: 100%; }
+    .p-panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .p-panel-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+    .p-panel-content { padding: 1.5rem; }
+
+    .po-table { width: 100%; border-collapse: collapse; }
+    .po-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .po-table td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+
+    .status-pill-proc { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+    .status-shipped { background: #eff6ff; color: #2563eb; }
+    .status-processing { background: #fffbeb; color: #d97706; }
+    .status-delivered { background: #f0fdf4; color: #16a34a; }
+
+    .supplier-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding: 0.75rem; border-radius: 12px; background: #fcfdfe; border: 1px solid #f1f5f9; }
+    .supplier-logo { width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #2563eb; }
+    .supplier-info h6 { font-size: 0.875rem; font-weight: 700; margin-bottom: 0.1rem; color: #1e293b; }
+    .supplier-info p { font-size: 0.75rem; color: #64748b; margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top Stats -->
+    <div class="procurement-stats">
+        <div class="p-stat-card">
+            <div>
+                <div class="p-stat-lbl">Achats Totaux (Mois)</div>
+                <div class="p-stat-val">{{ total_spends|floatformat:0 }} $</div>
+            </div>
+            <div class="mt-3"><span class="badge bg-soft-blue text-primary">Budget: 85% consommé</span></div>
+        </div>
+        <div class="p-stat-card">
+            <div>
+                <div class="p-stat-lbl">Économies Réalisées</div>
+                <div class="p-stat-val text-success">{{ savings|floatformat:0 }} $</div>
+            </div>
+            <div class="mt-3 small text-muted">Grâce aux renégociations IA</div>
+        </div>
+        <div class="p-stat-card">
+            <div>
+                <div class="p-stat-lbl">Commandes Libérées</div>
+                <div class="p-stat-val">{{ po_count }}</div>
+            </div>
+            <div class="mt-3 small text-muted">12 en cours de livraison</div>
+        </div>
+        <div class="p-stat-card">
+            <div>
+                <div class="p-stat-lbl">Lead Time Moyen</div>
+                <div class="p-stat-val">{{ avg_lead_time_days }} Jours</div>
+            </div>
+            <div class="mt-3"><span class="badge bg-soft-green text-success">-2.5j vs mois dernier</span></div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Ongoing Purchase Orders -->
+        <div class="col-lg-8">
+            <div class="procurement-panel">
+                <div class="p-panel-header">
+                    <h6>Commandes d'Achats en Cours (PO)</h6>
+                    <button class="btn btn-sm btn-primary">Créer une DA</button>
+                </div>
+                <div class="p-panel-content p-0">
+                    <table class="po-table">
+                        <thead>
+                            <tr>
+                                <th>Référence</th>
+                                <th>Fournisseur</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for po in purchase_orders %}
+                            <tr>
+                                <td class="fw-bold">{{ po.id }}</td>
+                                <td>{{ po.supplier }}</td>
+                                <td>{{ po.date }}</td>
+                                <td class="fw-bold">{{ po.amount|floatformat:0 }}</td>
+                                <td><span class="status-pill-proc status-{{ po.status_class }}">{{ po.status }}</span></td>
+                                <td><button class="btn btn-sm text-primary p-0"><i class="bi bi-eye"></i></button></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 border-top text-center"><a href="#" class="small fw-bold text-primary text-decoration-none">Voir toutes les commandes</a></div>
+            </div>
+        </div>
+
+        <!-- Supplier list -->
+        <div class="col-lg-4">
+            <div class="procurement-panel">
+                <div class="p-panel-header"><h6>Top Fournisseurs</h6></div>
+                <div class="p-panel-content">
+                    {% for supplier in suppliers %}
+                    <div class="supplier-item">
+                        <div class="supplier-logo">{{ supplier.name|slice:":1" }}</div>
+                        <div class="supplier-info">
+                            <h6>{{ supplier.name }}</h6>
+                            <p>{{ supplier.category }} • {{ supplier.spend|floatformat:0 }} $</p>
+                        </div>
+                        <div class="ms-auto"><span class="badge bg-light text-dark">{{ supplier.rating }}/5</span></div>
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-outline-primary w-100 btn-sm mt-3">Analyse de panel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Spend By Category -->
+        <div class="col-lg-6">
+            <div class="procurement-panel">
+                <div class="p-panel-header"><h6>Dépenses par Catégorie</h6></div>
+                <div class="p-panel-content">
+                    <canvas id="spendChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- RFQs list -->
+        <div class="col-lg-6">
+            <div class="procurement-panel">
+                <div class="p-panel-header"><h6>Appels d'Offres (RFQ)</h6></div>
+                <div class="p-panel-content">
+                    {% for rfq in rfqs %}
+                    <div class="p-3 mb-3 border rounded">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="m-0 fw-bold">{{ rfq.title }}</h6>
+                            <span class="badge bg-info text-white">{{ rfq.responses }} offres</span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Échéance: {{ rfq.deadline }}</span>
+                            <span class="fw-bold text-primary">{{ rfq.status }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <button class="btn btn-sm btn-outline-secondary w-100">Voir tous les appels d'offres</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('spendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for c in categories %}"{{ c.name }}",{% endfor %}],
+            datasets: [{
+                label: 'Montant ($)',
+                data: [{% for c in categories %}{{ c.spend }},{% endfor %}],
+                backgroundColor: '#2563eb',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { drawBorder: false, color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

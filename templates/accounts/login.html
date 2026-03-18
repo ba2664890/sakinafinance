@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Connexion - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body p-5">
+                        <!-- Logo -->
+                        <div class="text-center mb-4">
+                            <div class="brand-logo mx-auto mb-3" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                                <i class="bi bi-bar-chart-fill"></i>
+                            </div>
+                            <h4 class="fw-bold">Finance<span style="color: #3b82f6;">OS</span></h4>
+                            <p class="text-muted small">Connectez-vous à votre compte</p>
+                        </div>
+                        
+                        <!-- Google Login -->
+                        <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-outline-secondary w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+                            <img src="https://www.google.com/favicon.ico" alt="Google" width="18">
+                            Continuer avec Google
+                        </a>
+                        
+                        <div class="text-center mb-3">
+                            <span class="text-muted small">ou</span>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small">{{ form.username.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Mot de passe</label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="text-danger small">{{ form.password.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="remember">
+                                    <label class="form-check-label small" for="remember">Se souvenir de moi</label>
+                                </div>
+                                <a href="#" class="small text-primary">Mot de passe oublié ?</a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                            </button>
+                        </form>
+                        
+                        <div class="text-center">
+                            <p class="mb-0 small">Pas encore de compte ? <a href="{% url 'register' %}" class="text-primary">S'inscrire</a></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'home' %}" class="text-white-50 small text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

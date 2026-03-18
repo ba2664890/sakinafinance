@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="{% url 'dashboard' %}" class="sidebar-brand">
+            <div class="brand-logo">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <span class="brand-text">Finance<span>OS</span></span>
+        </a>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <!-- Main Menu -->
+        <div class="nav-section">
+            <div class="nav-section-title">Menu Principal</div>
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-grid"></i>
+                <span>Tableau de Bord</span>
+            </a>
+            <a href="{% url 'executive' %}" class="nav-link {% if request.resolver_match.url_name == 'executive' %}active{% endif %}">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span>Executive View</span>
+            </a>
+            <a href="{% url 'ai_advisor' %}" class="nav-link {% if request.resolver_match.url_name == 'ai_advisor' %}active{% endif %}">
+                <i class="bi bi-robot"></i>
+                <span>IA Advisor</span>
+                <span class="badge bg-primary ms-auto">NEW</span>
+            </a>
+        </div>
+        
+        <!-- Finance -->
+        <div class="nav-section">
+            <div class="nav-section-title">Finance</div>
+            <a href="{% url 'consolidation' %}" class="nav-link {% if request.resolver_match.url_name == 'consolidation' %}active{% endif %}">
+                <i class="bi bi-building"></i>
+                <span>Consolidation</span>
+            </a>
+            <a href="{% url 'treasury' %}" class="nav-link {% if request.resolver_match.url_name == 'treasury' %}active{% endif %}">
+                <i class="bi bi-bank"></i>
+                <span>Trésorerie</span>
+            </a>
+            <a href="{% url 'accounting' %}" class="nav-link {% if request.resolver_match.url_name == 'accounting' %}active{% endif %}">
+                <i class="bi bi-calculator"></i>
+                <span>Comptabilité</span>
+            </a>
+            <a href="{% url 'financial_statements' %}" class="nav-link {% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}">
+                <i class="bi bi-file-text"></i>
+                <span>États Financiers</span>
+            </a>
+        </div>
+        
+        <!-- Operations -->
+        <div class="nav-section">
+            <div class="nav-section-title">Opérations</div>
+            <a href="{% url 'purchases' %}" class="nav-link {% if request.resolver_match.url_name == 'purchases' %}active{% endif %}">
+                <i class="bi bi-cart"></i>
+                <span>Achats</span>
+            </a>
+            <a href="{% url 'hr_payroll' %}" class="nav-link {% if request.resolver_match.url_name == 'hr_payroll' %}active{% endif %}">
+                <i class="bi bi-people"></i>
+                <span>RH &amp; Paie</span>
+            </a>
+            <a href="{% url 'projects' %}" class="nav-link {% if request.resolver_match.url_name == 'projects' %}active{% endif %}">
+                <i class="bi bi-folder"></i>
+                <span>Projets</span>
+            </a>
+        </div>
+        
+        <!-- Compliance -->
+        <div class="nav-section">
+            <div class="nav-section-title">Conformité</div>
+            <a href="{% url 'taxation' %}" class="nav-link {% if request.resolver_match.url_name == 'taxation' %}active{% endif %}">
+                <i class="bi bi-shield-check"></i>
+                <span>Fiscalité</span>
+            </a>
+            <a href="{% url 'regulatory' %}" class="nav-link {% if request.resolver_match.url_name == 'regulatory' %}active{% endif %}">
+                <i class="bi bi-file-earmark-check"></i>
+                <span>Réglementaire</span>
+            </a>
+        </div>
+        
+        <!-- Settings -->
+        <div class="nav-section">
+            <div class="nav-section-title">Paramètres</div>
+            <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="bi bi-person"></i>
+                <span>Profil</span>
+            </a>
+            <a href="{% url 'settings' %}" class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                <span>Paramètres</span>
+            </a>
+            <a href="{% url 'manage_subscription' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_subscription' %}active{% endif %}">
+                <i class="bi bi-credit-card"></i>
+                <span>Abonnement</span>
+            </a>
+            <a href="{% url 'pricing' %}" class="nav-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
+                <i class="bi bi-tag"></i>
+                <span>Nos Offres</span>
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="main-content" id="mainContent">
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1 class="page-title">{% block page_title %}Tableau de Bord{% endblock %}</h1>
+        </div>
+        
+        <div class="header-right">
+            <!-- Search -->
+            <button class="header-btn" aria-label="Recherche">
+                <i class="bi bi-search"></i>
+            </button>
+            
+            <!-- Notifications -->
+            <div class="dropdown">
+                <button class="header-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span class="badge bg-danger">3</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end" style="width: 320px;" aria-labelledby="notifDropdown">
+                    <div class="dropdown-header d-flex justify-content-between align-items-center">
+                        <span>Notifications</span>
+                        <a href="{% url 'notifications' %}" class="text-primary small">Voir tout</a>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item py-2" href="#">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-warning bg-opacity-10 rounded-circle p-2">
+                                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <p class="mb-0 fw-medium">Alerte Trésorerie</p>
+                                <p class="mb-0 text-muted small">Le solde passe sous le seuil</p>
+                                <p class="mb-0 text-muted small">Il y a 5 min</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a class="dropdown-item py-2" href="#">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-2">
+                                    <i class="bi bi-file-earmark text-info"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <p class="mb-0 fw-medium">Nouvelle Facture</p>
+                                <p class="mb-0 text-muted small">Facture #F-2024-0123 reçue</p>
+                                <p class="mb-0 text-muted small">Il y a 1 heure</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- User Dropdown -->
+            <div class="dropdown">
+                <div class="user-dropdown" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;">
+                    <div class="user-avatar">
+                        {{ request.user.first_name|first }}{{ request.user.last_name|first }}
+                    </div>
+                    <div class="user-info d-none d-md-block">
+                        <div class="user-name">{{ request.user.get_full_name }}</div>
+                        <div class="user-role">{{ request.user.get_role_display }}</div>
+                    </div>
+                    <i class="bi bi-chevron-down d-none d-md-block"></i>
+                </div>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <div class="dropdown-header">
+                        <p class="mb-0 fw-medium">{{ request.user.get_full_name }}</p>
+                        <p class="mb-0 text-muted small">{{ request.user.email }}</p>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'profile' %}">
+                        <i class="bi bi-person me-2"></i>Profil
+                    </a>
+                    <a class="dropdown-item" href="{% url 'settings' %}">
+                        <i class="bi bi-gear me-2"></i>Paramètres
+                    </a>
+                    <a class="dropdown-item" href="{% url 'manage_subscription' %}">
+                        <i class="bi bi-credit-card me-2"></i>Abonnement
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Content Area -->
+    <div class="content-area">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<style>
+    /* Smooth sidebar/main transition */
+    #mainContent {
+        transition: margin-left 0.3s ease;
+    }
+</style>
+
+<script>
+(function() {
+    // Sidebar Toggle — properly shifts main content
+    var sidebar = document.getElementById('sidebar');
+    var mainContent = document.getElementById('mainContent');
+    var toggleBtn = document.getElementById('sidebarToggle');
+
+    toggleBtn.addEventListener('click', function() {
+        var isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
+        mainContent.style.marginLeft = isCollapsed
+            ? 'var(--sidebar-collapsed)'
+            : 'var(--sidebar-width)';
+    });
+
+
+})();
+</script>
+{% endblock %}

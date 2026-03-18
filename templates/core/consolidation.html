@@ -1,0 +1,253 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Consolidation Hub - FinanceOS IA{% endblock %}
+{% block page_title %}Consolidation Hub{% endblock %}
+
+{% block content %}
+<!-- Sub Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="#" class="text-muted">HUB</a></li>
+                <li class="breadcrumb-item active">GROUP CONSOLIDATION</li>
+            </ol>
+        </nav>
+        <h4 class="mb-1">Consolidation Hub</h4>
+        <p class="text-muted mb-0">FY2023 - Q4 Period Closing • Multi-Entity Framework</p>
+    </div>
+    <div>
+        <button class="btn btn-outline-secondary me-2">
+            <i class="bi bi-download me-1"></i>Export Report
+        </button>
+        <button class="btn btn-primary">
+            <i class="bi bi-play-fill me-1"></i>Run Consolidation
+        </button>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card text-center">
+            <div class="kpi-label">GROUP NET INCOME</div>
+            <div class="kpi-value">$4.2M</div>
+            <span class="kpi-change positive">
+                <i class="bi bi-arrow-up-short"></i>+12.5%
+            </span>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card text-center">
+            <div class="kpi-label">ENTITY MATCH RATE</div>
+            <div class="kpi-value">12/14</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card text-center">
+            <div class="kpi-label">INTERCO MATCHING</div>
+            <div class="kpi-value text-warning">88.4%</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-card text-center">
+            <div class="kpi-label">DAYS TO CLOSE</div>
+            <div class="kpi-value">4 Days</div>
+            <span class="badge bg-info">IN PROGRESS</span>
+        </div>
+    </div>
+</div>
+
+<!-- Consolidation Progress -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Consolidation Progress</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col">
+                <div class="mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-download text-primary fs-4"></i>
+                    </div>
+                </div>
+                <p class="mb-0 fw-medium text-primary">COLLECT</p>
+            </div>
+            <div class="col">
+                <div class="mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-magic text-primary fs-4"></i>
+                    </div>
+                </div>
+                <p class="mb-0 fw-medium text-primary">RETREATMENT</p>
+            </div>
+            <div class="col">
+                <div class="mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-arrow-repeat text-primary fs-4"></i>
+                    </div>
+                </div>
+                <p class="mb-0 fw-medium text-primary">CONVERSION</p>
+            </div>
+            <div class="col">
+                <div class="mb-3">
+                    <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-x-lg text-white fs-4"></i>
+                    </div>
+                </div>
+                <p class="mb-0 fw-medium text-primary">ELIMINATION</p>
+            </div>
+            <div class="col">
+                <div class="mb-3">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-lg text-secondary fs-4"></i>
+                    </div>
+                </div>
+                <p class="mb-0 fw-medium text-secondary">FINAL STATES</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subsidiary Performance & Intercompany -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Subsidiary Performance</h5>
+                <a href="#" class="text-primary small">View All Entities</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ENTITY</th>
+                                <th>NET INCOME</th>
+                                <th>NORM</th>
+                                <th>CONVERSION</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary me-2">US</span>
+                                        <div>
+                                            <p class="mb-0 fw-medium">North America Inc.</p>
+                                            <small class="text-muted">USD (Global)</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-medium">$1,240,000</td>
+                                <td><span class="badge bg-light text-dark">IFRS</span></td>
+                                <td><span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Native</span></td>
+                                <td><span class="badge bg-success">CLOSED</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-info me-2">FR</span>
+                                        <div>
+                                            <p class="mb-0 fw-medium">TechEurope SAS</p>
+                                            <small class="text-muted">EUR (Local)</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-medium">€890,200</td>
+                                <td><span class="badge bg-light text-dark">IFRS</span></td>
+                                <td><span class="text-warning"><i class="bi bi-arrow-repeat me-1"></i>Pending</span></td>
+                                <td><span class="badge bg-warning">OPEN</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-success me-2">SN</span>
+                                        <div>
+                                            <p class="mb-0 fw-medium">Dakar Ops Ltd</p>
+                                            <small class="text-muted">XOF (Local)</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-medium">₣450M</td>
+                                <td><span class="badge bg-light text-dark">OHADA</span></td>
+                                <td><span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>IFRS Mapped</span></td>
+                                <td><span class="badge bg-success">CLOSED</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Intercompany Monitoring</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="mb-0">Matching Summary</h6>
+                        <small class="text-muted">Intra-group transactions</small>
+                    </div>
+                    <span class="badge bg-danger">8 ISSUES</span>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>USA ↔ Europe</span>
+                        <span class="text-success">Matched</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Europe ↔ Dakar</span>
+                        <span class="text-warning">Unbalanced (-$12k)</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: 75%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Group ↔ Asia</span>
+                        <span class="text-muted">Waiting</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-secondary" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline-primary w-100">
+                    Resolve Discrepancies
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Compliance Insight -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-start">
+            <div class="flex-shrink-0">
+                <div class="bg-warning bg-opacity-10 rounded p-2">
+                    <i class="bi bi-lightning-charge text-warning fs-4"></i>
+                </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h5 class="mb-1">AI Compliance Insight</h5>
+                <p class="mb-2 text-muted">3 adjustments recommended for <span class="text-primary">OHADA-IFRS</span> alignment based on latest audit data.</p>
+                <a href="#" class="text-primary">Review Recommendations <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

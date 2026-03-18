@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block title %}FinanceOS IA - Système d'Intelligence Financière Universel{% endblock %}
+
+{% block body %}
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+            <div class="brand-logo" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <span class="fw-bold">Finance<span style="color: #3b82f6;">OS</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#features">Fonctionnalités</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pricing">Tarifs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">À propos</a>
+                </li>
+                <li class="nav-item ms-lg-3">
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'login' %}">Connexion</a>
+                </li>
+                <li class="nav-item ms-2">
+                    <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Essai gratuit</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="landing-hero">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <span class="badge bg-primary bg-opacity-25 text-primary mb-4 px-3 py-2">
+                    <i class="bi bi-stars me-2"></i>Propulsé par l'Intelligence Artificielle
+                </span>
+                <h1>Finance<span>OS IA</span></h1>
+                <p class="lead">Le Système d'Intelligence Financière Universel pour Startups, PME, ETI et Groupes. Automatisez votre comptabilité, prédisez votre trésorerie et prenez des décisions éclairées grâce à l'IA.</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-rocket me-2"></i>Commencer gratuitement
+                    </a>
+                    <a href="#demo" class="btn btn-outline-light btn-lg px-5">
+                        <i class="bi bi-play-circle me-2"></i>Voir la démo
+                    </a>
+                </div>
+                <p class="mt-4 text-white-50 small">
+                    <i class="bi bi-shield-check me-1"></i>14 jours d'essai gratuit • Sans carte bancaire • Annulation à tout moment
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <h2 class="display-4 fw-bold text-primary">73%</h2>
+                <p class="text-muted">des entreprises africaines gèrent leurs finances sur Excel</p>
+            </div>
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <h2 class="display-4 fw-bold text-primary">60K€</h2>
+                <p class="text-muted">coût annuel moyen d'un ERP classique (PME)</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold text-primary">-40%</h2>
+                <p class="text-muted">de temps administratif avec FinanceOS IA</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold text-primary">18 mois</h2>
+                <p class="text-muted">de prévision de trésorerie par ML</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="landing-features" id="features">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Les 6 Piliers de FinanceOS IA</h2>
+            <p class="lead text-muted">Une plateforme complète qui couvre tous vos besoins financiers</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h4>VOIR</h4>
+                    <p class="text-muted">Tableaux de bord temps réel. Visualisez votre performance financière en un coup d'œil avec des KPIs personnalisés.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4>PRÉDIRE</h4>
+                    <p class="text-muted">ML forecasting. Prévisions de cash flow à 18 mois avec Prophet, LSTM et XGBoost pour une anticipation optimale.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h4>ALERTER</h4>
+                    <p class="text-muted">Détection d'anomalies instantanée. Soyez alerté des dérives budgétaires, fraudes et risques en temps réel.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h4>CONSEILLER</h4>
+                    <p class="text-muted">IA générative sur vos données réelles. Posez vos questions en langage naturel et obtenez des insights actionnables.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4>CONFORMER</h4>
+                    <p class="text-muted">OHADA, IFRS, fiscal, réglementaire. Conformité automatique avec les normes comptables africaines et internationales.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4>CONSOLIDER</h4>
+                    <p class="text-muted">Multi-entités, multi-devises, groupe. Consolidation automatique pour les holdings et groupes internationaux.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modules Section -->
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Modules Complets</h2>
+            <p class="lead text-muted">Tout ce dont vous avez besoin pour gérer vos finances</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-calculator text-primary fs-4"></i>
+                            </div>
+                            <h5 class="mb-0">Comptabilité</h5>
+                        </div>
+                        <p class="text-muted">Plan comptable OHADA/SYSCOHADA, journaux automatisés, états financiers (Bilan, CR, TFT), clôture assistée par IA.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Écritures automatiques</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Rapprochement bancaire IA</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Amortissements auto</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-bank text-success fs-4"></i>
+                            </div>
+                            <h5 class="mb-0">Trésorerie</h5>
+                        </div>
+                        <p class="text-muted">Multi-comptes, prévisions ML, gestion du BFR, risques de change, relations bancaires, cash pooling.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Forecasting 18 mois</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Alertes de seuil</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>VaR multi-devises</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-people text-info fs-4"></i>
+                            </div>
+                            <h5 class="mb-0">RH & Paie</h5>
+                        </div>
+                        <p class="text-muted">Gestion de la paie (CNSS, IPRES, IRPP), masse salariale, congés, bulletins, déclarations automatiques.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Calcul automatique</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Télédéclaration</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Multi-pays</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-cart text-warning fs-4"></i>
+                            </div>
+                            <h5 class="mb-0">Achats</h5>
+                        </div>
+                        <p class="text-muted">Procure-to-Pay complet, OCR sur factures, benchmark prix, évaluation fournisseurs, spend analysis.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>3-way match auto</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>OCR IA > 96%</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Détection doublons</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-5" id="pricing">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Tarifs Adaptés à Votre Croissance</h2>
+            <p class="lead text-muted">Choisissez le plan qui correspond à votre stade de développement</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Startup</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">49€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les startups en croissance</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Dashboard IA</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 3 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Comptabilité de base</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Trésorerie</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>1 utilisateur</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Support email</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Commencer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-primary shadow">
+                    <div class="card-header bg-primary text-white text-center py-2">
+                        <small>Le plus populaire</small>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-primary mb-2">PME</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">149€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les PME formelles</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout Startup +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 12 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Comptabilité OHADA</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Paie & RH</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Achats</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>5 utilisateurs</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Support prioritaire</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-primary w-100">Commencer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Enterprise</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">499€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les ETI et grandes entreprises</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout PME +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 18 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Multi-entités</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Consolidation</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>IFRS</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Contrôle de gestion</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Utilisateurs illimités</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Contacter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Groupe</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">1 499€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les holdings et groupes</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout Enterprise +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Multi-pays</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Consolidation groupe</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>API complète</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>On-premise option</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Account manager</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>SLA 99.9%</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Contacter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container text-center">
+        <h2 class="text-white mb-3">Prêt à transformer votre gestion financière ?</h2>
+        <p class="text-white-50 mb-4">Rejoignez des milliers d'entreprises qui font confiance à FinanceOS IA</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-rocket me-2"></i>Commencer gratuitement
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-5" style="background: #0f172a;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <a class="d-flex align-items-center gap-2 text-white text-decoration-none mb-3" href="{% url 'home' %}">
+                    <div class="brand-logo" style="width: 36px; height: 36px; font-size: 0.9rem;">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <span class="fw-bold">Finance<span style="color: #3b82f6;">OS</span></span>
+                </a>
+                <p class="text-white-50">Le Système d'Intelligence Financière Universel pour toutes les entreprises.</p>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Produit</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#features" class="text-white-50 text-decoration-none">Fonctionnalités</a></li>
+                    <li class="mb-2"><a href="#pricing" class="text-white-50 text-decoration-none">Tarifs</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Intégrations</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">API</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Entreprise</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">À propos</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Blog</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Carrières</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Ressources</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Documentation</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Guides</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Support</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Status</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h6 class="text-white mb-3">Légal</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'privacy' %}" class="text-white-50 text-decoration-none">Confidentialité</a></li>
+                    <li class="mb-2"><a href="{% url 'terms' %}" class="text-white-50 text-decoration-none">Conditions</a></li>
+                    <li><a href="{% url 'cookies' %}" class="text-white-50 text-decoration-none">Cookies</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-white-50 mb-0">&copy; 2024 FinanceOS IA. Tous droits réservés.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-white-50 me-3"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="text-white-50 me-3"><i class="bi bi-linkedin"></i></a>
+                <a href="#" class="text-white-50"><i class="bi bi-github"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}

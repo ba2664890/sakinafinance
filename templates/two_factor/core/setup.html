@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load two_factor_tags %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Enable Two-Factor Authentication" %} - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="row g-0">
+                        <!-- Left Info Panel -->
+                        <div class="col-lg-4 bg-primary text-white p-4 p-lg-5 d-none d-lg-flex flex-column justify-content-between">
+                            <div>
+                                <div class="brand-logo mb-4" style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                </div>
+                                <h3 class="fw-bold mb-4">Sécurisez votre Compte</h3>
+                                <p class="opacity-75 mb-4">La double authentification ajoute une couche de sécurité supplémentaire en demandant un code unique généré par votre smartphone.</p>
+                                
+                                <ul class="list-unstyled small opacity-75">
+                                    <li class="mb-3"><i class="bi bi-1-circle-fill me-2"></i> Scannez le QR Code</li>
+                                    <li class="mb-3"><i class="bi bi-2-circle-fill me-2"></i> Entrez le code de vérification</li>
+                                    <li><i class="bi bi-3-circle-fill me-2"></i> Conservez vos codes de secours</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mt-auto pt-4 border-top border-white border-opacity-10 text-center text-lg-start">
+                                <p class="small opacity-50 mb-0">FinanceOS IA Security</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Form Panel -->
+                        <div class="col-lg-8 bg-white">
+                            <div class="card-body p-4 p-lg-5">
+                                <div class="text-center text-lg-start mb-4">
+                                    <h3 class="fw-bold text-dark">Configuration de la 2FA</h3>
+                                    <p class="text-muted">Suivez les étapes pour activer la protection renforcée.</p>
+                                </div>
+
+                                <form action="" method="post">
+                                    {% csrf_token %}
+                                    
+                                    {% if wizard.steps.current == 'welcome' %}
+                                        <div class="text-center py-4">
+                                            <div class="bg-primary bg-opacity-10 text-primary p-4 rounded-circle d-inline-block mb-4">
+                                                <i class="bi bi-phone-vibrate fs-1"></i>
+                                            </div>
+                                            <h5>Prêt à commencer ?</h5>
+                                            <p class="text-muted">Vous allez avoir besoin d'une application comme Google Authenticator ou Authy.</p>
+                                        </div>
+                                    {% elif wizard.steps.current == 'method' %}
+                                        <h5>Choisissez votre méthode</h5>
+                                        <div class="mb-4">
+                                            {{ wizard.form|crispy }}
+                                        </div>
+                                    {% elif wizard.steps.current == 'generator' %}
+                                        <div class="text-center mb-4">
+                                            <p class="text-muted small">Scannez ce QR Code avec votre application d'authentification.</p>
+                                            <div class="qr-code-container p-3 border rounded-3 bg-light d-inline-block mb-3">
+                                                <img src="{{ QR_URL }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                                            </div>
+                                            <p class="small text-muted">Ou saisissez manuellement ce code : <code class="bg-light p-1 rounded">{{ secret }}</code></p>
+                                        </div>
+                                        <div class="mb-4">
+                                            {{ wizard.form|crispy }}
+                                        </div>
+                                    {% elif wizard.steps.current == 'sms' or wizard.steps.current == 'call' %}
+                                        <h5>Vérification par téléphone</h5>
+                                        <div class="mb-4">
+                                            {{ wizard.form|crispy }}
+                                        </div>
+                                    {% elif wizard.steps.current == 'validation' %}
+                                        <div class="text-center mb-4">
+                                            <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle d-inline-block mb-3">
+                                                <i class="bi bi-check-circle-fill fs-2"></i>
+                                            </div>
+                                            <h5>Dernière étape</h5>
+                                            <p class="text-muted small">Saisissez le code affiché sur votre téléphone pour valider la configuration.</p>
+                                        </div>
+                                        <div class="mb-4">
+                                            {{ wizard.form|crispy }}
+                                        </div>
+                                    {% else %}
+                                        <div class="mb-4">
+                                            {{ wizard.form|crispy }}
+                                        </div>
+                                    {% endif %}
+
+                                    {{ wizard.management_form }}
+
+                                    <div class="d-grid gap-2 mt-5">
+                                        <button type="submit" class="btn btn-primary py-3 fw-bold rounded-3 shadow hover-elevate">
+                                            {% if wizard.steps.current == 'welcome' %}
+                                                Activer maintenant <i class="bi bi-arrow-right ms-2"></i>
+                                            {% elif wizard.steps.current == 'generator' or wizard.steps.current == 'validation' %}
+                                                Vérifier et Enregistrer <i class="bi bi-shield-check ms-2"></i>
+                                            {% else %}
+                                                Continuer <i class="bi bi-arrow-right ms-2"></i>
+                                            {% endif %}
+                                        </button>
+                                        
+                                        {% if wizard.steps.prev %}
+                                            <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}" class="btn btn-link text-muted text-decoration-none small">
+                                                <i class="bi bi-chevron-left me-1"></i>Retour
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'profile' %}" class="text-white-50 small text-decoration-none">
+                        Annuler et retourner au profil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-primary {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    .btn-primary:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+    }
+    .hover-elevate {
+        transition: all 0.3s ease;
+    }
+    .hover-elevate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .qr-code-container img {
+        display: block;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}

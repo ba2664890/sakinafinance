@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Disable Two-Factor Authentication" %} - FinanceOS IA{% endblock %}
+
+{% block body %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-5 col-lg-7">
+                <div class="card border-0 shadow-lg p-4 p-lg-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-circle d-inline-block mb-3">
+                            <i class="bi bi-shield-slash-fill fs-2"></i>
+                        </div>
+                        <h3 class="fw-bold">Désactiver la 2FA</h3>
+                        <p class="text-muted">Êtes-vous sûr de vouloir désactiver la double authentification ? Votre compte sera moins sécurisé.</p>
+                    </div>
+
+                    <div class="alert alert-danger border-0 shadow-sm mb-4">
+                        <small>Sans la 2FA, votre compte ne sera protégé que par votre mot de passe. Nous vous recommandons vivement de la laisser activée.</small>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger py-3 fw-bold rounded-3 shadow">
+                                Confirmer la Désactivation
+                            </button>
+                            <a href="{% url 'two_factor:profile' %}" class="btn btn-link text-muted text-decoration-none small text-center mt-2">
+                                Annuler et rester protégé
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

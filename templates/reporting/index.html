@@ -1,0 +1,238 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}États Financiers — FinanceOS IA{% endblock %}
+{% block page_title %}États Financiers & Reporting{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reporting-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .statement-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .statement-header {
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .statement-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .statement-table th {
+        text-align: right;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .statement-table th.label-col { text-align: left; }
+
+    .statement-table td {
+        padding: 1rem 1.5rem;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f8fafc;
+        text-align: right;
+        color: #1e293b;
+    }
+
+    .statement-table td.label-col { text-align: left; color: #475569; font-weight: 500; }
+
+    .statement-table tr.total-row td {
+        background: #fcfdfe;
+        font-weight: 700;
+        color: #0f172a;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .pos-val { color: #10b981 !important; }
+    .neg-val { color: #ef4444 !important; }
+
+    .ratio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .ratio-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+    }
+
+    .ratio-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .ratio-val { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
+    .ratio-lbl { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+    .ratio-bench { font-size: 0.7rem; color: #94a3b8; margin-top: 0.5rem; }
+
+    .status-good { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .status-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+    .report-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid #f1f5f9;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .report-item:hover { border-color: var(--primary-color); background: #fcfdfe; }
+
+    .report-icon {
+        width: 40px;
+        height: 40px;
+        background: #f1f5f9;
+        color: #2563eb;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .report-info h6 { font-size: 0.875rem; font-weight: 700; margin-bottom: 0.1rem; color: #1e293b; }
+    .report-info p { font-size: 0.75rem; color: #94a3b8; margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row mb-5">
+        <div class="col-12">
+            <h5 class="fw-bold mb-4">Indicateurs de Performance (Ratios)</h5>
+            <div class="ratio-grid">
+                {% for ratio in ratios %}
+                <div class="ratio-card">
+                    <div class="ratio-circle status-{{ ratio.status }}">
+                        <i class="bi {% if ratio.status == 'good' %}bi-check-circle{% else %}bi-exclamation-circle{% endif %}"></i>
+                    </div>
+                    <div class="ratio-val">{{ ratio.value }}</div>
+                    <div class="ratio-lbl">{{ ratio.label }}</div>
+                    <div class="ratio-bench">Marché: {{ ratio.benchmark }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="reporting-container">
+        <!-- P&L Statement -->
+        <div class="left-section">
+            <div class="statement-card">
+                <div class="statement-header d-flex justify-content-between align-items-center">
+                    <h5 class="m-0 fw-bold">Compte de Résultat Simplifié</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-white border">XOF</button>
+                        <button class="btn btn-white border">USD</button>
+                        <button class="btn btn-white border"><i class="bi bi-download"></i></button>
+                    </div>
+                </div>
+                <div class="p-0">
+                    <table class="statement-table">
+                        <thead>
+                            <tr>
+                                <th class="label-col">Libellé</th>
+                                <th>Période Actuelle</th>
+                                <th>Période Précédente</th>
+                                <th>Variation %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in income_statement %}
+                            <tr class="{% if row.is_total %}total-row{% endif %}">
+                                <td class="label-col">{{ row.label }}</td>
+                                <td class="{% if row.positive %}pos-val{% elif row.current < 0 %}neg-val{% endif %}">
+                                    {{ row.current|floatformat:0 }}
+                                </td>
+                                <td>{{ row.previous|floatformat:0 }}</td>
+                                <td class="{% if row.variation > 0 %}pos-val{% else %}neg-val{% endif %}">
+                                    {% if row.variation %}
+                                        {% if row.variation > 0 %}+{% endif %}{{ row.variation }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Section -->
+        <div class="right-section">
+            <!-- Cash Flow Summary -->
+            <div class="statement-card mb-4">
+                <div class="statement-header">
+                    <h6 class="m-0 fw-bold">Flux de Trésorerie (Net)</h6>
+                </div>
+                <div class="p-3">
+                    {% for item in cash_flows %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="small fw-semibold text-muted">{{ item.category }}</div>
+                        <div class="fw-bold {% if item.positive %}text-success{% else %}text-danger{% endif %}">
+                            {{ item.amount|floatformat:0 }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Available Reports -->
+            <div class="statement-card">
+                <div class="statement-header">
+                    <h6 class="m-0 fw-bold">Rapports Disponibles</h6>
+                </div>
+                <div class="p-3">
+                    {% for report in reports %}
+                    <div class="report-item">
+                        <div class="report-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+                        <div class="report-info">
+                            <h6>{{ report.name }}</h6>
+                            <p>{{ report.date }} • {{ report.status }}</p>
+                        </div>
+                        <button class="btn btn-sm p-0 ms-auto text-primary"><i class="bi bi-download"></i></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="p-3 border-top text-center">
+                    <button class="btn btn-sm btn-primary w-100">Générer nouveau rapport</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

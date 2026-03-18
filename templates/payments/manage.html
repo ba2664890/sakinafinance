@@ -1,0 +1,675 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Gérer mon abonnement — FinanceOS IA{% endblock %}
+{% block page_title %}Mon Abonnement{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== MANAGE SUBSCRIPTION — DESIGN PREMIUM STITCH ===== */
+
+    /* ---- Tab Navigation ---- */
+    .sub-tabs {
+        display: flex;
+        gap: 0.25rem;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.3rem;
+        margin-bottom: 2rem;
+        width: fit-content;
+    }
+    .sub-tab {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .sub-tab:hover { color: #0f172a; }
+    .sub-tab.active {
+        background: white;
+        color: #0f172a;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+    .sub-tab i { font-size: 1rem; }
+
+    /* Panel visibility */
+    .sub-panel { display: none; }
+    .sub-panel.active { display: block; }
+
+    /* ---- Info Cards ---- */
+    .info-card {
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .info-card-header h5 {
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #64748b;
+        margin: 0;
+    }
+    .info-card-body { padding: 1.5rem; }
+
+    /* Current Plan Card */
+    .current-plan-card {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 18px;
+        padding: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    .current-plan-card::before {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 160px; height: 160px;
+        background: rgba(37,99,235,0.15);
+        border-radius: 50%;
+    }
+    .current-plan-card::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: 30%;
+        width: 200px; height: 200px;
+        background: rgba(59,130,246,0.08);
+        border-radius: 50%;
+    }
+    .plan-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 0.3rem 0.8rem;
+        border-radius: 99px;
+        margin-bottom: 1rem;
+    }
+    .plan-name-big {
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.25rem;
+    }
+    .plan-status-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.3rem 0.8rem;
+        border-radius: 99px;
+    }
+    .status-pill.active   { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .status-pill.trial    { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+    .status-pill.past_due { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .status-pill.canceled { background: rgba(239,68,68,0.2);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    /* Progress bar period */
+    .period-progress-wrap {
+        margin-top: 1.25rem;
+    }
+    .period-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 0.4rem;
+    }
+    .period-bar-bg {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 99px;
+        overflow: hidden;
+    }
+    .period-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        border-radius: 99px;
+        transition: width 0.6s ease;
+    }
+    .plan-actions-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+    .btn-upgrade {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.25s;
+        box-shadow: 0 4px 15px rgba(37,99,235,0.3);
+    }
+    .btn-upgrade:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: white; }
+    .btn-cancel-sub {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+    .btn-cancel-sub:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #f87171; }
+
+    /* No subscription empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 2rem;
+        color: #94a3b8;
+    }
+    .empty-state h5 { font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; }
+    .empty-state p { color: #94a3b8; font-size: 0.9rem; }
+
+    /* Payment methods */
+    .pm-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        border: 1.5px solid #e2e8f0;
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+        background: white;
+    }
+    .pm-item:hover { border-color: #2563eb; }
+    .pm-item .pm-left { display: flex; align-items: center; gap: 1rem; }
+    .pm-brand-icon {
+        width: 44px; height: 30px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; color: #2563eb;
+    }
+    .pm-number { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
+    .pm-exp { font-size: 0.78rem; color: #94a3b8; }
+    .btn-pm-remove {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 0.4rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+        font-size: 1rem;
+    }
+    .btn-pm-remove:hover { background: #fef2f2; color: #ef4444; }
+    .btn-add-pm {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: white;
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        width: 100%;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    .btn-add-pm:hover { border-color: #2563eb; color: #2563eb; background: rgba(37,99,235,0.02); }
+
+    /* Invoice table */
+    .invoice-table { width: 100%; border-collapse: collapse; }
+    .invoice-table th {
+        text-align: left;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #94a3b8;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .invoice-table td {
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: #475569;
+        border-bottom: 1px solid #f8fafc;
+        vertical-align: middle;
+    }
+    .invoice-table tr:last-child td { border-bottom: none; }
+    .invoice-table tr:hover td { background: #f8fafc; }
+    .invoice-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.25rem 0.65rem;
+        border-radius: 99px;
+    }
+    .invoice-status.paid { background: #f0fdf4; color: #059669; }
+    .invoice-status.open { background: #fefce8; color: #ca8a04; }
+    .invoice-status.overdue { background: #fef2f2; color: #dc2626; }
+    .btn-download { font-size: 0.8rem; color: #2563eb; text-decoration: none; font-weight: 600; }
+    .btn-download:hover { text-decoration: underline; }
+
+    /* Usage stats */
+    .usage-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .usage-row:last-child { border-bottom: none; }
+    .usage-label {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.875rem;
+        color: #475569;
+        font-weight: 500;
+    }
+    .usage-label i { color: #94a3b8; }
+    .usage-value { font-size: 0.875rem; font-weight: 700; color: #0f172a; }
+    .usage-bar-wrap { flex: 1; margin: 0 1rem; max-width: 160px; }
+    .usage-bar-bg { height: 5px; background: #f1f5f9; border-radius: 99px; overflow: hidden; }
+    .usage-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2563eb, #3b82f6); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Tab Navigation -->
+<div class="sub-tabs" id="subTabs">
+    <button class="sub-tab active" data-panel="panel-sub" onclick="switchPanel('panel-sub', this)">
+        <i class="bi bi-credit-card"></i> Abonnement
+    </button>
+    <button class="sub-tab" data-panel="panel-pm" onclick="switchPanel('panel-pm', this)">
+        <i class="bi bi-wallet2"></i> Paiement
+    </button>
+    <button class="sub-tab" data-panel="panel-invoices" onclick="switchPanel('panel-invoices', this)">
+        <i class="bi bi-receipt"></i> Factures
+    </button>
+    <button class="sub-tab" data-panel="panel-usage" onclick="switchPanel('panel-usage', this)">
+        <i class="bi bi-bar-chart-line"></i> Utilisation
+    </button>
+</div>
+
+<!-- ========== PANEL : ABONNEMENT ========== -->
+<div class="sub-panel active" id="panel-sub">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            {% if subscription %}
+                <!-- Current Plan Card -->
+                <div class="current-plan-card">
+                    <div class="plan-type-badge"><i class="bi bi-stars"></i> Plan actuel</div>
+                    <div class="plan-name-big">{{ subscription.plan|title }}</div>
+                    <div class="plan-status-row">
+                        <span class="status-pill {{ subscription.status }}">
+                            <span class="status-dot"></span>
+                            {{ subscription.get_status_display }}
+                        </span>
+                        <span style="font-size:0.8rem;color:rgba(255,255,255,0.5);">
+                            · Facturation {{ subscription.get_billing_cycle_display }}
+                        </span>
+                    </div>
+
+                    {% if subscription.current_period_end %}
+                    <div class="period-progress-wrap">
+                        <div class="period-labels">
+                            <span>Début de période</span>
+                            <span>Renouvellement dans {{ subscription.days_until_renewal }} jours</span>
+                        </div>
+                        <div class="period-bar-bg">
+                            <div class="period-bar-fill" style="width: 65%;"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="plan-actions-row">
+                        <a href="{% url 'pricing' %}" class="btn-upgrade">
+                            <i class="bi bi-arrow-up-circle"></i> Changer de plan
+                        </a>
+                        <form method="post" action="{% url 'cancel_subscription' %}" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler votre abonnement ?');" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-cancel-sub">
+                                <i class="bi bi-x-circle"></i> Annuler l'abonnement
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Plan Details -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <h5><i class="bi bi-info-circle me-2"></i>Détails du plan</h5>
+                    </div>
+                    <div class="info-card-body">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                                    <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;margin-bottom:0.4rem;">ID Client Stripe</div>
+                                    <div style="font-size:0.85rem;font-weight:600;color:#0f172a;font-family:monospace;">{{ subscription.stripe_customer_id|default:"—" }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                                    <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;margin-bottom:0.4rem;">Abonnement depuis</div>
+                                    <div style="font-size:0.85rem;font-weight:600;color:#0f172a;">{{ subscription.created_at|date:"d M Y" }}</div>
+                                </div>
+                            </div>
+                            {% if subscription.current_period_end %}
+                            <div class="col-sm-6">
+                                <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #f1f5f9;">
+                                    <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#94a3b8;margin-bottom:0.4rem;">Prochain renouvellement</div>
+                                    <div style="font-size:0.85rem;font-weight:600;color:#0f172a;">{{ subscription.current_period_end|date:"d M Y" }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="info-card">
+                    <div class="info-card-body">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="bi bi-credit-card"></i></div>
+                            <h5>Aucun abonnement actif</h5>
+                            <p>Vous êtes sur le plan gratuit. Passez à un plan payant pour accéder à toutes les fonctionnalités.</p>
+                            <a href="{% url 'pricing' %}" class="btn btn-primary mt-3 px-4 py-2 rounded-3" style="font-weight:700;">
+                                <i class="bi bi-stars me-2"></i>Voir les offres
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right column: Quick Stats -->
+        <div class="col-lg-4">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5><i class="bi bi-lightning me-2"></i>Accès rapide</h5>
+                </div>
+                <div class="info-card-body" style="padding:1rem;">
+                    <a href="{% url 'pricing' %}" class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none mb-2" style="border:1.5px solid #e2e8f0;color:#0f172a;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e2e8f0'">
+                        <i class="bi bi-arrow-up-circle" style="font-size:1.3rem;color:#2563eb;"></i>
+                        <div>
+                            <div style="font-size:0.875rem;font-weight:700;">Changer de plan</div>
+                            <div style="font-size:0.75rem;color:#94a3b8;">Voir toutes les offres</div>
+                        </div>
+                        <i class="bi bi-chevron-right ms-auto" style="color:#94a3b8;"></i>
+                    </a>
+                    <button class="d-flex align-items-center gap-3 p-3 rounded-3 w-100 mb-2" style="border:1.5px solid #e2e8f0;background:white;color:#0f172a;transition:border-color 0.2s;text-align:left;" onclick="switchPanel('panel-pm', document.querySelector('[data-panel=panel-pm]'))" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e2e8f0'">
+                        <i class="bi bi-wallet2" style="font-size:1.3rem;color:#2563eb;"></i>
+                        <div>
+                            <div style="font-size:0.875rem;font-weight:700;">Moyens de paiement</div>
+                            <div style="font-size:0.75rem;color:#94a3b8;">Gérer vos cartes</div>
+                        </div>
+                        <i class="bi bi-chevron-right ms-auto" style="color:#94a3b8;"></i>
+                    </button>
+                    <button class="d-flex align-items-center gap-3 p-3 rounded-3 w-100" style="border:1.5px solid #e2e8f0;background:white;color:#0f172a;transition:border-color 0.2s;text-align:left;" onclick="switchPanel('panel-invoices', document.querySelector('[data-panel=panel-invoices]'))" onmouseover="this.style.borderColor='#2563eb'" onmouseout="this.style.borderColor='#e2e8f0'">
+                        <i class="bi bi-receipt" style="font-size:1.3rem;color:#2563eb;"></i>
+                        <div>
+                            <div style="font-size:0.875rem;font-weight:700;">Historique de facturation</div>
+                            <div style="font-size:0.75rem;color:#94a3b8;">Télécharger les factures</div>
+                        </div>
+                        <i class="bi bi-chevron-right ms-auto" style="color:#94a3b8;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PANEL : PAIEMENT ========== -->
+<div class="sub-panel" id="panel-pm">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5><i class="bi bi-wallet2 me-2"></i>Moyens de paiement enregistrés</h5>
+                    <button class="btn btn-sm btn-primary rounded-2" id="addPaymentBtn" style="font-size:0.8rem;font-weight:700;">
+                        <i class="bi bi-plus-lg me-1"></i>Ajouter
+                    </button>
+                </div>
+                <div class="info-card-body">
+                    {% if payment_methods %}
+                        {% for pm in payment_methods %}
+                        <div class="pm-item">
+                            <div class="pm-left">
+                                <div class="pm-brand-icon">
+                                    {% if pm.card_brand == 'visa' %}<i class="bi bi-credit-card-2-front"></i>
+                                    {% elif pm.card_brand == 'mastercard' %}<i class="bi bi-credit-card-fill"></i>
+                                    {% else %}<i class="bi bi-credit-card"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="pm-number">{{ pm.card_brand|title }} •••• •••• •••• {{ pm.card_last4 }}</div>
+                                    <div class="pm-exp">Expire {{ pm.card_exp_month|stringformat:"02d" }}/{{ pm.card_exp_year }}</div>
+                                </div>
+                                {% if pm.is_default %}
+                                <span style="font-size:0.65rem;font-weight:700;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:0.15rem 0.5rem;border-radius:99px;margin-left:0.5rem;">Défaut</span>
+                                {% endif %}
+                            </div>
+                            <form method="post" action="{% url 'remove_payment_method' pm.id %}" onsubmit="return confirm('Supprimer ce moyen de paiement ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-pm-remove" title="Supprimer">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state" style="padding:2rem 1rem;">
+                            <div class="empty-icon"><i class="bi bi-wallet2"></i></div>
+                            <h5>Aucune carte enregistrée</h5>
+                            <p>Ajoutez un moyen de paiement pour activer votre abonnement.</p>
+                        </div>
+                    {% endif %}
+
+                    <button class="btn-add-pm mt-3" id="addPaymentBtn2">
+                        <i class="bi bi-plus-circle"></i> Ajouter un moyen de paiement
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5><i class="bi bi-shield-check me-2"></i>Sécurité</h5>
+                </div>
+                <div class="info-card-body">
+                    <p style="font-size:0.85rem;color:#64748b;line-height:1.6;">Vos données de paiement sont protégées par un chiffrement <strong>AES-256</strong>. Nous ne stockons jamais les numéros de carte complets.</p>
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-top:1rem;padding:0.75rem;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;">
+                        <i class="bi bi-lock-fill" style="color:#059669;"></i>
+                        <span style="font-size:0.78rem;font-weight:600;color:#059669;">Paiements sécurisés via Stripe</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PANEL : FACTURES ========== -->
+<div class="sub-panel" id="panel-invoices">
+    <div class="info-card">
+        <div class="info-card-header">
+            <h5><i class="bi bi-receipt me-2"></i>Historique de facturation</h5>
+            <span style="font-size:0.75rem;color:#94a3b8;font-weight:500;">{{ invoices|length }} facture{{ invoices|length|pluralize }}</span>
+        </div>
+        <div class="info-card-body" style="padding:0;">
+            {% if invoices %}
+            <div style="overflow-x:auto;">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>N° Facture</th>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td style="font-weight:600;color:#0f172a;font-family:monospace;">{{ invoice.invoice_number }}</td>
+                            <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
+                            <td style="font-weight:700;color:#0f172a;">{{ invoice.total }} {{ invoice.currency }}</td>
+                            <td>
+                                <span class="invoice-status {% if invoice.status == 'paid' %}paid{% elif invoice.status == 'open' %}open{% else %}overdue{% endif %}">
+                                    <i class="bi {% if invoice.status == 'paid' %}bi-check-circle-fill{% elif invoice.status == 'open' %}bi-clock-fill{% else %}bi-exclamation-circle-fill{% endif %}"></i>
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                            <td><a href="#" class="btn-download"><i class="bi bi-download me-1"></i>PDF</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-receipt"></i></div>
+                <h5>Aucune facture disponible</h5>
+                <p>Vos factures apparaîtront ici après votre premier paiement.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ========== PANEL : UTILISATION ========== -->
+<div class="sub-panel" id="panel-usage">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5><i class="bi bi-bar-chart-line me-2"></i>Utilisation du mois en cours</h5>
+                    <span style="font-size:0.75rem;color:#94a3b8;">Mars 2026</span>
+                </div>
+                <div class="info-card-body">
+                    <div class="usage-row">
+                        <div class="usage-label"><i class="bi bi-robot"></i> Requêtes IA Advisor</div>
+                        <div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:73%"></div></div></div>
+                        <div class="usage-value">365 / 500</div>
+                    </div>
+                    <div class="usage-row">
+                        <div class="usage-label"><i class="bi bi-people"></i> Utilisateurs actifs</div>
+                        <div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:40%"></div></div></div>
+                        <div class="usage-value">4 / 10</div>
+                    </div>
+                    <div class="usage-row">
+                        <div class="usage-label"><i class="bi bi-building"></i> Entités</div>
+                        <div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:60%"></div></div></div>
+                        <div class="usage-value">3 / 5</div>
+                    </div>
+                    <div class="usage-row">
+                        <div class="usage-label"><i class="bi bi-file-earmark-text"></i> Rapports générés</div>
+                        <div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:88%"></div></div></div>
+                        <div class="usage-value">44 / 50</div>
+                    </div>
+                    <div class="usage-row">
+                        <div class="usage-label"><i class="bi bi-cloud-upload"></i> Stockage documents</div>
+                        <div class="usage-bar-wrap"><div class="usage-bar-bg"><div class="usage-bar-fill" style="width:35%"></div></div></div>
+                        <div class="usage-value">3.5 Go / 10 Go</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h5><i class="bi bi-lightbulb me-2"></i>Conseil</h5>
+                </div>
+                <div class="info-card-body">
+                    <p style="font-size:0.85rem;color:#64748b;line-height:1.6;">Vous approchez de la limite de vos rapports mensuels. Passez au plan <strong>Enterprise</strong> pour des rapports illimités.</p>
+                    <a href="{% url 'pricing' %}" class="btn btn-primary btn-sm mt-2 rounded-2" style="font-weight:700;">
+                        <i class="bi bi-arrow-up-circle me-1"></i>Mettre à niveau
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchPanel(panelId, btn) {
+    // Hide all panels
+    document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+    // Deactivate all tabs
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    // Show selected panel
+    document.getElementById(panelId).classList.add('active');
+    // Activate clicked tab
+    if (btn) btn.classList.add('active');
+}
+</script>
+{% endblock %}

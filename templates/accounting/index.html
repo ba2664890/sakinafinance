@@ -1,0 +1,309 @@
+{% extends 'dashboard_base.html' %}
+{% load humanize %}
+
+{% block title %}Comptabilité Générale — FinanceOS IA{% endblock %}
+{% block page_title %}Comptabilité Générale{% endblock %}
+
+{% block extra_css %}
+<style>
+    .accounting-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-mini-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .mini-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .bg-soft-blue { background: rgba(37, 99, 235, 0.08); color: #2563eb; }
+    .bg-soft-green { background: rgba(16, 185, 129, 0.08); color: #10b981; }
+    .bg-soft-purple { background: rgba(139, 92, 246, 0.08); color: #8b5cf6; }
+    .bg-soft-orange { background: rgba(245, 158, 11, 0.08); color: #f59e0b; }
+
+    .mini-label { font-size: 0.75rem; color: #64748b; font-weight: 500; text-transform: uppercase; margin-bottom: 0.1rem; }
+    .mini-value { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0; }
+
+    .accounting-panel {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        padding: 1.25rem 1.5rem;
+        background: #fcfdfe;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .panel-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+
+    .panel-content { padding: 1.5rem; }
+
+    /* Balance Sheet Table */
+    .balance-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .balance-table tr td { padding: 0.75rem 0.5rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; }
+    .balance-table tr:last-child td { border-bottom: none; }
+    .balance-table .label { color: #475569; font-weight: 500; }
+    .balance-table .value { text-align: right; font-weight: 700; color: #0f172a; }
+    .balance-table .pct-bar { width: 60px; padding-left: 1rem; }
+    .pct-fill { height: 6px; border-radius: 99px; background: #e2e8f0; position: relative; }
+    .pct-val { height: 100%; border-radius: 99px; background: var(--primary-color); }
+
+    /* Alert Banner */
+    .alert-banner {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .alert-banner-warning { background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
+    .alert-banner-info { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+    .alert-banner-success { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+
+    /* Entries Table */
+    .entries-table-refined { width: 100%; font-size: 0.8rem; }
+    .entries-table-refined th { background: #f8fafc; color: #64748b; font-weight: 700; padding: 0.75rem 1rem; text-align: left; text-transform: uppercase; letter-spacing: 0.05em; }
+    .entries-table-refined td { padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .entries-table-refined tr:hover { background: #fcfdfe; }
+    .text-mono { font-family: 'JetBrains Mono', 'Monaco', monospace; }
+
+    .tag-compte { background: #f1f5f9; color: #475569; padding: 0.2rem 0.4rem; border-radius: 4px; font-weight: 600; font-size: 0.7rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Top KPIs -->
+    <div class="accounting-kpis">
+        <div class="kpi-mini-card">
+            <div class="mini-icon bg-soft-blue"><i class="bi bi-wallet2"></i></div>
+            <div>
+                <div class="mini-label">Total Actif</div>
+                <div class="mini-value">{{ total_assets|floatformat:0 }} $</div>
+            </div>
+            <div class="ms-auto"><span class="badge bg-success" style="font-size:0.6rem;">+{{ total_assets_growth }}%</span></div>
+        </div>
+        <div class="kpi-mini-card">
+            <div class="mini-icon bg-soft-orange"><i class="bi bi-shield-lock"></i></div>
+            <div>
+                <div class="mini-label">Total Passif</div>
+                <div class="mini-value">{{ total_liabilities|floatformat:0 }} $</div>
+            </div>
+        </div>
+        <div class="kpi-mini-card">
+            <div class="mini-icon bg-soft-purple"><i class="bi bi-safe"></i></div>
+            <div>
+                <div class="mini-label">Capitaux Propres</div>
+                <div class="mini-value">{{ equity|floatformat:0 }} $</div>
+            </div>
+            <div class="ms-auto small fw-bold text-muted">{{ equity_ratio }}%</div>
+        </div>
+        <div class="kpi-mini-card">
+            <div class="mini-icon bg-soft-green"><i class="bi bi-cash-stack"></i></div>
+            <div>
+                <div class="mini-label">Résultat Net YTD</div>
+                <div class="mini-value">{{ net_income|floatformat:0 }} $</div>
+            </div>
+            <div class="ms-auto small fw-bold text-success">{{ net_income_margin }}%</div>
+        </div>
+    </div>
+
+    <!-- Alert Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for alert in alerts %}
+            <div class="alert-banner alert-banner-{{ alert.type }}">
+                <i class="bi {{ alert.icon }}"></i>
+                <span>{{ alert.msg }}</span>
+                <button class="btn btn-sm ms-auto py-0 text-decoration-underline" style="font-size:0.75rem; color:inherit;">Voir détails</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Simplified Balance Sheet -->
+        <div class="col-lg-6">
+            <div class="accounting-panel">
+                <div class="panel-header">
+                    <h6>Structure du Bilan (Simplifié)</h6>
+                    <span class="badge bg-light text-dark fw-bold border">Vue Consolidée</span>
+                </div>
+                <div class="panel-content">
+                    <div class="row">
+                        <div class="col-md-6 border-end">
+                            <h6 class="text-uppercase small fw-bold text-primary mb-3">ACTIF</h6>
+                            <table class="balance-table">
+                                {% for item in balance_sheet.actif %}
+                                <tr>
+                                    <td class="label">{{ item.label }}</td>
+                                    <td class="value">{{ item.amount|floatformat:0 }}</td>
+                                    <td class="pct-bar">
+                                        <div class="pct-fill"><div class="pct-val" style="width: {{ item.pct }}%"></div></div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase small fw-bold text-warning mb-3">PASSIF & CP</h6>
+                            <table class="balance-table">
+                                {% for item in balance_sheet.passif %}
+                                <tr>
+                                    <td class="label">{{ item.label }}</td>
+                                    <td class="value">{{ item.amount|floatformat:0 }}</td>
+                                    <td class="pct-bar">
+                                        <div class="pct-fill"><div class="pct-val bg-warning" style="width: {{ item.pct }}%"></div></div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense Breakdown Chart -->
+        <div class="col-lg-6">
+            <div class="accounting-panel">
+                <div class="panel-header">
+                    <h6>Répartition des Charges (Période en cours)</h6>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary active">Par Catégorie</button>
+                        <button class="btn btn-outline-secondary">Par Departement</button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <canvas id="expenseChart" style="max-height: 250px;"></canvas>
+                        </div>
+                        <div class="col-md-5">
+                            {% for item in expense_breakdown %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between small fw-bold mb-1">
+                                    <span>{{ item.category }}</span>
+                                    <span>{{ item.pct }}%</span>
+                                </div>
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar bg-{{ item.color }}" style="width: {{ item.pct }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Journal Entries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="accounting-panel">
+                <div class="panel-header">
+                    <h6>Dernières Écritures Comptables</h6>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light border"><i class="bi bi-filter me-1"></i> Filtrer</button>
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Saisie Manuelle</button>
+                    </div>
+                </div>
+                <div class="panel-content p-0">
+                    <table class="entries-table-refined">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Référence</th>
+                                <th>Libellé</th>
+                                <th>Compte</th>
+                                <th class="text-end">Débit</th>
+                                <th class="text-end">Crédit</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in journal_entries %}
+                            <tr>
+                                <td class="text-muted">{{ entry.date }}</td>
+                                <td class="fw-bold">{{ entry.ref }}</td>
+                                <td>{{ entry.libelle }}</td>
+                                <td><span class="tag-compte">{{ entry.compte }}</span></td>
+                                <td class="text-end fw-bold text-success">{% if entry.debit %}{{ entry.debit|floatformat:0 }}{% else %}-{% endif %}</td>
+                                <td class="text-end fw-bold text-danger">{% if entry.credit %}{{ entry.credit|floatformat:0 }}{% else %}-{% endif %}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm text-primary"><i class="bi bi-eye"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-footer p-3 text-center border-top">
+                    <a href="#" class="small fw-bold text-primary text-decoration-none">Consulter le Grand Livre complet <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    const data = {
+        labels: [{% for item in expense_breakdown %}"{{ item.category }}",{% endfor %}],
+        datasets: [{
+            data: [{% for item in expense_breakdown %}{{ item.amount }},{% endfor %}],
+            backgroundColor: [
+                '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#64748b'
+            ],
+            borderWidth: 0,
+            hoverOffset: 15
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: data,
+        options: {
+            plugins: {
+                legend: { display: false }
+            },
+            cutout: '70%',
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+});
+</script>
+{% endblock %}
