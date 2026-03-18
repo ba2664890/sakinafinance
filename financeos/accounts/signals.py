@@ -34,8 +34,9 @@ def send_welcome_email_after_confirmation(request, email_address, **kwargs):
             'company_name': company_name,
             'dashboard_url': request.build_absolute_uri(reverse('dashboard'))
         }
+        # Charger les versions HTML et Texte
         html_message = render_to_string('emails/welcome.html', context)
-        plain_message = strip_tags(html_message)
+        plain_message = render_to_string('emails/welcome.txt', context)
         
         send_mail(
             subject,
@@ -43,7 +44,7 @@ def send_welcome_email_after_confirmation(request, email_address, **kwargs):
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             html_message=html_message,
-            fail_silently=True
+            fail_silently=False  # On veut voir les erreurs en DEBUG
         )
     except Exception as e:
         import logging

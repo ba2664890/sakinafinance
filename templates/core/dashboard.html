@@ -34,10 +34,10 @@
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">Chiffre d'Affaires Total</div>
-            <div class="kpi-value">{{ kpis.total_revenue|default:"428.5M" }} XOF</div>
-            <span class="kpi-change positive">
+            <div class="kpi-value" id="kpi-revenue">{{ kpis.total_revenue|default:"0" }} XOF</div>
+            <span class="kpi-change positive" id="kpi-revenue-change">
                 <i class="bi bi-arrow-up-short"></i>
-                {{ kpis.revenue_growth|default:"12.4" }}%
+                {{ kpis.revenue_growth|default:"0" }}%
             </span>
             <span class="text-muted small ms-2">vs N-1</span>
         </div>
@@ -45,10 +45,10 @@
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">EBITDA Groupe</div>
-            <div class="kpi-value">{{ kpis.ebitda|default:"84.2M" }} XOF</div>
-            <span class="kpi-change positive">
+            <div class="kpi-value" id="kpi-ebitda">{{ kpis.ebitda|default:"0" }} XOF</div>
+            <span class="kpi-change positive" id="kpi-ebitda-change">
                 <i class="bi bi-arrow-up-short"></i>
-                {{ kpis.ebitda_margin|default:"19.6" }}%
+                {{ kpis.ebitda_margin|default:"0" }}%
             </span>
             <span class="text-muted small ms-2">marge</span>
         </div>
@@ -56,10 +56,10 @@
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">Trésorerie Nette</div>
-            <div class="kpi-value">{{ kpis.net_cash|default:"112.9M" }} XOF</div>
-            <span class="kpi-change positive">
+            <div class="kpi-value" id="kpi-cash">{{ kpis.net_cash|default:"0" }} XOF</div>
+            <span class="kpi-change positive" id="kpi-cash-change">
                 <i class="bi bi-arrow-up-short"></i>
-                {{ kpis.cash_growth|default:"5.7" }}%
+                {{ kpis.cash_growth|default:"0" }}%
             </span>
             <span class="text-muted small ms-2">vs mois dernier</span>
         </div>
@@ -67,10 +67,10 @@
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">Factures en Attente</div>
-            <div class="kpi-value">{{ kpis.pending_invoices|default:"23" }}</div>
-            <span class="kpi-change negative">
+            <div class="kpi-value" id="kpi-pending">{{ kpis.pending_invoices|default:"0" }}</div>
+            <span class="kpi-change negative" id="kpi-overdue">
                 <i class="bi bi-arrow-up-short"></i>
-                {{ kpis.overdue_invoices|default:"5" }} en retard
+                {{ kpis.overdue_invoices|default:"0" }} en retard
             </span>
             <span class="text-muted small ms-2">à relancer</span>
         </div>
@@ -106,7 +106,7 @@
         <div class="card h-100">
             <div class="card-header">
                 <h5 class="card-title">Flux de Trésorerie</h5>
-                <a href="#" class="text-primary small">Voir détails</a>
+                <a href="{% url 'treasury' %}" class="text-primary small">Voir détails</a>
             </div>
             <div class="card-body">
                 <canvas id="cashFlowChart" height="300"></canvas>
@@ -122,7 +122,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title">Transactions Récentes</h5>
-                <a href="#" class="text-primary small">Voir tout</a>
+                <a href="{% url 'accounting' %}" class="text-primary small">Voir tout</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -135,37 +135,9 @@
                                 <th>Statut</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>15 Mai 2024</td>
-                                <td>Vente Client A</td>
-                                <td class="text-success">+1,250,000 XOF</td>
-                                <td><span class="status-badge success"><i class="bi bi-check-circle"></i> Validé</span></td>
-                            </tr>
-                            <tr>
-                                <td>14 Mai 2024</td>
-                                <td>Fournisseur B</td>
-                                <td class="text-danger">-450,000 XOF</td>
-                                <td><span class="status-badge success"><i class="bi bi-check-circle"></i> Payé</span></td>
-                            </tr>
-                            <tr>
-                                <td>13 Mai 2024</td>
-                                <td>Salaires Mai</td>
-                                <td class="text-danger">-2,800,000 XOF</td>
-                                <td><span class="status-badge success"><i class="bi bi-check-circle"></i> Payé</span></td>
-                            </tr>
-                            <tr>
-                                <td>12 Mai 2024</td>
-                                <td>Facture Client C</td>
-                                <td class="text-success">+890,000 XOF</td>
-                                <td><span class="status-badge warning"><i class="bi bi-clock"></i> En attente</span></td>
-                            </tr>
-                            <tr>
-                                <td>11 Mai 2024</td>
-                                <td>Loyer Bureau</td>
-                                <td class="text-danger">-350,000 XOF</td>
-                                <td><span class="status-badge success"><i class="bi bi-check-circle"></i> Payé</span></td>
-                            </tr>
+                        <tbody id="recent-transactions-body">
+                            <!-- Dynamically loaded -->
+                            <tr><td colspan="4" class="text-center text-muted py-4">Chargement des transactions...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -178,116 +150,134 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title">Alertes & Tâches</h5>
-                <a href="#" class="text-primary small">Voir tout</a>
+                <a href="{% url 'notifications' %}" class="text-primary small">Voir tout</a>
             </div>
-            <div class="card-body">
-                <div class="d-flex align-items-start mb-3 p-3 bg-warning bg-opacity-10 rounded">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">TVA à déclarer</h6>
-                        <p class="mb-1 text-muted small">La déclaration TVA du mois de mai doit être soumise avant le 20/05/2024</p>
-                        <a href="#" class="btn btn-sm btn-warning mt-2">Déclarer maintenant</a>
-                    </div>
-                </div>
-                
-                <div class="d-flex align-items-start mb-3 p-3 bg-info bg-opacity-10 rounded">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-info-circle text-info fs-4"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">Nouveau rapport disponible</h6>
-                        <p class="mb-1 text-muted small">Le rapport mensuel d'avril 2024 est prêt à être consulté</p>
-                        <a href="#" class="btn btn-sm btn-info mt-2">Voir le rapport</a>
-                    </div>
-                </div>
-                
-                <div class="d-flex align-items-start p-3 bg-danger bg-opacity-10 rounded">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-x-circle text-danger fs-4"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-1">5 factures en retard</h6>
-                        <p class="mb-1 text-muted small">Des factures clients sont en retard de paiement. Montant total: 4,250,000 XOF</p>
-                        <a href="#" class="btn btn-sm btn-danger mt-2">Voir les factures</a>
-                    </div>
-                </div>
+            <div class="card-body" id="alerts-container">
+                <!-- Dynamically loaded -->
+                <div class="text-center text-muted py-3">Analyse des alertes en cours...</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Performance Chart
-    const ctx1 = document.getElementById('performanceChart').getContext('2d');
-    new Chart(ctx1, {
+    // formatCurrency helper
+    const fmt = (val) => new Intl.NumberFormat('fr-FR').format(val);
+
+    // Initial Empty Charts
+    const perfChart = new Chart(document.getElementById('performanceChart').getContext('2d'), {
         type: 'line',
-        data: {
-            labels: ['Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai'],
-            datasets: [{
-                label: 'CA Réel',
-                data: [320, 280, 350, 380, 400, 420, 410, 428],
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                fill: true,
-                tension: 0.4
-            }, {
-                label: 'Objectif',
-                data: [300, 300, 320, 350, 380, 400, 420, 450],
-                borderColor: '#94a3b8',
-                borderDash: [5, 5],
-                fill: false,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    align: 'end'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#e2e8f0'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
+        data: { labels: [], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false }
     });
-    
-    // Cash Flow Chart
-    const ctx2 = document.getElementById('cashFlowChart').getContext('2d');
-    new Chart(ctx2, {
+
+    const cashChart = new Chart(document.getElementById('cashFlowChart').getContext('2d'), {
         type: 'doughnut',
-        data: {
-            labels: ['Entrées', 'Sorties', 'Réserve'],
-            datasets: [{
-                data: [45, 30, 25],
-                backgroundColor: ['#10b981', '#ef4444', '#3b82f6'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
+        data: { labels: [], datasets: [] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
     });
+
+    // Load Data via API
+    async function loadDashboardData() {
+        try {
+            const response = await fetch('{% url "api_dashboard_data" %}');
+            const data = await response.json();
+
+            // Update KPIs
+            document.getElementById('kpi-revenue').textContent = `${fmt(data.kpis.total_revenue)} XOF`;
+            document.getElementById('kpi-revenue-change').innerHTML = `<i class="bi bi-arrow-up-short"></i> ${data.kpis.revenue_growth}%`;
+            
+            document.getElementById('kpi-ebitda').textContent = `${fmt(data.kpis.ebitda)} XOF`;
+            document.getElementById('kpi-ebitda-change').innerHTML = `<i class="bi bi-arrow-up-short"></i> ${data.kpis.ebitda_margin}%`;
+            
+            document.getElementById('kpi-cash').textContent = `${fmt(data.kpis.net_cash)} XOF`;
+            document.getElementById('kpi-cash-change').innerHTML = `<i class="bi bi-arrow-up-short"></i> ${data.kpis.cash_growth}%`;
+            
+            document.getElementById('kpi-pending').textContent = data.kpis.pending_invoices;
+            document.getElementById('kpi-overdue').innerHTML = `<i class="bi bi-arrow-up-short"></i> ${data.kpis.overdue_invoices} en retard`;
+
+            // Update Performance Chart
+            perfChart.data = {
+                labels: data.chart_data.labels,
+                datasets: [{
+                    label: 'CA (millions)',
+                    data: data.chart_data.revenue,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Objectif',
+                    data: data.chart_data.target,
+                    borderColor: '#94a3b8',
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.4
+                }]
+            };
+            perfChart.update();
+
+            // Update Cash Chart
+            cashChart.data = {
+                labels: ['Entrées', 'Sorties', 'Réserve'],
+                datasets: [{
+                    data: [45, 30, 25], // Fixed ratios for now or from data.kpis
+                    backgroundColor: ['#10b981', '#ef4444', '#3b82f6'],
+                    borderWidth: 0
+                }]
+            };
+            cashChart.update();
+
+            // Update Recent Transactions
+            const txBody = document.getElementById('recent-transactions-body');
+            txBody.innerHTML = '';
+            if (data.recent_transactions.length === 0) {
+                txBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Aucune transaction récente</td></tr>';
+            } else {
+                data.recent_transactions.forEach(tx => {
+                    const row = `
+                        <tr>
+                            <td>${tx.date}</td>
+                            <td>${tx.description}</td>
+                            <td class="${tx.amount >= 0 ? 'text-success' : 'text-danger'}">
+                                ${tx.amount >= 0 ? '+' : ''}${fmt(tx.amount)} XOF
+                            </td>
+                            <td><span class="status-badge success"><i class="bi bi-check-circle"></i> ${tx.status}</span></td>
+                        </tr>
+                    `;
+                    txBody.innerHTML += row;
+                });
+            }
+
+            // Update Alerts
+            const alertsContainer = document.getElementById('alerts-container');
+            alertsContainer.innerHTML = '';
+            if (data.alerts.length === 0) {
+                alertsContainer.innerHTML = '<div class="alert alert-success mt-2">Aucune alerte critique. Tout est en ordre !</div>';
+            } else {
+                data.alerts.forEach(alert => {
+                    const alertHtml = `
+                        <div class="d-flex align-items-start mb-3 p-3 bg-${alert.type} bg-opacity-10 rounded">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-exclamation-triangle text-${alert.type} fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">${alert.title}</h6>
+                                <p class="mb-1 text-muted small">${alert.message}</p>
+                                <a href="${alert.action_url}" class="btn btn-sm btn-${alert.type} mt-2">${alert.action_text}</a>
+                            </div>
+                        </div>
+                    `;
+                    alertsContainer.innerHTML += alertHtml;
+                });
+            }
+
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        }
+    }
+
+    // Call on load
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
 </script>
 {% endblock %}

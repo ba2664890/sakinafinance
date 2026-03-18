@@ -69,22 +69,22 @@
     <!-- Top Stats -->
     <div class="hr-stats-grid">
         <div class="stat-card-glass">
-            <div class="stat-val">{{ total_employees }}</div>
+            <div class="stat-val" id="total_employees">...</div>
             <div class="stat-lbl">Effectif Total</div>
-            <div class="stat-sub text-success fw-bold">+{{ new_hires }} ce mois</div>
+            <div class="stat-sub text-success fw-bold" id="new_hires_badge">+0 ce mois</div>
         </div>
         <div class="stat-card-glass">
-            <div class="stat-val">{{ payroll_total|floatformat:0 }} $</div>
+            <div class="stat-val" id="payroll_total">... $</div>
             <div class="stat-lbl">Masse Salariale / Mois</div>
-            <div class="stat-sub text-danger fw-bold">+{{ payroll_growth }}% vs N-1</div>
+            <div class="stat-sub text-danger fw-bold" id="payroll_growth">+0% vs N-1</div>
         </div>
         <div class="stat-card-glass">
-            <div class="stat-val">{{ turnover_rate }}%</div>
+            <div class="stat-val" id="turnover_rate">... %</div>
             <div class="stat-lbl">Taux de Turnover</div>
             <div class="stat-sub text-muted">Moyenne secteur: 8.5%</div>
         </div>
         <div class="stat-card-glass">
-            <div class="stat-val">{{ satisfaction_score }}/100</div>
+            <div class="stat-val" id="satisfaction_score">... /100</div>
             <div class="stat-lbl">eNPS (Engagement)</div>
             <div class="stat-sub text-success fw-bold">Stable</div>
         </div>
@@ -96,7 +96,7 @@
             <div class="hr-panel">
                 <div class="hr-panel-header">
                     <h6>Historique des Paies (Payroll)</h6>
-                    <button class="btn btn-sm btn-primary">Lancer la Paie Avr 2025</button>
+                    <button class="btn btn-sm btn-primary">Lancer la Paie</button>
                 </div>
                 <div class="hr-panel-content p-0">
                     <table class="payroll-table">
@@ -110,21 +110,8 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for run in payroll_runs %}
-                            <tr>
-                                <td class="fw-bold">{{ run.period }}</td>
-                                <td>{{ run.employees }}</td>
-                                <td>{{ run.gross|floatformat:0 }}</td>
-                                <td class="fw-bold">{{ run.net|floatformat:0 }}</td>
-                                <td>
-                                    <span class="status-pill-hr {% if run.status == 'Payé' %}pill-paid{% else %}pill-pending{% endif %}">
-                                        {{ run.status }}
-                                    </span>
-                                </td>
-                                <td><button class="btn btn-sm text-primary p-0"><i class="bi bi-file-earmark-spreadsheet"></i></button></td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="payroll_table_body">
+                            <tr><td colspan="6" class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -138,18 +125,9 @@
                 <div class="hr-panel-header"><h6>Répartition par Département</h6></div>
                 <div class="hr-panel-content">
                     <canvas id="deptChart" style="max-height: 180px; margin-bottom: 1.5rem;"></canvas>
-                    {% for dept in departments %}
-                    <div class="dept-item">
-                        <div class="dept-color bg-{{ dept.color }}"></div>
-                        <div class="dept-info">
-                            <div class="d-flex justify-content-between">
-                                <span class="dept-name">{{ dept.name }}</span>
-                                <span class="small text-muted">{{ dept.count }}</span>
-                            </div>
-                            <div class="dept-bar"><div class="dept-fill bg-{{ dept.color }}" style="width: {{ dept.pct }}%"></div></div>
-                        </div>
+                    <div id="dept_list">
+                        <!-- Dynamic -->
                     </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -163,27 +141,21 @@
                 <div class="hr-panel-content">
                     <div class="row text-center mb-4">
                         <div class="col-4 border-end">
-                            <div class="h4 fw-bold mb-0">15</div>
+                            <div class="h4 fw-bold mb-0" id="pending_leaves">0</div>
                             <div class="small text-muted">En attente</div>
                         </div>
                         <div class="col-4 border-end">
-                            <div class="h4 fw-bold mb-0 text-success">44</div>
+                            <div class="h4 fw-bold mb-0 text-success" id="approved_leaves">0</div>
                             <div class="small text-muted">Approuvés</div>
                         </div>
                         <div class="col-4">
-                            <div class="h4 fw-bold mb-0 text-primary">15</div>
+                            <div class="h4 fw-bold mb-0 text-primary" id="ongoing_leaves">0</div>
                             <div class="small text-muted">En cours</div>
                         </div>
                     </div>
-                    {% for leave in leave_summary %}
-                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-light border-start border-4 border-primary">
-                        <div class="fw-bold small">{{ leave.type }}</div>
-                        <div class="small text-muted">
-                            <span class="badge bg-white text-dark border">{{ leave.pending }}</span>
-                            <span class="badge bg-success">{{ leave.approved }}</span>
-                        </div>
+                    <div id="leave_type_list">
+                        <!-- Dynamic -->
                     </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -193,19 +165,12 @@
             <div class="hr-panel">
                 <div class="hr-panel-header">
                     <h6>Recrutements Actifs</h6>
-                    <span class="badge bg-soft-blue text-primary">{{ recruitments|length }} Postes</span>
+                    <span class="badge bg-soft-blue text-primary" id="recruit_count">0 Postes</span>
                 </div>
                 <div class="hr-panel-content">
-                    {% for job in recruitments %}
-                    <div class="recruitment-card">
-                        <div class="recruit-title">{{ job.title }}</div>
-                        <div class="recruit-meta">
-                            <span><i class="bi bi-building me-1"></i>{{ job.dept }}</span>
-                            <span><i class="bi bi-people me-1"></i>{{ job.candidates }} Candidats</span>
-                            <span class="fw-bold text-primary">{{ job.stage }}</span>
-                        </div>
+                    <div id="recruit_list">
+                        <!-- Dynamic -->
                     </div>
-                    {% endfor %}
                     <button class="btn btn-outline-primary w-100 btn-sm mt-2">Gérer le portail carrière</button>
                 </div>
             </div>
@@ -217,23 +182,112 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('deptChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: [{% for d in departments %}"{{ d.name }}",{% endfor %}],
-            datasets: [{
-                data: [{% for d in departments %}{{ d.count }},{% endfor %}],
-                backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#06b6d4', '#64748b', '#ef4444'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            responsive: true,
-            maintainAspectRatio: false
+    loadHRData();
+
+    async function loadHRData() {
+        try {
+            const response = await fetch('/hr/api/data/');
+            const data = await response.json();
+
+            // KPIs
+            document.getElementById('total_employees').textContent = data.total_employees;
+            document.getElementById('new_hires_badge').textContent = `+${data.new_hires} ce mois`;
+            document.getElementById('payroll_total').textContent = `${data.payroll_total.toLocaleString()} $`;
+            document.getElementById('payroll_growth').textContent = `+${data.payroll_growth}% vs N-1`;
+            document.getElementById('turnover_rate').textContent = `${data.turnover_rate}%`;
+            document.getElementById('satisfaction_score').textContent = `${data.satisfaction_score}/100`;
+
+            // Leaves
+            document.getElementById('pending_leaves').textContent = data.pending_leaves;
+            document.getElementById('approved_leaves').textContent = data.approved_leaves;
+            document.getElementById('ongoing_leaves').textContent = data.ongoing_leaves;
+
+            // Payroll Table
+            const payrollBody = document.getElementById('payroll_table_body');
+            if (data.payroll_runs.length === 0) {
+                payrollBody.innerHTML = '<tr><td colspan="6" class="text-center p-3 text-muted">Aucune période de paie</td></tr>';
+            } else {
+                payrollBody.innerHTML = data.payroll_runs.map(run => `
+                    <tr>
+                        <td class="fw-bold">${run.period}</td>
+                        <td>${run.employees}</td>
+                        <td>${run.gross.toLocaleString()}</td>
+                        <td class="fw-bold">${run.net.toLocaleString()}</td>
+                        <td>
+                            <span class="status-pill-hr ${run.status === 'Payé' ? 'pill-paid' : 'pill-pending'}">
+                                ${run.status}
+                            </span>
+                        </td>
+                        <td><button class="btn btn-sm text-primary p-0"><i class="bi bi-file-earmark-spreadsheet"></i></button></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Departments
+            const deptList = document.getElementById('dept_list');
+            deptList.innerHTML = data.departments.map(dept => `
+                <div class="dept-item">
+                    <div class="dept-color bg-${dept.color}"></div>
+                    <div class="dept-info">
+                        <div class="d-flex justify-content-between">
+                            <span class="dept-name">${dept.name}</span>
+                            <span class="small text-muted">${dept.count}</span>
+                        </div>
+                        <div class="dept-bar"><div class="dept-fill bg-${dept.color}" style="width: ${dept.pct}%"></div></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Leave Types
+            const leaveList = document.getElementById('leave_type_list');
+            leaveList.innerHTML = data.leave_summary.map(leave => `
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-light border-start border-4 border-primary">
+                    <div class="fw-bold small">${leave.type}</div>
+                    <div class="small text-muted">
+                        <span class="badge bg-white text-dark border">${leave.pending}</span>
+                        <span class="badge bg-success">${leave.approved}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Recruitments
+            document.getElementById('recruit_count').textContent = `${data.recruitments.length} Postes`;
+            const recruitList = document.getElementById('recruit_list');
+            recruitList.innerHTML = data.recruitments.map(job => `
+                <div class="recruitment-card">
+                    <div class="recruit-title">${job.title}</div>
+                    <div class="recruit-meta">
+                        <span><i class="bi bi-building me-1"></i>${job.dept}</span>
+                        <span><i class="bi bi-people me-1"></i>${job.candidates} Candidats</span>
+                        <span class="fw-bold text-primary">${job.stage}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Chart
+            const ctx = document.getElementById('deptChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.departments.map(d => d.name),
+                    datasets: [{
+                        data: data.departments.map(d => d.count),
+                        backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#06b6d4', '#64748b', '#ef4444'],
+                        borderWidth: 0,
+                        cutout: '70%'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+        } catch (error) {
+            console.error('Error loading HR data:', error);
         }
-    });
+    }
 });
 </script>
 {% endblock %}

@@ -1,223 +1,530 @@
 {% extends 'dashboard_base.html' %}
 
-{% block title %}IA Advisor - FinanceOS IA{% endblock %}
-{% block page_title %}IA Advisor System{% endblock %}
+{% block title %}IA Advisor Premium — FinanceOS IA{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --ai-primary: #8b5cf6;
+        --ai-secondary: #d946ef;
+        --ai-accent: #10b981;
+        --ai-bg-deep: #020617;
+        --ai-glass: rgba(255, 255, 255, 0.03);
+        --ai-border: rgba(255, 255, 255, 0.08);
+        --font-main: 'Outfit', sans-serif;
+    }
+
+    body { font-family: var(--font-main); }
+
+    .ai-wrapper {
+        background: var(--ai-bg-deep);
+        color: #f8fafc;
+        border-radius: 28px;
+        padding: 1.5rem;
+        height: calc(100vh - 140px);
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8);
+    }
+
+    /* Ambient Background Glows */
+    .ai-wrapper::before {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+        top: -200px;
+        left: -100px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Central Chat Section */
+    .chat-section {
+        background: var(--ai-glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--ai-border);
+        border-radius: 24px;
+        display: flex;
+        flex-direction: column;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--ai-border);
+        background: rgba(0,0,0,0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .ai-status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--ai-accent);
+        border-radius: 50%;
+        box-shadow: 0 0 12px var(--ai-accent);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--ai-border) transparent;
+    }
+
+    /* Bubbles */
+    .msg-bubble {
+        max-width: 85%;
+        margin-bottom: 2rem;
+        padding: 1.25rem 1.5rem;
+        border-radius: 20px;
+        line-height: 1.6;
+        font-weight: 300;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .msg-ai {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--ai-border);
+        border-bottom-left-radius: 4px;
+    }
+
+    .msg-user {
+        background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.4);
+        font-weight: 400;
+    }
+
+    .ai-icon-box {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border: 1px solid var(--ai-border);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+        color: var(--ai-primary);
+    }
+
+    /* Search/Input area */
+    .input-area {
+        padding: 1.5rem 2rem;
+        background: rgba(0,0,0,0.3);
+        border-top: 1px solid var(--ai-border);
+    }
+
+    .modern-input-group {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--ai-border);
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .modern-input-group:focus-within {
+        border-color: var(--ai-primary);
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+    }
+
+    .modern-input-group input {
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 0.75rem;
+        flex: 1;
+        font-size: 1rem;
+    }
+    .modern-input-group input:focus { outline: none; }
+
+    .send-btn {
+        width: 44px;
+        height: 44px;
+        background: var(--ai-primary);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+    .send-btn:hover { transform: scale(1.05) translateY(-2px); background: var(--ai-secondary); }
+
+    /* Sidebar cards */
+    .sidebar-panel { display: flex; flex-direction: column; gap: 1.25rem; z-index: 1; }
+
+    .glass-card {
+        background: var(--ai-glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--ai-border);
+        border-radius: 22px;
+        padding: 1.5rem;
+    }
+
+    .health-score-ring {
+        position: relative;
+        width: 130px;
+        height: 130px;
+        margin: 0 auto;
+    }
+
+    .score-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .suggest-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--ai-border);
+        border-radius: 15px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+    .suggest-item:hover { background: rgba(255,255,255,0.06); border-color: var(--ai-primary); transform: translateX(5px); }
+
+    .chart-container-bubble {
+        background: rgba(0,0,0,0.4);
+        border-radius: 16px;
+        padding: 1rem;
+        margin-top: 1rem;
+        height: 220px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block page_title %}Intelligence Advisor{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-    <!-- Chat Interface -->
-    <div class="col-lg-8">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-success bg-opacity-10 rounded p-1">
-                        <i class="bi bi-robot text-success"></i>
-                    </div>
-                    <span>IA Advisor</span>
-                    <span class="badge bg-success bg-opacity-10 text-success">Real-time ERP Connection: Active</span>
-                </div>
+<div class="ai-wrapper">
+    <!-- Particle Background -->
+    <canvas id="neuralNet" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:0.3;"></canvas>
+
+    <!-- Main AI Core -->
+    <div class="chat-section">
+        <header class="chat-header">
+            <div class="ai-status-indicator">
+                <div class="pulse-dot"></div>
                 <div>
-                    <button class="btn btn-sm btn-outline-primary me-2">
-                        <i class="bi bi-share me-1"></i>Share
-                    </button>
-                    <button class="btn btn-sm btn-primary">
-                        <i class="bi bi-download me-1"></i>Export Analysis
-                    </button>
+                    <div class="fw-bold mb-0 lh-1">FinanceOS <span class="text-primary" style="text-shadow: 0 0 10px var(--ai-primary)">Neural Core</span></div>
+                    <small class="text-white-50 opacity-50">Predictive Engine Active • Latency 12ms</small>
                 </div>
             </div>
-            <div class="card-body p-0 d-flex flex-column" style="height: 600px;">
-                <!-- Chat Messages -->
-                <div class="flex-grow-1 p-4 overflow-auto" id="chatMessages">
-                    <!-- User Message -->
-                    <div class="d-flex mb-4">
-                        <div class="flex-shrink-0">
-                            <div class="bg-primary bg-opacity-10 rounded-circle p-2">
-                                <i class="bi bi-person text-primary"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <div class="bg-light rounded p-3">
-                                <p class="mb-0">Can you explain why our EBITDA margin dropped by 12% in Q3 vs Q2, and show the major cost drivers?</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- AI Response -->
-                    <div class="d-flex mb-4">
-                        <div class="flex-shrink-0">
-                            <div class="bg-success bg-opacity-10 rounded-circle p-2">
-                                <i class="bi bi-robot text-success"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <div class="bg-light rounded p-3">
-                                <p class="mb-3">Analysis complete. Your EBITDA margin dropped from <strong class="text-primary">34.2%</strong> in Q2 to <strong class="text-danger">22.1%</strong> in Q3. The primary driver is a <strong class="text-danger">20.4% increase</strong> in Cost of Goods Sold (COGS), specifically concentrated in logistics and raw material procurement.</p>
-                                
-                                <!-- EBITDA Bridge Chart -->
-                                <div class="card mb-3">
-                                    <div class="card-header bg-light">
-                                        <h6 class="mb-0">EBITDA BRIDGE ANALYSIS</h6>
-                                        <small class="text-muted">All values in USD '000</small>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="ebitdaBridgeChart" height="200"></canvas>
-                                    </div>
-                                </div>
-                                
-                                <!-- Insights -->
-                                <div class="alert alert-info">
-                                    <h6 class="alert-heading"><i class="bi bi-lightbulb me-2"></i>INSIGHTS - CORE INTELLIGENCE EXTRACTS</h6>
-                                    <ul class="mb-0">
-                                        <li>Shipping costs increased by <strong>45%</strong> due to new carrier contracts initiated in July <a href="#" class="text-primary">[Ref 1]</a></li>
-                                        <li>Inventory write-downs of <strong>$42k</strong> occurred in the electronics division <a href="#" class="text-primary">[Ref 4]</a></li>
-                                        <li>Marketing spend exceeded budget by <strong>12%</strong> in the "Back to School" campaign <a href="#" class="text-primary">[Ref 7]</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Chat Input -->
-                <div class="p-3 border-top">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Ask FinanceOS IA about your cash flow, burn rate, or budget...">
-                        <button class="btn btn-outline-secondary" type="button">
-                            <i class="bi bi-mic"></i>
-                        </button>
-                        <button class="btn btn-primary" type="button">
-                            <i class="bi bi-send"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Sidebar -->
-    <div class="col-lg-4">
-        <!-- Suggested Analysis -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">Suggested Analysis</h6>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-                        <i class="bi bi-trending-down text-danger me-3"></i>
-                        <div>
-                            <p class="mb-0 fw-medium">Analyze EBITDA drop</p>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-                        <i class="bi bi-cash-stack text-success me-3"></i>
-                        <div>
-                            <p class="mb-0 fw-medium">Predict Q4 Cash</p>
-                        </div>
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-                        <i class="bi bi-graph-up text-primary me-3"></i>
-                        <div>
-                            <p class="mb-0 fw-medium">Forecast runway</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Database Intelligence -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">DATABASE INTELLIGENCE</h6>
-                <span class="badge bg-primary">7 CITATIONS</span>
-            </div>
-            <div class="card-body">
-                <div class="mb-3 p-3 bg-light rounded">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="badge bg-primary">[REF 01]</span>
-                        <small class="text-muted">Jul 12, 2023</small>
-                    </div>
-                    <h6 class="mb-1">Carrier Agreement - GlobalLogistics</h6>
-                    <p class="mb-2 small text-muted">"Updated fuel surcharge and baseline container rates reflected in invoice #GL-449..."</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-light text-dark"><i class="bi bi-file-text me-1"></i>ACCOUNTS PAYABLE LEDGER</span>
-                    </div>
-                </div>
-                
-                <div class="mb-3 p-3 bg-light rounded">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="badge bg-primary">[REF 04]</span>
-                        <small class="text-muted">Aug 30, 2023</small>
-                    </div>
-                    <h6 class="mb-1">Inventory Audit - Whse B</h6>
-                    <p class="mb-2 small text-muted">"Write-down adjustment for SKU-8822 (Obsolete status)..."</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-light text-dark"><i class="bi bi-table me-1"></i>INVENTORY LEDGER</span>
-                    </div>
-                </div>
-                
-                <div class="p-3 bg-light rounded">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="badge bg-primary">[REF 07]</span>
-                        <small class="text-muted">Sep 15, 2023</small>
-                    </div>
-                    <h6 class="mb-1">AdWords Monthly Billing</h6>
-                    <p class="mb-2 small text-muted">"Total spend for campaign exceeded initial forecast by 12.4%..."</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-light text-dark"><i class="bi bi-credit-card me-1"></i>MARKETING BUDGET</span>
-                    </div>
-                </div>
-                
-                <button class="btn btn-outline-primary w-100 mt-3">
-                    VIEW ALL 7 CITATIONS
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-light rounded-pill px-3" style="font-size: 0.75rem; border: var(--ai-border); background: rgba(255,255,255,0.02)">
+                    <i class="bi bi-clock-history me-2"></i>History
                 </button>
             </div>
+        </header>
+
+        <div class="chat-messages" id="messageFlow">
+            <!-- Welcome -->
+            <div class="msg-bubble msg-ai" style="animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)">
+                <div class="ai-icon-box"><i class="bi bi-cpu"></i></div>
+                <h4 class="fw-bold mb-2">Interface Neuronale Activée.</h4>
+                Je suis prêt à analyser vos structures financières. Posez une question complexe ou choisissez une dimension ci-dessous.
+                
+                <div class="mt-4">
+                    <p class="small text-white-50 mb-3 tracking-widest" style="font-size: 0.65rem">FLUX RECOMMANDÉS :</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-glass rounded-pill px-3" onclick="triggerAsk('Projection trésorerie mensuelle')">📊 Projection Trésorerie</button>
+                        <button class="btn btn-sm btn-glass rounded-pill px-3" onclick="triggerAsk('Analyse de rentabilité EBITDA')">📈 Analyse EBITDA</button>
+                        <button class="btn btn-sm btn-glass rounded-pill px-3" onclick="triggerAsk('Détecter les anomalies récentes')">🔍 Check Anomalies</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="input-area">
+            <form id="aiInteractForm">
+                <div class="modern-input-group">
+                    <i class="bi bi-command text-primary fs-5 ms-1"></i>
+                    <input type="text" id="userInputField" placeholder="Demander n'importe quoi (ex: 'Quel est mon risque fiscal ?')..." autocomplete="off">
+                    <button class="header-btn px-2 me-2 border-0 bg-transparent text-white-50"><i class="bi bi-lightning-charge"></i></button>
+                    <button type="submit" class="send-btn">
+                        <i class="bi bi-send-fill" style="transform: rotate(45deg) translate(-2px, 2px)"></i>
+                    </button>
+                </div>
+            </form>
+        </footer>
+    </div>
+...
+<style>
+    .btn-glass {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--ai-border);
+        color: #e2e8f0;
+        transition: all 0.3s;
+    }
+    .btn-glass:hover {
+        background: var(--ai-primary);
+        color: white;
+        border-color: var(--ai-primary);
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script>
+    // Particle System
+    const canvas = document.getElementById('neuralNet');
+    const ctx_p = canvas.getContext('2d');
+    let particles = [];
+    
+    function initParticles() {
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+        for(let i=0; i<40; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                r: Math.random() * 2
+            });
+        }
+    }
+
+    function animateParticles() {
+        ctx_p.clearRect(0,0,canvas.width, canvas.height);
+        ctx_p.fillStyle = '#8b5cf6';
+        particles.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            ctx_p.beginPath();
+            ctx_p.arc(p.x, p.y, p.r, 0, Math.PI*2);
+            ctx_p.fill();
+        });
+        requestAnimationFrame(animateParticles);
+    }
+    initParticles();
+    animateParticles();
+</script>
+
+    <!-- Analytics Sidebar -->
+    <div class="sidebar-panel">
+        <!-- AI Health -->
+        <div class="glass-card text-center">
+            <h6 class="small fw-bold text-white-50 mb-4 tracking-widest uppercase">FINANCIAL HEALTH SCORE</h6>
+            <div class="health-score-ring">
+                <svg viewBox="0 0 100 100" width="130" height="130">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradientRing)" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="50" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
+                    <defs>
+                        <linearGradient id="gradientRing" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#8b5cf6"></stop>
+                            <stop offset="100%" stop-color="#d946ef"></stop>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <div class="score-value">
+                    <div class="h2 fw-bold mb-0">82</div>
+                    <div class="small opacity-50">STABLE</div>
+                </div>
+            </div>
+            <div class="mt-3 badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
+                <i class="bi bi-arrow-up-right me-1"></i> +4.2% Optimization
+            </div>
+        </div>
+
+        <!-- Strategy Options -->
+        <div class="glass-card">
+            <h6 class="small fw-bold text-white-50 mb-3 uppercase">Analyses Dimensionnelles</h6>
+            {% for suggest in suggested_analyses %}
+            <div class="suggest-item" onclick="triggerAsk('{{ suggest.prompt }}')">
+                <div class="bg-primary bg-opacity-10 rounded-3 p-2 text-primary">
+                    <i class="bi {{ suggest.icon }}"></i>
+                </div>
+                <div class="small fw-medium">{{ suggest.title }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Insights -->
+        <div class="glass-card flex-grow-1 overflow-auto">
+            <h6 class="small fw-bold text-white-50 mb-3 uppercase">Flux de Recommandations</h6>
+            {% for item in insights %}
+            <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03)">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="badge bg-{% if item.priority == 'critical' %}danger{% else %}primary{% endif %} rounded-pill" style="font-size:0.6rem">
+                        {{ item.get_priority_display|upper }}
+                    </span>
+                    <small class="text-white-50" style="font-size:0.7rem">{{ item.created_at|timesince }}</small>
+                </div>
+                <div class="small fw-bold mb-1">{{ item.title }}</div>
+                <div class="small text-white-50 lh-sm">{{ item.message|truncatechars:80 }}</div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 opacity-20">
+                <i class="bi bi-database-check fs-1"></i>
+                <p class="small mt-2">Prêt pour analyse</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-    // EBITDA Bridge Chart
-    const ctx = document.getElementById('ebitdaBridgeChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Q2 EBITDA', 'COGS', 'OPEX', 'REVENUE', 'Q3 EBITDA'],
-            datasets: [{
-                label: 'Impact',
-                data: [1420, -320, -110, 85, 1075],
-                backgroundColor: [
-                    '#3b82f6',
-                    '#ef4444',
-                    '#ef4444',
-                    '#10b981',
-                    '#3b82f6'
-                ],
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
+    const messageFlow = document.getElementById('messageFlow');
+    const interactForm = document.getElementById('aiInteractForm');
+    const inputField = document.getElementById('userInputField');
+
+    function appendMsg(text, type = 'ai', chartData = null) {
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble msg-${type}`;
+        
+        if (type === 'ai') {
+            bubble.innerHTML = `<div class="ai-icon-box"><i class="bi bi-stars"></i></div>`;
+            bubble.innerHTML += marked.parse(text);
+            
+            if (chartData) {
+                const cId = 'chart-' + Date.now();
+                bubble.innerHTML += `<div class="chart-container-bubble"><canvas id="${cId}"></canvas></div>`;
+                setTimeout(() => buildChart(cId, chartData), 150);
+            }
+        } else {
+            bubble.textContent = text;
+        }
+        
+        messageFlow.appendChild(bubble);
+        messageFlow.scrollTop = messageFlow.scrollHeight;
+    }
+
+    function showAIThinking() {
+        const loader = document.createElement('div');
+        loader.id = 'aiThinking';
+        loader.className = 'msg-bubble msg-ai';
+        loader.innerHTML = `<div class="ai-icon-box"><i class="bi bi-robot"></i></div><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+        messageFlow.appendChild(loader);
+        messageFlow.scrollTop = messageFlow.scrollHeight;
+    }
+
+    async function triggerAsk(text) {
+        if (!text) return;
+        appendMsg(text, 'user');
+        inputField.value = '';
+        showAIThinking();
+
+        try {
+            const res = await fetch('{% url "api_ai_chat" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            
+            document.getElementById('aiThinking')?.remove();
+            
+            let fullText = data.text;
+            if (data.insights) fullText += "\n\n**Analyses contextuelles :**\n" + data.insights.map(i => `* ${i}`).join('\n');
+            if (data.items) fullText += "\n\n**Recommandations :**\n" + data.items.map(i => `* **${i.title}** — ${i.desc}`).join('\n');
+
+            appendMsg(fullText, 'ai', data.type === 'chart' ? data : null);
+        } catch (e) {
+            document.getElementById('aiThinking')?.remove();
+            appendMsg("Désolé, une interruption technique a eu lieu dans le traitement neuronal.", 'ai');
+        }
+    }
+
+    interactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        triggerAsk(inputField.value);
+    });
+
+    function buildChart(id, payload) {
+        const ctx = document.getElementById(id).getContext('2d');
+        let config;
+
+        if (payload.chart_type === 'line') {
+            config = {
+                type: 'line',
+                data: {
+                    labels: payload.data.map(d => d.ds),
+                    datasets: [{
+                        label: 'Projection',
+                        data: payload.data.map(d => d.yhat),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#e2e8f0'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
+            };
+        } else {
+            config = {
+                type: 'bar',
+                data: {
+                    labels: payload.data.labels,
+                    datasets: [{
+                        label: 'Performance',
+                        data: payload.data.values,
+                        backgroundColor: 'rgba(217, 70, 239, 0.6)',
+                        hoverBackgroundColor: '#d946ef',
+                        borderRadius: 8
+                    }]
+                }
+            };
+        }
+
+        new Chart(ctx, {
+            ...config,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10, family: 'Outfit' } }, grid: { display: false } },
+                    y: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10, family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } }
                 }
             }
-        }
-    });
+        });
+    }
 </script>
+<style>
+    .typing { display: flex; gap: 4px; padding: 5px 0; }
+    .dot { width: 6px; height: 6px; background: var(--ai-primary); border-radius: 50%; animation: dotBounce 1.4s infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
+</style>
 {% endblock %}

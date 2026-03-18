@@ -31,29 +31,29 @@
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card text-center">
             <div class="kpi-label">GROUP NET INCOME</div>
-            <div class="kpi-value">$4.2M</div>
-            <span class="kpi-change positive">
-                <i class="bi bi-arrow-up-short"></i>+12.5%
+            <div class="kpi-value" id="cons-group-net-income">0 XOF</div>
+            <span class="kpi-change positive" id="cons-income-change">
+                <i class="bi bi-arrow-up-short"></i>+0%
             </span>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card text-center">
             <div class="kpi-label">ENTITY MATCH RATE</div>
-            <div class="kpi-value">12/14</div>
+            <div class="kpi-value" id="cons-match-rate">0/0</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card text-center">
             <div class="kpi-label">INTERCO MATCHING</div>
-            <div class="kpi-value text-warning">88.4%</div>
+            <div class="kpi-value text-warning" id="cons-interco-match">0%</div>
         </div>
     </div>
     <div class="col-xl-3 col-md-6">
         <div class="kpi-card text-center">
             <div class="kpi-label">DAYS TO CLOSE</div>
-            <div class="kpi-value">4 Days</div>
-            <span class="badge bg-info">IN PROGRESS</span>
+            <div class="kpi-value" id="cons-days-to-close">0 Days</div>
+            <span class="badge bg-info" id="cons-close-status">IN PROGRESS</span>
         </div>
     </div>
 </div>
@@ -129,51 +129,11 @@
                                 <th>STATUS</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="cons-subsidiary-table-body">
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-primary me-2">US</span>
-                                        <div>
-                                            <p class="mb-0 fw-medium">North America Inc.</p>
-                                            <small class="text-muted">USD (Global)</small>
-                                        </div>
-                                    </div>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                                 </td>
-                                <td class="fw-medium">$1,240,000</td>
-                                <td><span class="badge bg-light text-dark">IFRS</span></td>
-                                <td><span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Native</span></td>
-                                <td><span class="badge bg-success">CLOSED</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-info me-2">FR</span>
-                                        <div>
-                                            <p class="mb-0 fw-medium">TechEurope SAS</p>
-                                            <small class="text-muted">EUR (Local)</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="fw-medium">€890,200</td>
-                                <td><span class="badge bg-light text-dark">IFRS</span></td>
-                                <td><span class="text-warning"><i class="bi bi-arrow-repeat me-1"></i>Pending</span></td>
-                                <td><span class="badge bg-warning">OPEN</span></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-success me-2">SN</span>
-                                        <div>
-                                            <p class="mb-0 fw-medium">Dakar Ops Ltd</p>
-                                            <small class="text-muted">XOF (Local)</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="fw-medium">₣450M</td>
-                                <td><span class="badge bg-light text-dark">OHADA</span></td>
-                                <td><span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>IFRS Mapped</span></td>
-                                <td><span class="badge bg-success">CLOSED</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -192,37 +152,11 @@
                         <h6 class="mb-0">Matching Summary</h6>
                         <small class="text-muted">Intra-group transactions</small>
                     </div>
-                    <span class="badge bg-danger">8 ISSUES</span>
+                    <span class="badge bg-danger" id="cons-interco-issues">0 ISSUES</span>
                 </div>
                 
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>USA ↔ Europe</span>
-                        <span class="text-success">Matched</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: 100%"></div>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Europe ↔ Dakar</span>
-                        <span class="text-warning">Unbalanced (-$12k)</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-warning" style="width: 75%"></div>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span>Group ↔ Asia</span>
-                        <span class="text-muted">Waiting</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-secondary" style="width: 0%"></div>
-                    </div>
+                <div id="cons-interco-monitoring">
+                    <!-- Dynamic Rows -->
                 </div>
                 
                 <button class="btn btn-outline-primary w-100">
@@ -250,4 +184,71 @@
         </div>
     </div>
 </div>
+
+<script>
+    async function loadConsolidationData() {
+        try {
+            const response = await fetch('{% url "api_consolidation_data" %}');
+            const data = await response.json();
+
+            const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+
+            // Update KPIs
+            document.getElementById('cons-group-net-income').textContent = `${fmt(data.kpis.group_net_income)} XOF`;
+            document.getElementById('cons-income-change').innerHTML = `<i class="bi bi-arrow-up-short"></i>+${data.kpis.income_change}%`;
+            document.getElementById('cons-match-rate').textContent = data.kpis.entity_match_rate;
+            document.getElementById('cons-interco-match').textContent = `${data.kpis.interco_matching}%`;
+            document.getElementById('cons-days-to-close').textContent = `${data.kpis.days_to_close} Days`;
+            document.getElementById('cons-close-status').textContent = data.kpis.status;
+
+            // Update Subsidiaries Table
+            const tableBody = document.getElementById('cons-subsidiary-table-body');
+            if (tableBody) {
+                tableBody.innerHTML = data.entities.map(entity => `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary me-2">${entity.id}</span>
+                                <div>
+                                    <p class="mb-0 fw-medium">${entity.name}</p>
+                                    <small class="text-muted">${entity.currency}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="fw-medium">${fmt(entity.income)}</td>
+                        <td><span class="badge bg-light text-dark">${entity.norm}</span></td>
+                        <td><span class="text-${entity.conversion === 'Native' ? 'success' : 'warning'}">
+                            <i class="bi bi-${entity.conversion === 'Native' ? 'check-circle-fill' : 'arrow-repeat'} me-1"></i>${entity.conversion}
+                        </span></td>
+                        <td><span class="badge bg-${entity.status === 'CLOSED' ? 'success' : 'warning'}">${entity.status}</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update Intercompany Monitoring
+            const intercoIssues = document.getElementById('cons-interco-issues');
+            if (intercoIssues) intercoIssues.textContent = `${data.interco.issues} ISSUES`;
+            
+            const intercoContainer = document.getElementById('cons-interco-monitoring');
+            if (intercoContainer) {
+                intercoContainer.innerHTML = data.interco.pairs.map(pair => `
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>${pair.names}</span>
+                            <span class="text-${pair.color}">${pair.status}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-${pair.color}" style="width: ${pair.progress}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+        } catch (error) {
+            console.error('Error loading consolidation data:', error);
+        }
+    }
+
+    loadConsolidationData();
+</script>
 {% endblock %}

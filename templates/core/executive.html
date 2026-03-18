@@ -25,17 +25,17 @@
     <div class="col-xl-4 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">TOTAL REVENUE</div>
-            <div class="kpi-value">$428.5M</div>
+            <div class="kpi-value" id="exec-kpi-revenue">0 XOF</div>
             <div class="d-flex align-items-center justify-content-between">
-                <span class="kpi-change positive">
-                    <i class="bi bi-arrow-up-short"></i>+12.4%
+                <span class="kpi-change positive" id="exec-kpi-revenue-change">
+                    <i class="bi bi-arrow-up-short"></i>+0%
                 </span>
                 <div class="text-end">
                     <small class="text-muted">Progress to FY Target</small>
                     <div class="progress" style="width: 100px; height: 6px;">
-                        <div class="progress-bar bg-primary" style="width: 82%"></div>
+                        <div class="progress-bar bg-primary" id="exec-kpi-revenue-progress" style="width: 0%"></div>
                     </div>
-                    <small class="text-muted">82%</small>
+                    <small class="text-muted" id="exec-kpi-revenue-progress-text">0%</small>
                 </div>
             </div>
         </div>
@@ -43,14 +43,14 @@
     <div class="col-xl-4 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">GROUP EBITDA</div>
-            <div class="kpi-value">$84.2M</div>
+            <div class="kpi-value" id="exec-kpi-ebitda">0 XOF</div>
             <div class="d-flex align-items-center justify-content-between">
-                <span class="kpi-change positive">
-                    <i class="bi bi-arrow-up-short"></i>+2.1%
+                <span class="kpi-change positive" id="exec-kpi-ebitda-change">
+                    <i class="bi bi-arrow-up-short"></i>+0%
                 </span>
                 <div class="text-end">
                     <small class="text-muted">Operating Margin</small>
-                    <div class="fw-bold">19.6%</div>
+                    <div class="fw-bold" id="exec-kpi-ebitda-margin">0%</div>
                 </div>
             </div>
         </div>
@@ -58,14 +58,14 @@
     <div class="col-xl-4 col-md-6">
         <div class="kpi-card">
             <div class="kpi-label">NET CASH POSITION</div>
-            <div class="kpi-value">$112.9M</div>
+            <div class="kpi-value" id="exec-kpi-cash">0 XOF</div>
             <div class="d-flex align-items-center justify-content-between">
-                <span class="kpi-change positive">
-                    <i class="bi bi-arrow-up-short"></i>+5.7%
+                <span class="kpi-change positive" id="exec-kpi-cash-change">
+                    <i class="bi bi-arrow-up-short"></i>+0%
                 </span>
                 <div class="text-end">
                     <small class="text-muted">Liquidity Ratio</small>
-                    <div class="fw-bold">2.4x</div>
+                    <div class="fw-bold" id="exec-kpi-cash-ratio">1.0x</div>
                 </div>
             </div>
         </div>
@@ -96,9 +96,9 @@
                         <div class="bg-primary rounded-circle" style="width: 24px; height: 24px;"></div>
                         <div class="bg-success rounded-circle" style="width: 24px; height: 24px; margin-left: -8px;"></div>
                     </div>
-                    <small>2 Analysts Reviewing</small>
+                    <small>IA Analysis Active</small>
                 </div>
-                <a href="#" class="text-primary">FULL STRATEGY DEEP-DIVE <i class="bi bi-arrow-right"></i></a>
+                <a href="{% url 'ai_advisor' %}" class="text-primary">FULL STRATEGY DEEP-DIVE <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
@@ -108,38 +108,9 @@
                 <h5 class="card-title mb-0">Critical Risks</h5>
                 <i class="bi bi-exclamation-triangle text-warning"></i>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium">Currency Volatility</span>
-                        <span class="badge bg-danger">HIGH EXPOSURE</span>
-                    </div>
-                    <small class="text-muted">EXPOSURE: $4.2M</small>
-                    <div class="d-flex justify-content-between mt-1">
-                        <small class="text-muted">PROBABILITY: 82%</small>
-                    </div>
-                </div>
-                <hr>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium">Supply Chain Inflation</span>
-                        <span class="badge bg-warning">MEDIUM</span>
-                    </div>
-                    <small class="text-muted">EXPOSURE: $1.8M</small>
-                    <div class="d-flex justify-content-between mt-1">
-                        <small class="text-muted">PROBABILITY: 45%</small>
-                    </div>
-                </div>
-                <hr>
-                <div>
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium">Regulatory Tax Shift</span>
-                        <span class="badge bg-info">LOW IMPACT</span>
-                    </div>
-                    <small class="text-muted">EXPOSURE: $0.9M</small>
-                    <div class="d-flex justify-content-between mt-1">
-                        <small class="text-muted">PROBABILITY: 12%</small>
-                    </div>
+            <div class="card-body" id="exec-risk-container">
+                <div class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                 </div>
             </div>
         </div>
@@ -177,27 +148,9 @@
                         <i class="bi bi-globe text-primary" style="font-size: 4rem;"></i>
                     </div>
                 </div>
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-primary me-2" style="width: 8px; height: 8px; padding: 0;"></span>
-                            <span>North America</span>
-                        </div>
-                        <span class="fw-bold">$184.2M</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-warning me-2" style="width: 8px; height: 8px; padding: 0;"></span>
-                            <span>EMEA Region</span>
-                        </div>
-                        <span class="fw-bold">$142.0M</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-info me-2" style="width: 8px; height: 8px; padding: 0;"></span>
-                            <span>Asia Pacific</span>
-                        </div>
-                        <span class="fw-bold">$102.3M</span>
+                <div class="list-group list-group-flush" id="exec-geo-distribution">
+                    <div class="text-center py-4">
+                        <small class="text-muted">Loading regional data...</small>
                     </div>
                 </div>
             </div>
@@ -212,8 +165,8 @@
             <h5 class="card-title mb-0">Entity Consolidated Breakdown</h5>
             <small class="text-muted">GRANULAR SUB-HOLDING PERFORMANCE INDICATORS</small>
         </div>
-        <a href="#" class="btn btn-sm btn-outline-primary">
-            DEEP DIVE: 24 ENTITIES <i class="bi bi-box-arrow-up-right ms-1"></i>
+        <a href="{% url 'consolidation' %}" class="btn btn-sm btn-outline-primary">
+            DEEP DIVE: GROUP CONSOLIDATION <i class="bi bi-box-arrow-up-right ms-1"></i>
         </a>
     </div>
     <div class="card-body p-0">
@@ -229,98 +182,11 @@
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="exec-entity-table-body">
                     <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
-                                    <i class="bi bi-building text-primary"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 fw-medium">Global Cloud Services LLC</p>
-                                    <small class="text-muted">CLOUD TECH • NORTH AMERICA</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <p class="mb-0 fw-medium">$42.8M</p>
-                            <small class="text-success">+14% YoY</small>
-                        </td>
-                        <td>
-                            <span class="fw-medium">28.4%</span>
-                        </td>
-                        <td>
-                            <span class="fw-medium">$18.2M</span>
-                        </td>
-                        <td>
-                            <span class="badge bg-success">98/100</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-link text-muted">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
-                                    <i class="bi bi-truck text-warning"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 fw-medium">UK Logistics Hub Ltd</p>
-                                    <small class="text-muted">TRANSPORT • EUROPE</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <p class="mb-0 fw-medium">$12.5M</p>
-                            <small class="text-danger">-4% YoY</small>
-                        </td>
-                        <td>
-                            <span class="fw-medium">12.1%</span>
-                        </td>
-                        <td>
-                            <span class="fw-medium">$3.4M</span>
-                        </td>
-                        <td>
-                            <span class="badge bg-warning">64/100</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-link text-muted">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-info bg-opacity-10 rounded p-2 me-3">
-                                    <i class="bi bi-credit-card text-info"></i>
-                                </div>
-                                <div>
-                                    <p class="mb-0 fw-medium">Singapore Fintech Solutions</p>
-                                    <small class="text-muted">FINANCIAL SERVICES • APAC</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <p class="mb-0 fw-medium">$31.0M</p>
-                            <small class="text-success">+8% YoY</small>
-                        </td>
-                        <td>
-                            <span class="fw-medium">22.9%</span>
-                        </td>
-                        <td>
-                            <span class="fw-medium">$14.7M</span>
-                        </td>
-                        <td>
-                            <span class="badge bg-success">92/100</span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-link text-muted">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Retrieving portfolio performance...</p>
                         </td>
                     </tr>
                 </tbody>
@@ -330,46 +196,131 @@
 </div>
 
 <script>
-    // Performance Trend Chart
-    const ctx = document.getElementById('performanceTrendChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR', 'APR', 'MAY'],
-            datasets: [{
-                label: 'Actual Revenue',
-                data: [320, 280, 350, 380, 400, 420, 410, 428],
-                backgroundColor: '#3b82f6',
-                borderRadius: 4
-            }, {
-                label: 'Target Budget',
-                data: [300, 300, 320, 350, 380, 400, 420, 450],
-                backgroundColor: '#e2e8f0',
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    // Global Chart instance
+    let trendChart = null;
+
+    async function loadExecutiveData() {
+        try {
+            const response = await fetch('{% url "api_executive_data" %}');
+            const data = await response.json();
+
+            const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+
+            // Update KPIs
+            document.getElementById('exec-kpi-revenue').textContent = `${fmt(data.kpis.revenue)} XOF`;
+            document.getElementById('exec-kpi-ebitda').textContent = `${fmt(data.kpis.ebitda)} XOF`;
+            document.getElementById('exec-kpi-cash').textContent = `${fmt(data.kpis.net_cash)} XOF`;
+            
+            document.getElementById('exec-kpi-revenue-change').innerHTML = `<i class="bi bi-arrow-up-short"></i>+${data.kpis.revenue_growth}%`;
+            document.getElementById('exec-kpi-ebitda-change').innerHTML = `<i class="bi bi-arrow-up-short"></i>+${data.kpis.ebitda_margin}%`; // Using margin as fallback change
+            document.getElementById('exec-kpi-ebitda-margin').textContent = `${data.kpis.ebitda_margin}%`;
+            document.getElementById('exec-kpi-cash-ratio').textContent = `${data.kpis.liquidity_ratio}x`;
+
+            // Progress Bar (Simple calc: actual vs target last month)
+            const progress = Math.min(100, (data.kpis.revenue / 5000000) * 100); 
+            document.getElementById('exec-kpi-revenue-progress').style.width = `${progress}%`;
+            document.getElementById('exec-kpi-revenue-progress-text').textContent = `${Math.round(progress)}%`;
+
+            // Update Risks
+            const riskContainer = document.getElementById('exec-risk-container');
+            riskContainer.innerHTML = data.risks.map((risk, idx) => `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-medium">${risk.title}</span>
+                        <span class="badge bg-${risk.level}">${risk.level === 'danger' ? 'HIGH EXPOSURE' : 'MEDIUM'}</span>
+                    </div>
+                    <small class="text-muted">EXPOSURE: ${fmt(risk.exposure)} XOF</small>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small class="text-muted">PROBABILITY: ${risk.probability}%</small>
+                    </div>
+                </div>
+                ${idx < data.risks.length - 1 ? '<hr>' : ''}
+            `).join('');
+
+            // Update Geography
+            const geoContainer = document.getElementById('exec-geo-distribution');
+            const colors = ['bg-primary', 'bg-warning', 'bg-info'];
+            geoContainer.innerHTML = data.geography.map((geo, idx) => `
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div class="d-flex align-items-center">
+                        <span class="badge ${colors[idx % colors.length]} me-2" style="width: 8px; height: 8px; padding: 0;"></span>
+                        <span>${geo.region}</span>
+                    </div>
+                    <span class="fw-bold">${fmt(geo.value)} XOF</span>
+                </div>
+            `).join('');
+
+            // Update Entities Table
+            const tableBody = document.getElementById('exec-entity-table-body');
+            tableBody.innerHTML = data.entities.map(entity => `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-building text-primary"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-medium">${entity.name}</p>
+                                <small class="text-muted">${entity.type}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <p class="mb-0 fw-medium">${fmt(entity.revenue)} XOF</p>
+                        <small class="text-success">+12% YoY</small>
+                    </td>
+                    <td><span class="fw-medium">${entity.margin}%</span></td>
+                    <td><span class="fw-medium">${fmt(entity.cash)} XOF</span></td>
+                    <td><span class="badge bg-${entity.vitality > 80 ? 'success' : 'warning'}">${entity.vitality}/100</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-link text-muted">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Render Chart
+            renderTrendChart(data.chart_data);
+
+        } catch (error) {
+            console.error('Error loading executive data:', error);
+        }
+    }
+
+    function renderTrendChart(chartData) {
+        const ctx = document.getElementById('performanceTrendChart').getContext('2d');
+        if (trendChart) trendChart.destroy();
+        
+        trendChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Actual Revenue',
+                    data: chartData.actual,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 4
+                }, {
+                    label: 'Target Budget',
+                    data: chartData.target,
+                    backgroundColor: '#e2e8f0',
+                    borderRadius: 4
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#e2e8f0'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    x: { grid: { display: false } }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // Initialize
+    loadExecutiveData();
 </script>
 {% endblock %}

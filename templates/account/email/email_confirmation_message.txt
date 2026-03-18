@@ -1,0 +1,10 @@
+Confirmation de votre adresse email - FinanceOS IA
+
+Bonjour,
+
+Merci de vous être inscrit sur FinanceOS IA ! Pour finaliser la création de votre compte et accéder à votre tableau de bord, veuillez confirmer votre adresse email en cliquant sur le lien ci-dessous :
+
+{{ activate_url }}
+
+L'équipe FinanceOS IA
+Ceci est un mail automatique, merci de ne pas y répondre.

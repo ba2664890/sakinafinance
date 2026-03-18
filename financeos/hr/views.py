@@ -5,6 +5,7 @@ Connecte les vues aux vrais modèles DB
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 
@@ -12,6 +13,7 @@ from .models import (
     Employee, Department, PayrollPeriod, Payslip,
     LeaveRequest, Recruitment, LeaveType
 )
+from decimal import Decimal
 
 
 def _get_company(request):
@@ -21,7 +23,13 @@ def _get_company(request):
 
 @login_required
 def hr_view(request):
-    """Module RH & Paie — vue principale avec données réelles"""
+    """Module RH & Paie — vue principale (Squelette)"""
+    return render(request, 'hr/index.html', {'page_title': 'RH & Paie'})
+
+
+@login_required
+def api_hr_data(request):
+    """API: Get HR Stats and Lists"""
     company = _get_company(request)
 
     if company:
@@ -37,11 +45,11 @@ def hr_view(request):
             payroll_runs.append({
                 'period': period.name,
                 'employees': period.employee_count,
-                'gross': period.total_gross,
-                'deductions': period.total_deductions,
-                'net': period.total_net,
+                'gross': float(period.total_gross),
+                'deductions': float(period.total_deductions),
+                'net': float(period.total_net),
                 'status': period.get_status_display(),
-                'date': period.payment_date or period.period_end,
+                'date': (period.payment_date or period.period_end).strftime('%d/%m/%Y'),
             })
 
         departments = Department.objects.filter(company=company, is_active=True)
@@ -63,11 +71,6 @@ def hr_view(request):
                 'type': lt.name,
                 'pending': lt.requests.filter(status='pending').count(),
                 'approved': lt.requests.filter(status='approved').count(),
-                'ongoing': lt.requests.filter(
-                    status='approved',
-                    start_date__lte=timezone.now().date(),
-                    end_date__gte=timezone.now().date()
-                ).count(),
             })
 
         recruitments_qs = Recruitment.objects.filter(
@@ -78,32 +81,48 @@ def hr_view(request):
             recruitments.append({
                 'title': r.title,
                 'dept': r.department.name if r.department else '—',
-                'posted': r.posted_date,
+                'posted': r.posted_date.strftime('%d/%m/%Y'),
                 'candidates': r.candidates_count,
                 'stage': r.get_status_display(),
             })
 
-        # Aggregated payroll data
-        payroll_agg = PayrollPeriod.objects.filter(company=company, status='paid').aggregate(
-            avg_gross=Sum('total_gross')
-        )
         last_period = payroll_periods.first()
-        payroll_total = last_period.total_gross if last_period else 0
-        avg_salary = round(float(payroll_total) / max(total_employees, 1))
+        payroll_total = float(last_period.total_gross) if last_period else 0
+        avg_salary = round(payroll_total / max(total_employees, 1))
+        
+        pending_leaves = LeaveRequest.objects.filter(employee__company=company, status='pending').count()
+        approved_leaves = LeaveRequest.objects.filter(employee__company=company, status='approved').count()
+        ongoing_leaves = LeaveRequest.objects.filter(
+            employee__company=company,
+            status='approved',
+            start_date__lte=timezone.now().date(),
+            end_date__gte=timezone.now().date()
+        ).count()
 
     else:
         # Fallback demonstration data
-        total_employees = 0
-        new_hires = 0
-        payroll_total = 0
-        avg_salary = 0
-        dept_data = []
-        payroll_runs = []
-        leave_summary = []
-        recruitments = []
+        total_employees = 124
+        new_hires = 3
+        payroll_total = 145200
+        avg_salary = 1170
+        dept_data = [
+            {'name': 'Finance', 'count': 12, 'pct': 10, 'color': 'primary'},
+            {'name': 'Operations', 'count': 45, 'pct': 36, 'color': 'success'},
+        ]
+        payroll_runs = [
+            {'period': 'Mars 2025', 'employees': 124, 'gross': 145200, 'net': 118400, 'status': 'Payé', 'date': '31/03/2025'},
+        ]
+        leave_summary = [
+            {'type': 'Congés annuels', 'pending': 5, 'approved': 12},
+        ]
+        recruitments = [
+            {'title': 'Analyste Financier Senior', 'dept': 'Finance', 'posted': '15/03/2025', 'candidates': 8, 'stage': 'Entretiens'},
+        ]
+        pending_leaves = 15
+        approved_leaves = 44
+        ongoing_leaves = 15
 
-    context = {
-        'page_title': 'RH & Paie',
+    data = {
         'total_employees': total_employees,
         'new_hires': new_hires,
         'turnover_rate': 6.2,
@@ -115,8 +134,11 @@ def hr_view(request):
         'payroll_runs': payroll_runs,
         'leave_summary': leave_summary,
         'recruitments': recruitments,
+        'pending_leaves': pending_leaves,
+        'approved_leaves': approved_leaves,
+        'ongoing_leaves': ongoing_leaves,
     }
-    return render(request, 'hr/index.html', context)
+    return JsonResponse(data)
 
 
 @login_required

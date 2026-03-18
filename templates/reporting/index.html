@@ -132,17 +132,8 @@
     <div class="row mb-5">
         <div class="col-12">
             <h5 class="fw-bold mb-4">Indicateurs de Performance (Ratios)</h5>
-            <div class="ratio-grid">
-                {% for ratio in ratios %}
-                <div class="ratio-card">
-                    <div class="ratio-circle status-{{ ratio.status }}">
-                        <i class="bi {% if ratio.status == 'good' %}bi-check-circle{% else %}bi-exclamation-circle{% endif %}"></i>
-                    </div>
-                    <div class="ratio-val">{{ ratio.value }}</div>
-                    <div class="ratio-lbl">{{ ratio.label }}</div>
-                    <div class="ratio-bench">Marché: {{ ratio.benchmark }}</div>
-                </div>
-                {% endfor %}
+            <div class="ratio-grid" id="ratio_container">
+                <div class="text-center w-100 p-4"><div class="spinner-border text-primary"></div></div>
             </div>
         </div>
     </div>
@@ -159,7 +150,7 @@
                         <button class="btn btn-white border"><i class="bi bi-download"></i></button>
                     </div>
                 </div>
-                <div class="p-0">
+                <div class="p-0 overflow-auto">
                     <table class="statement-table">
                         <thead>
                             <tr>
@@ -169,23 +160,8 @@
                                 <th>Variation %</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for row in income_statement %}
-                            <tr class="{% if row.is_total %}total-row{% endif %}">
-                                <td class="label-col">{{ row.label }}</td>
-                                <td class="{% if row.positive %}pos-val{% elif row.current < 0 %}neg-val{% endif %}">
-                                    {{ row.current|floatformat:0 }}
-                                </td>
-                                <td>{{ row.previous|floatformat:0 }}</td>
-                                <td class="{% if row.variation > 0 %}pos-val{% else %}neg-val{% endif %}">
-                                    {% if row.variation %}
-                                        {% if row.variation > 0 %}+{% endif %}{{ row.variation }}%
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="income_statement_body">
+                            <!-- Dynamic -->
                         </tbody>
                     </table>
                 </div>
@@ -199,15 +175,8 @@
                 <div class="statement-header">
                     <h6 class="m-0 fw-bold">Flux de Trésorerie (Net)</h6>
                 </div>
-                <div class="p-3">
-                    {% for item in cash_flows %}
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="small fw-semibold text-muted">{{ item.category }}</div>
-                        <div class="fw-bold {% if item.positive %}text-success{% else %}text-danger{% endif %}">
-                            {{ item.amount|floatformat:0 }}
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="p-3" id="cash_flow_container">
+                    <!-- Dynamic -->
                 </div>
             </div>
 
@@ -216,17 +185,8 @@
                 <div class="statement-header">
                     <h6 class="m-0 fw-bold">Rapports Disponibles</h6>
                 </div>
-                <div class="p-3">
-                    {% for report in reports %}
-                    <div class="report-item">
-                        <div class="report-icon"><i class="bi bi-file-earmark-pdf"></i></div>
-                        <div class="report-info">
-                            <h6>{{ report.name }}</h6>
-                            <p>{{ report.date }} • {{ report.status }}</p>
-                        </div>
-                        <button class="btn btn-sm p-0 ms-auto text-primary"><i class="bi bi-download"></i></button>
-                    </div>
-                    {% endfor %}
+                <div class="p-3" id="report_list">
+                    <!-- Dynamic -->
                 </div>
                 <div class="p-3 border-top text-center">
                     <button class="btn btn-sm btn-primary w-100">Générer nouveau rapport</button>
@@ -235,4 +195,78 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadReportingData();
+
+    async function loadReportingData() {
+        try {
+            const response = await fetch('/reporting/api/data/');
+            const data = await response.json();
+
+            // Ratios
+            const ratioContainer = document.getElementById('ratio_container');
+            ratioContainer.innerHTML = data.ratios.map(r => `
+                <div class="ratio-card">
+                    <div class="ratio-circle status-${r.status}">
+                        <i class="bi ${r.status === 'good' ? 'bi-check-circle' : 'bi-exclamation-circle'}"></i>
+                    </div>
+                    <div class="ratio-val">${r.value}</div>
+                    <div class="ratio-lbl">${r.label}</div>
+                    <div class="ratio-bench">Marché: ${r.benchmark}</div>
+                </div>
+            `).join('');
+
+            // Income Statement
+            const incomeBody = document.getElementById('income_statement_body');
+            incomeBody.innerHTML = data.income_statement.map(row => {
+                const variationClass = row.variation > 0 ? 'pos-val' : 'neg-val';
+                const currentClass = row.positive ? 'pos-val' : (row.current < 0 ? 'neg-val' : '');
+                const totalClass = row.is_total ? 'total-row' : '';
+                
+                return `
+                    <tr class="${totalClass}">
+                        <td class="label-col">${row.label}</td>
+                        <td class="${currentClass}">${row.current.toLocaleString()}</td>
+                        <td>${row.previous.toLocaleString()}</td>
+                        <td class="${variationClass}">
+                            ${row.variation ? (row.variation > 0 ? '+' : '') + row.variation + '%' : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Cash Flow
+            const cashContainer = document.getElementById('cash_flow_container');
+            cashContainer.innerHTML = data.cash_flows.map(item => `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="small fw-semibold text-muted">${item.category}</div>
+                    <div class="fw-bold ${item.positive ? 'text-success' : 'text-danger'}">
+                        ${item.amount.toLocaleString()}
+                    </div>
+                </div>
+            `).join('');
+
+            // Reports
+            const reportList = document.getElementById('report_list');
+            reportList.innerHTML = data.reports.map(rep => `
+                <div class="report-item">
+                    <div class="report-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+                    <div class="report-info">
+                        <h6>${rep.name}</h6>
+                        <p>${rep.date} • ${rep.status}</p>
+                    </div>
+                    <button class="btn btn-sm p-0 ms-auto text-primary"><i class="bi bi-download"></i></button>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('Error loading Reporting data:', error);
+        }
+    }
+});
+</script>
 {% endblock %}

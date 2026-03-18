@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f4f7f9;
+            padding-bottom: 40px;
+        }
+        .main {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-spacing: 0;
+            font-family: sans-serif;
+            color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background-color: #2563eb;
+            padding: 40px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .content {
+            padding: 40px;
+            line-height: 1.6;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 30px;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        h1, h2 {
+            margin-top: 0;
+            color: #0f172a;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <table class="main">
+            <tr>
+                <td class="header">
+                    <h1 style="margin:0; font-size: 24px;">FinanceOS IA</h1>
+                </td>
+            </tr>
+            <tr>
+                <td class="content">
+                    {% block content %}{% endblock %}
+                </td>
+            </tr>
+            <tr>
+                <td class="footer">
+                    &copy; 2026 FinanceOS IA - Système d'Intelligence Financière Universel<br>
+                    Si vous n'êtes pas à l'origine de ce message, merci de l'ignorer.
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

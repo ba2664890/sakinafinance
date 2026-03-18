@@ -60,23 +60,23 @@
     <!-- Top KPIs -->
     <div class="compliance-kpis">
         <div class="c-kpi-card">
-            <div class="c-kpi-val">{{ compliance_score }}%</div>
+            <div class="c-kpi-val" id="comp-score">--%</div>
             <div class="c-kpi-lbl">Score Conformité</div>
         </div>
         <div class="c-kpi-card">
-            <div class="c-kpi-val text-danger">{{ open_risks }}</div>
+            <div class="c-kpi-val text-danger" id="comp-risks">--</div>
             <div class="c-kpi-lbl">Risques Ouverts</div>
         </div>
         <div class="c-kpi-card">
-            <div class="c-kpi-val text-warning">{{ declarations_pending }}</div>
+            <div class="c-kpi-val text-warning" id="comp-pending">--</div>
             <div class="c-kpi-lbl">Décl. en attente</div>
         </div>
         <div class="c-kpi-card">
-            <div class="c-kpi-val">{{ tax_provision|floatformat:0 }} $</div>
+            <div class="c-kpi-val" id="comp-provision">-- $</div>
             <div class="c-kpi-lbl">Provision Impôts</div>
         </div>
         <div class="c-kpi-card">
-            <div class="c-kpi-val text-primary">{{ next_deadline_days }} Jrs</div>
+            <div class="c-kpi-val text-primary" id="comp-deadline">-- Jrs</div>
             <div class="c-kpi-lbl">Prochaine Échéance</div>
         </div>
     </div>
@@ -91,7 +91,7 @@
                         <button class="btn btn-sm btn-light border"><i class="bi bi-calendar3 me-1"></i> Calendrier</button>
                     </div>
                 </div>
-                <div class="p-0">
+                <div class="p-0 overflow-auto">
                     <table class="c-table">
                         <thead>
                             <tr>
@@ -102,21 +102,8 @@
                                 <th>Statut</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for item in tax_calendar %}
-                            <tr>
-                                <td>
-                                    <span class="badge-deadline {% if item.urgent %}deadline-urgent{% else %}deadline-normal{% endif %}">
-                                        {{ item.deadline }}
-                                    </span>
-                                    <div class="small text-muted mt-1">{{ item.days_left }} jours restants</div>
-                                </td>
-                                <td class="fw-bold">{{ item.tax }}</td>
-                                <td class="small">{{ item.entity }}</td>
-                                <td class="fw-bold">{{ item.amount|floatformat:0 }}</td>
-                                <td><span class="badge bg-{{ item.status_class }}">{{ item.status }}</span></td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="tax_calendar_body">
+                            <!-- Dynamic -->
                         </tbody>
                     </table>
                 </div>
@@ -128,18 +115,11 @@
         <div class="right-col">
             <div class="c-panel">
                 <div class="c-header"><h6>Analyse des Risques (Audit)</h6></div>
-                <div class="p-3">
-                    {% for risk in risks %}
-                    <div class="risk-item risk-item-{{ risk.level }}">
-                        <div class="risk-title">{{ risk.description }}</div>
-                        <div class="small text-muted">{{ risk.impact }}</div>
-                        <div class="risk-meta">
-                            <span class="fw-bold text-{{ risk.level }}">Proba: {{ risk.probability }}</span>
-                            <span class="badge bg-light text-dark border">{{ risk.status }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <button class="btn btn-outline-danger w-100 btn-sm mt-3"><i class="bi bi-shield-exclamation me-1"></i> Lancer Auto-Audit IA</button>
+                <div class="p-3" id="risk_container">
+                    <!-- Dynamic -->
+                </div>
+                <div class="p-3 pt-0">
+                    <button class="btn btn-outline-danger w-100 btn-sm"><i class="bi bi-shield-exclamation me-1"></i> Lancer Auto-Audit IA</button>
                 </div>
             </div>
         </div>
@@ -150,7 +130,7 @@
         <div class="col-lg-8">
             <div class="c-panel">
                 <div class="c-header"><h6>Derniers Dépôts Validés</h6></div>
-                <div class="p-0">
+                <div class="p-0 overflow-auto">
                     <table class="c-table">
                         <thead>
                             <tr>
@@ -162,17 +142,8 @@
                                 <th>Réception</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for doc in filed_declarations %}
-                            <tr>
-                                <td class="fw-bold">{{ doc.period }}</td>
-                                <td>{{ doc.tax }}</td>
-                                <td>{{ doc.entity }}</td>
-                                <td class="fw-bold">{{ doc.amount|floatformat:0 }}</td>
-                                <td>{{ doc.filed }}</td>
-                                <td class="text-mono small">{{ doc.receipt }}</td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="filed_declarations_body">
+                            <!-- Dynamic -->
                         </tbody>
                     </table>
                 </div>
@@ -183,21 +154,93 @@
         <div class="col-lg-4">
             <div class="c-panel">
                 <div class="c-header"><h6>Entités Légales & Identifiants</h6></div>
-                <div class="p-3">
-                    {% for ent in entities %}
-                    <div class="p-3 mb-3 border rounded shadow-sm">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h6 class="m-0 fw-bold">{{ ent.name }}</h6>
-                            <span class="badge bg-success">{{ ent.status }}</span>
-                        </div>
-                        <div class="small text-muted mb-1">Pays: {{ ent.country }}</div>
-                        <div class="small fw-bold">NIF/TIN: {{ ent.tin }}</div>
-                        <div class="small">TVA: {{ ent.vat_reg }}</div>
-                    </div>
-                    {% endfor %}
+                <div class="p-3" id="entity_container">
+                    <!-- Dynamic -->
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadComplianceData();
+
+    async function loadComplianceData() {
+        try {
+            const response = await fetch('/compliance/api/data/');
+            const data = await response.json();
+
+            // KPIs
+            document.getElementById('comp-score').textContent = `${data.compliance_score}%`;
+            document.getElementById('comp-risks').textContent = data.open_risks;
+            document.getElementById('comp-pending').textContent = data.declarations_pending;
+            document.getElementById('comp-provision').textContent = `${data.tax_provision.toLocaleString()} XOF`;
+            document.getElementById('comp-deadline').textContent = `${data.next_deadline_days} Jrs`;
+
+            // Tax Calendar
+            const calendarBody = document.getElementById('tax_calendar_body');
+            calendarBody.innerHTML = data.tax_calendar.map(item => `
+                <tr>
+                    <td>
+                        <span class="badge-deadline ${item.urgent ? 'deadline-urgent' : 'deadline-normal'}">
+                            ${item.deadline}
+                        </span>
+                        <div class="small text-muted mt-1">${item.days_left} jours restants</div>
+                    </td>
+                    <td class="fw-bold">${item.tax}</td>
+                    <td class="small">${item.entity}</td>
+                    <td class="fw-bold">${item.amount.toLocaleString()}</td>
+                    <td><span class="badge bg-${item.status_class}">${item.status}</span></td>
+                </tr>
+            `).join('');
+
+            // Risks
+            const riskContainer = document.getElementById('risk_container');
+            riskContainer.innerHTML = data.risks.map(risk => `
+                <div class="risk-item risk-item-${risk.level}">
+                    <div class="risk-title">${risk.description}</div>
+                    <div class="small text-muted">${risk.impact}</div>
+                    <div class="risk-meta">
+                        <span class="fw-bold text-${risk.level}">Proba: ${risk.probability}</span>
+                        <span class="badge bg-light text-dark border">${risk.status}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Filed Declarations
+            const filedBody = document.getElementById('filed_declarations_body');
+            filedBody.innerHTML = data.filed_declarations.map(doc => `
+                <tr>
+                    <td class="fw-bold">${doc.period}</td>
+                    <td>${doc.tax}</td>
+                    <td>${doc.entity}</td>
+                    <td class="fw-bold">${doc.amount.toLocaleString()}</td>
+                    <td>${doc.filed}</td>
+                    <td class="text-mono small">${doc.receipt}</td>
+                </tr>
+            `).join('');
+
+            // Entities
+            const entityContainer = document.getElementById('entity_container');
+            entityContainer.innerHTML = data.entities.map(ent => `
+                <div class="p-3 mb-3 border rounded shadow-sm">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h6 class="m-0 fw-bold">${ent.name}</h6>
+                        <span class="badge bg-success">${ent.status}</span>
+                    </div>
+                    <div class="small text-muted mb-1">Pays: ${ent.country}</div>
+                    <div class="small fw-bold">NIF/TIN: ${ent.tin}</div>
+                    <div class="small">TVA: ${ent.vat_reg}</div>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('Error loading Compliance data:', error);
+        }
+    }
+});
+</script>
 {% endblock %}

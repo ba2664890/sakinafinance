@@ -54,30 +54,30 @@
         <div class="p-stat-card">
             <div>
                 <div class="p-stat-lbl">Achats Totaux (Mois)</div>
-                <div class="p-stat-val">{{ total_spends|floatformat:0 }} $</div>
+                <div class="p-stat-val" id="proc-total-spends">0 $</div>
             </div>
-            <div class="mt-3"><span class="badge bg-soft-blue text-primary">Budget: 85% consommé</span></div>
+            <div class="mt-3"><span class="badge bg-soft-blue text-primary" id="proc-budget-status">Budget: Calcul en cours...</span></div>
         </div>
         <div class="p-stat-card">
             <div>
                 <div class="p-stat-lbl">Économies Réalisées</div>
-                <div class="p-stat-val text-success">{{ savings|floatformat:0 }} $</div>
+                <div class="p-stat-val text-success" id="proc-savings">0 $</div>
             </div>
             <div class="mt-3 small text-muted">Grâce aux renégociations IA</div>
         </div>
         <div class="p-stat-card">
             <div>
                 <div class="p-stat-lbl">Commandes Libérées</div>
-                <div class="p-stat-val">{{ po_count }}</div>
+                <div class="p-stat-val" id="proc-po-count">0</div>
             </div>
-            <div class="mt-3 small text-muted">12 en cours de livraison</div>
+            <div class="mt-3 small text-muted" id="proc-shipping-count">Recherche en cours...</div>
         </div>
         <div class="p-stat-card">
             <div>
                 <div class="p-stat-lbl">Lead Time Moyen</div>
-                <div class="p-stat-val">{{ avg_lead_time_days }} Jours</div>
+                <div class="p-stat-val" id="proc-lead-time">0 Jours</div>
             </div>
-            <div class="mt-3"><span class="badge bg-soft-green text-success">-2.5j vs mois dernier</span></div>
+            <div class="mt-3"><span class="badge bg-soft-green text-success" id="proc-lead-time-trend">Chargement...</span></div>
         </div>
     </div>
 
@@ -101,17 +101,8 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for po in purchase_orders %}
-                            <tr>
-                                <td class="fw-bold">{{ po.id }}</td>
-                                <td>{{ po.supplier }}</td>
-                                <td>{{ po.date }}</td>
-                                <td class="fw-bold">{{ po.amount|floatformat:0 }}</td>
-                                <td><span class="status-pill-proc status-{{ po.status_class }}">{{ po.status }}</span></td>
-                                <td><button class="btn btn-sm text-primary p-0"><i class="bi bi-eye"></i></button></td>
-                            </tr>
-                            {% endfor %}
+                        <tbody id="proc-po-body">
+                            <tr><td colspan="6" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -123,18 +114,8 @@
         <div class="col-lg-4">
             <div class="procurement-panel">
                 <div class="p-panel-header"><h6>Top Fournisseurs</h6></div>
-                <div class="p-panel-content">
-                    {% for supplier in suppliers %}
-                    <div class="supplier-item">
-                        <div class="supplier-logo">{{ supplier.name|slice:":1" }}</div>
-                        <div class="supplier-info">
-                            <h6>{{ supplier.name }}</h6>
-                            <p>{{ supplier.category }} • {{ supplier.spend|floatformat:0 }} $</p>
-                        </div>
-                        <div class="ms-auto"><span class="badge bg-light text-dark">{{ supplier.rating }}/5</span></div>
-                    </div>
-                    {% endfor %}
-                    <button class="btn btn-outline-primary w-100 btn-sm mt-3">Analyse de panel</button>
+                <div class="p-panel-content" id="proc-suppliers-body">
+                    <div class="text-center py-3 text-muted small">Chargement des fournisseurs...</div>
                 </div>
             </div>
         </div>
@@ -155,20 +136,8 @@
         <div class="col-lg-6">
             <div class="procurement-panel">
                 <div class="p-panel-header"><h6>Appels d'Offres (RFQ)</h6></div>
-                <div class="p-panel-content">
-                    {% for rfq in rfqs %}
-                    <div class="p-3 mb-3 border rounded">
-                        <div class="d-flex justify-content-between mb-2">
-                            <h6 class="m-0 fw-bold">{{ rfq.title }}</h6>
-                            <span class="badge bg-info text-white">{{ rfq.responses }} offres</span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>Échéance: {{ rfq.deadline }}</span>
-                            <span class="fw-bold text-primary">{{ rfq.status }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <button class="btn btn-sm btn-outline-secondary w-100">Voir tous les appels d'offres</button>
+                <div class="p-panel-content" id="proc-rfq-body">
+                    <div class="text-center py-3 text-muted small">Chargement des appels d'offres...</div>
                 </div>
             </div>
         </div>
@@ -179,28 +148,104 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('spendChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [{% for c in categories %}"{{ c.name }}",{% endfor %}],
-            datasets: [{
-                label: 'Montant ($)',
-                data: [{% for c in categories %}{{ c.spend }},{% endfor %}],
-                backgroundColor: '#2563eb',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, grid: { drawBorder: false, color: '#f1f5f9' } },
-                x: { grid: { display: false } }
+    async function loadProcurementData() {
+        try {
+            const response = await fetch('{% url "api_procurement_data" %}');
+            const data = await response.json();
+            const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+
+            // KPIs
+            document.getElementById('proc-total-spends').textContent = `${fmt(data.total_spends)} $`;
+            document.getElementById('proc-savings').textContent = `${fmt(data.savings)} $`;
+            document.getElementById('proc-po-count').textContent = data.po_count;
+            document.getElementById('proc-lead-time').textContent = `${data.avg_lead_time_days} Jours`;
+            
+            document.getElementById('proc-budget-status').textContent = `Budget: 85% consommé`;
+            document.getElementById('proc-shipping-count').textContent = `12 en cours de livraison`;
+            document.getElementById('proc-lead-time-trend').textContent = `-2.5j vs mois dernier`;
+
+            // PO Table
+            const poBody = document.getElementById('proc-po-body');
+            if (poBody) {
+                poBody.innerHTML = data.purchase_orders.map(po => `
+                    <tr>
+                        <td class="fw-bold">${po.id}</td>
+                        <td>${po.supplier}</td>
+                        <td>${po.date}</td>
+                        <td class="fw-bold">${fmt(po.amount)}</td>
+                        <td><span class="status-pill-proc status-${po.status_class}">${po.status}</span></td>
+                        <td><button class="btn btn-sm text-primary p-0"><i class="bi bi-eye"></i></button></td>
+                    </tr>
+                `).join('') || '<tr><td colspan="6" class="text-center py-4">Aucune commande</td></tr>';
             }
+
+            // Suppliers
+            const supplyBody = document.getElementById('proc-suppliers-body');
+            if (supplyBody) {
+                supplyBody.innerHTML = data.suppliers.map(s => `
+                    <div class="supplier-item">
+                        <div class="supplier-logo">${s.name.charAt(0)}</div>
+                        <div class="supplier-info">
+                            <h6>${s.name}</h6>
+                            <p>${s.category} • ${fmt(s.spend)} $</p>
+                        </div>
+                        <div class="ms-auto"><span class="badge bg-light text-dark">${s.rating}/5</span></div>
+                    </div>
+                `).join('') + '<button class="btn btn-outline-primary w-100 btn-sm mt-3">Analyse de panel</button>';
+            }
+
+            // RFQs
+            const rfqBody = document.getElementById('proc-rfq-body');
+            if (rfqBody) {
+                rfqBody.innerHTML = data.rfqs.map(r => `
+                    <div class="p-3 mb-3 border rounded">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h6 class="m-0 fw-bold">${r.title}</h6>
+                            <span class="badge bg-info text-white">${r.responses} offres</span>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>Échéance: ${r.deadline}</span>
+                            <span class="fw-bold text-primary">${r.status}</span>
+                        </div>
+                    </div>
+                `).join('') + '<button class="btn btn-sm btn-outline-secondary w-100">Voir tous les appels d\'offres</button>';
+            }
+
+            // Chart
+            initSpendChart(data.categories);
+
+        } catch (error) {
+            console.error('Error loading procurement data:', error);
         }
-    });
+    }
+
+    function initSpendChart(cats) {
+        const ctx = document.getElementById('spendChart').getContext('2d');
+        if (window.spendChartInstance) window.spendChartInstance.destroy();
+        window.spendChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: cats.map(c => c.name),
+                datasets: [{
+                    label: 'Montant ($)',
+                    data: cats.map(c => c.spend),
+                    backgroundColor: '#2563eb',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { drawBorder: false, color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    loadProcurementData();
 });
 </script>
 {% endblock %}

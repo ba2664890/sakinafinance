@@ -152,6 +152,10 @@ def ai_dashboard(request):
     return render(request, 'ai_engine/dashboard.html', context)
 
 
+import random
+from decimal import Decimal
+
+
 @login_required
 def ai_forecast_api(request):
     """API: Générer et retourner une prévision de trésorerie Prophet"""
@@ -171,3 +175,80 @@ def ai_forecast_api(request):
         'confidence': confidence,
         'horizon': horizon,
     })
+
+
+@login_required
+def api_ai_chat(request):
+    """API: AI Chat Assistant — Simule une compréhension métier"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST method required'}, status=405)
+
+    try:
+        body = json.loads(request.body)
+        message = body.get('message', '').lower()
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    company = _get_company(request)
+    # On autorise la simulation même sans entreprise (ex: admin) pour éviter le 401
+    response = _simulated_ai_response(company, message)
+    return JsonResponse(response)
+
+
+def _simulated_ai_response(company, message):
+    """Génère une réponse riche simulant un LLM avec accès aux données ERP"""
+    if 'cash' in message or 'trésorerie' in message or 'forecast' in message or 'prévision' in message:
+        forecast, confidence = _simulated_forecast(6)
+        return {
+            'text': f"D'après mes analyses prédictives, votre trésorerie devrait rester stable au cours des 6 prochains mois avec un indice de confiance de **{confidence}%**. Cependant, je note une légère pression sur le mois de Mai due aux échéances fiscales prévues.",
+            'type': 'chart',
+            'chart_type': 'line',
+            'data': forecast,
+            'insights': [
+                "Flux d'exploitation positif maintenu à +12% YoY.",
+                "Attention aux délais de paiement clients (DSO) qui s'allongent de 4 jours.",
+                "Optimisation possible: Renegocier les contrats fournisseurs avant fin Q2."
+            ]
+        }
+    
+    if 'ebitda' in message or 'marge' in message or 'profit' in message or 'rentabilité' in message:
+        return {
+            'text': "Votre marge EBITDA s'est stabilisée à **24.3%** sur le dernier trimestre. L'augmentation des coûts logistiques a été compensée par une hausse du panier moyen.",
+            'type': 'chart',
+            'chart_type': 'bar',
+            'data': {
+                'labels': ['Q1', 'Q2', 'Q3', 'Q4 (Est)'],
+                'values': [21.5, 22.8, 24.3, 25.1]
+            },
+            'insights': [
+                "ROI Marketing en hausse de 15%.",
+                "Frais généraux sous contrôle (-2% vs budget).",
+                "Risque identifié sur le prix des matières premières."
+            ]
+        }
+
+    if 'risk' in message or 'risque' in message or 'alerte' in message or 'anomalie' in message:
+        anomalies = AnomalyDetection.objects.filter(company=company)[:3] if company else []
+        if anomalies:
+            text = f"J'ai détecté **{len(anomalies)} anomalies** nécessitant votre attention immédiate."
+        else:
+            text = "Aucun risque majeur détecté. Toutes les transactions récentes respectent les patterns de conformité."
+        
+        return {
+            'text': text,
+            'type': 'list',
+            'items': [
+                {'title': 'Facture inhabituelle #882', 'desc': 'Montant +45% au dessus de la moyenne fournisseur.'},
+                {'title': 'Délai TVA Sénégal', 'desc': 'Échéance dans 2 jours. Provision de 4.2M XOF requise.'},
+                {'title': 'Ecart Inventaire', 'desc': 'Démarque inconnue de 1.2% sur l\'entrepôt B.'}
+            ],
+            'insights': ["Lancez un auto-audit pour plus de détails."]
+        }
+
+    # Réponses génériques
+    greetings = ["Bonjour ! Comment puis-je vous aider dans votre analyse financière aujourd'hui ?", "Je suis prêt à analyser vos indicateurs. Que souhaitez-vous savoir ?", "Prêt pour une analyse. Tapez 'forecast', 'marge' ou 'risques' pour commencer."]
+    return {
+        'text': random.choice(greetings),
+        'type': 'text',
+        'suggestions': ["Prévision de trésorerie", "Analyse de marge", "Détection de risques"]
+    }

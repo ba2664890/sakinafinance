@@ -168,9 +168,9 @@
                 <i class="bi bi-wallet2"></i>
             </div>
             <div class="kpi-label-refined">Liquidité Totale</div>
-            <div class="kpi-value-big">{{ total_liquidity|floatformat:0 }} $</div>
-            <div class="trend-indicator trend-up">
-                <i class="bi bi-arrow-up"></i> {{ liquidity_growth }}%
+            <div class="kpi-value-big" id="tres-total-liquidity">0 XOF</div>
+            <div class="trend-indicator trend-up" id="tres-liquidity-trend">
+                <i class="bi bi-arrow-up"></i> 0%
             </div>
             <p class="mt-3 text-muted" style="font-size: 0.75rem;">Disponibilité immédiate consolidée</p>
         </div>
@@ -180,9 +180,9 @@
                 <i class="bi bi-graph-up-arrow"></i>
             </div>
             <div class="kpi-label-refined">Cash Flow Net (30j)</div>
-            <div class="kpi-value-big">+{{ net_cashflow_30d|floatformat:0 }} $</div>
-            <div class="trend-indicator trend-down">
-                <i class="bi bi-arrow-down"></i> {{ cashflow_growth }}%
+            <div class="kpi-value-big" id="tres-net-cashflow">+0 XOF</div>
+            <div class="trend-indicator trend-down" id="tres-cashflow-trend">
+                <i class="bi bi-arrow-down"></i> 0%
             </div>
             <p class="mt-3 text-muted" style="font-size: 0.75rem;">Performance opérationnelle</p>
         </div>
@@ -192,9 +192,9 @@
                 <i class="bi bi-clock-history"></i>
             </div>
             <div class="kpi-label-refined">DSO (Délai de Paiement)</div>
-            <div class="kpi-value-big">{{ dso_days }} Jours</div>
-            <div class="trend-indicator trend-up" style="background: #fffbeb; color: #d97706;">
-                Cible: {{ dso_target }} Jrs
+            <div class="kpi-value-big" id="tres-dso">0 Jours</div>
+            <div class="trend-indicator trend-up" id="tres-dso-target-badge" style="background: #fffbeb; color: #d97706;">
+                Cible: 0 Jrs
             </div>
             <p class="mt-3 text-muted" style="font-size: 0.75rem;">Optimisation du poste client</p>
         </div>
@@ -227,20 +227,10 @@
         <div class="col-lg-4">
             <div class="premium-card h-100">
                 <h5 class="mb-4 fw-bold">Comptes Bancaires</h5>
-                <div class="bank-list">
-                    {% for bank in bank_accounts %}
-                    <div class="bank-item">
-                        <div class="bank-info">
-                            <h6>{{ bank.bank }}</h6>
-                            <p>{{ bank.entity }}</p>
-                            <span class="tag-status status-{{ bank.status }}">{{ bank.status }}</span>
-                        </div>
-                        <div class="bank-balance">
-                            <div class="amount">{{ bank.balance|floatformat:0 }}</div>
-                            <div class="currency">{{ bank.currency }}</div>
-                        </div>
+                <div class="bank-list" id="tres-bank-list">
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                     </div>
-                    {% endfor %}
                 </div>
                 <button class="btn btn-outline-primary w-100 mt-3 btn-sm">Gérer les connexions</button>
             </div>
@@ -252,15 +242,9 @@
         <div class="col-lg-4">
             <div class="premium-card">
                 <h5 class="mb-4 fw-bold">Exposition Devises</h5>
-                {% for item in currency_exposure %}
-                <div class="exposure-card">
-                    <div class="exposure-header">
-                        <span class="exposure-title">{{ item.currency }}</span>
-                        <span class="badge bg-{{ item.risk_class }} tag-status">{{ item.risk }}</span>
-                    </div>
-                    <div class="exposure-amount">{{ item.amount }}</div>
+                <div id="tres-currency-exposure">
+                    <!-- Dynamic Data -->
                 </div>
-                {% endfor %}
             </div>
         </div>
 
@@ -274,23 +258,23 @@
                 <div class="row g-4">
                     <div class="col-md-4 text-center">
                         <div class="mb-2 text-muted small uppercase fw-bold">DSO (Clients)</div>
-                        <div class="h3 fw-bold mb-1">{{ dso_days }}</div>
+                        <div class="h3 fw-bold mb-1" id="tres-dso-val">0</div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-primary" style="width: 70%"></div>
+                            <div class="progress-bar bg-primary" id="tres-dso-progress" style="width: 0%"></div>
                         </div>
                     </div>
                     <div class="col-md-4 text-center">
                         <div class="mb-2 text-muted small uppercase fw-bold">DIO (Stocks)</div>
-                        <div class="h3 fw-bold mb-1">{{ dio_days }}</div>
+                        <div class="h3 fw-bold mb-1" id="tres-dio-val">0</div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-warning" style="width: 55%"></div>
+                            <div class="progress-bar bg-warning" id="tres-dio-progress" style="width: 0%"></div>
                         </div>
                     </div>
                     <div class="col-md-4 text-center">
                         <div class="mb-2 text-muted small uppercase fw-bold">DPO (Fournisseurs)</div>
-                        <div class="h3 fw-bold mb-1">{{ dpo_days }}</div>
+                        <div class="h3 fw-bold mb-1" id="tres-dpo-val">0</div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-success" style="width: 85%"></div>
+                            <div class="progress-bar bg-success" id="tres-dpo-progress" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
@@ -301,11 +285,11 @@
                         </div>
                         <div>
                             <div class="ai-insight-title">Analyse prédictive IA</div>
-                            <div class="ai-insight-subtitle">Confiance: {{ ml_confidence }}%</div>
+                            <div class="ai-insight-subtitle">Confiance: <span id="tres-ai-confidence">0</span>%</div>
                         </div>
                     </div>
-                    <div class="ai-insight-content">
-                        L'IA prévoit un <span class="ai-highlight">excédent de liquidité</span> important fin Décembre. Nous recommandons d'optimiser le <span class="ai-highlight">Cycle de Conversion du Cash ({{ cash_cycle_days }} jours)</span> en renégociant les conditions de paiement avec les fournisseurs du top 5 pour maximiser les revenus financiers.
+                    <div class="ai-insight-content" id="tres-ai-insight">
+                        Chargement des recommandations IA...
                     </div>
                 </div>
             </div>
@@ -317,87 +301,131 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('cashflowChart').getContext('2d');
-    
-    fetch('{% url "treasury_cashflow_api" %}')
-        .then(response => response.json())
-        .then(data => {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [
-                        {
-                            label: 'Encaissements',
-                            data: data.inflows,
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointRadius: 4,
-                            pointBackgroundColor: '#fff',
-                            pointBorderColor: '#2563eb',
-                            pointBorderWidth: 2
-                        },
-                        {
-                            label: 'Décaissements',
-                            data: data.outflows,
-                            borderColor: '#ef4444',
-                            backgroundColor: 'transparent',
-                            fill: false,
-                            tension: 0.4,
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 0
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            align: 'end',
-                            labels: {
-                                boxWidth: 10,
-                                usePointStyle: true,
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#1e293b',
-                            padding: 12,
-                            titleFont: { size: 14, weight: '700' },
-                            bodyFont: { size: 13 },
-                            cornerRadius: 8,
-                            displayColors: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f1f5f9',
-                                drawBorder: false
+    async function loadTreasuryData() {
+        try {
+            const response = await fetch('{% url "api_treasury_data" %}');
+            const data = await response.json();
+            const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+
+            // KPIs
+            document.getElementById('tres-total-liquidity').textContent = `${fmt(data.total_liquidity)} XOF`;
+            document.getElementById('tres-liquidity-trend').innerHTML = `<i class="bi bi-arrow-${data.liquidity_growth >= 0 ? 'up' : 'down'}"></i> ${Math.abs(data.liquidity_growth)}%`;
+            document.getElementById('tres-liquidity-trend').className = `trend-indicator trend-${data.liquidity_growth >= 0 ? 'up' : 'down'}`;
+
+            document.getElementById('tres-net-cashflow').textContent = `${data.net_cashflow_30d >= 0 ? '+' : ''}${fmt(data.net_cashflow_30d)} XOF`;
+            document.getElementById('tres-cashflow-trend').innerHTML = `<i class="bi bi-arrow-${data.cashflow_growth >= 0 ? 'up' : 'down'}"></i> ${Math.abs(data.cashflow_growth)}%`;
+            document.getElementById('tres-cashflow-trend').className = `trend-indicator trend-${data.cashflow_growth >= 0 ? 'up' : 'down'}`;
+
+            document.getElementById('tres-dso').textContent = `${data.dso_days} Jours`;
+            document.getElementById('tres-dso-target-badge').textContent = `Cible: ${data.dso_target} Jrs`;
+
+            // Bank Accounts
+            const bankList = document.getElementById('tres-bank-list');
+            if (bankList) {
+                bankList.innerHTML = data.bank_accounts.map(bank => `
+                    <div class="bank-item">
+                        <div class="bank-info">
+                            <h6>${bank.bank}</h6>
+                            <p>${bank.entity}</p>
+                            <span class="tag-status status-${bank.status}">${bank.status}</span>
+                        </div>
+                        <div class="bank-balance">
+                            <div class="amount">${fmt(bank.balance)}</div>
+                            <div class="currency">${bank.currency}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Currency Exposure
+            const currencyContainer = document.getElementById('tres-currency-exposure');
+            if (currencyContainer) {
+                currencyContainer.innerHTML = data.currency_exposure.map(item => `
+                    <div class="exposure-card">
+                        <div class="exposure-header">
+                            <span class="exposure-title">${item.currency}</span>
+                            <span class="badge bg-${item.risk_class} tag-status">${item.risk}</span>
+                        </div>
+                        <div class="exposure-amount">${item.amount}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Working Capital
+            document.getElementById('tres-dso-val').textContent = data.dso_days;
+            document.getElementById('tres-dso-progress').style.width = '70%'; 
+            document.getElementById('tres-dio-val').textContent = data.dio_days;
+            document.getElementById('tres-dio-progress').style.width = '55%';
+            document.getElementById('tres-dpo-val').textContent = data.dpo_days;
+            document.getElementById('tres-dpo-progress').style.width = '85%';
+
+            // IA Insight
+            document.getElementById('tres-ai-confidence').textContent = data.ml_confidence;
+            document.getElementById('tres-ai-insight').innerHTML = `
+                L'IA prévoit un <span class="ai-highlight">excédent de liquidité</span> important. Nous recommandons d'optimiser le 
+                <span class="ai-highlight">Cycle de Conversion du Cash (${data.cash_cycle_days} jours)</span> 
+                pour maximiser les revenus financiers du groupe.
+            `;
+
+        } catch (error) {
+            console.error('Error loading treasury data:', error);
+        }
+    }
+
+    const chartElem = document.getElementById('cashflowChart');
+    if (chartElem) {
+        const ctx = chartElem.getContext('2d');
+        fetch('{% url "treasury_cashflow_api" %}')
+            .then(response => response.json())
+            .then(data => {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            {
+                                label: 'Encaissements',
+                                data: data.inflows,
+                                borderColor: '#2563eb',
+                                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#2563eb',
+                                pointBorderWidth: 2
                             },
-                            ticks: {
-                                callback: function(value) {
-                                    return value + 'k';
-                                }
+                            {
+                                label: 'Décaissements',
+                                data: data.outflows,
+                                borderColor: '#ef4444',
+                                backgroundColor: 'transparent',
+                                fill: false,
+                                tension: 0.4,
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                pointRadius: 0
                             }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: { size: 12, weight: '600' } } },
+                            tooltip: { backgroundColor: '#1e293b', padding: 12, titleFont: { size: 14, weight: '700' }, bodyFont: { size: 13 }, cornerRadius: 8, displayColors: false }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, ticks: { callback: function(value) { return value >= 1000 ? (value/1000) + 'k' : value; } } }
                         }
                     }
-                }
+                });
             });
-        });
+    }
+
+    loadTreasuryData();
 });
 </script>
 {% endblock %}
