@@ -140,3 +140,4 @@ xgboost==2.0.3
 xlrd==2.0.1
 yarl==1.23.0
 YubiOTP==1.0.0
+django-anymail[resend]==12.0
