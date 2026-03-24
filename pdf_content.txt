@@ -1,4 +1,4 @@
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -8,7 +8,7 @@ Enterprise2026
 
 
 
-                                  FinanceOS IA
+                                  SakinaFinance
                   Le Système d'Intelligence Financière Universel
 
                Pour Startups · PME · Entreprises Formelles · Groupes Multi-Entités
@@ -18,10 +18,10 @@ Enterprise2026
 
 
 Sommaire Exécutif
-FinanceOS IA est un système d'intelligence financière de nouvelle génération conçu pour
+SakinaFinance est un système d'intelligence financière de nouvelle génération conçu pour
 répondre aux besoins de toutes les structures — de la startup de 3 personnes au groupe
 industriel multi-filiales. Contrairement aux ERP classiques lourds et coûteux, et aux tableurs
-manuels insuffisants, FinanceOS IA propose une troisième voie : une plateforme modulaire,
+manuels insuffisants, SakinaFinance propose une troisième voie : une plateforme modulaire,
 intelligente, adaptée à chaque stade de maturité de l'entreprise, construite sur Django et
 propulsée par l'IA.
 
@@ -29,7 +29,7 @@ propulsée par l'IA.
 
              73%                                   60K€                                −40%
      des entreprises africaines               coût annuel moyen                   de temps administratif
-   gèrent leurs finances sur Excel          d'un ERP classique (PME)           avec FinanceOS IA vs manuel
+   gèrent leurs finances sur Excel          d'un ERP classique (PME)           avec SakinaFinance vs manuel
 
 
 
@@ -42,7 +42,7 @@ décisionnel, et feuille de route de mise en oeuvre.
 
 
 1. Les 5 Profils d'Entreprises Ciblés
-FinanceOS IA ne s'adresse pas à un seul type d'organisation. Sa modularité lui permet de
+SakinaFinance ne s'adresse pas à un seul type d'organisation. Sa modularité lui permet de
 s'adapter à chaque stade de maturité, chaque secteur, chaque niveau de complexité
 financière. Les cinq profils ci-dessous couvrent l'intégralité du spectre entrepreneurial.
 
@@ -57,8 +57,8 @@ financière. Les cinq profils ci-dessous couvrent l'intégralité du spectre ent
 
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 1
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 1
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -89,8 +89,8 @@ Enterprise2026
 
 ❝La même donnée financière — un flux de trésorerie — a une signification différente
  pour un fondateur qui compte ses mois de runway, un DAF qui pilote le BFR, et un
-    directeur de groupe qui consolide en IFRS. FinanceOS IA parle toutes ces langues.
-    — Principe d'universalité FinanceOS IA
+    directeur de groupe qui consolide en IFRS. SakinaFinance parle toutes ces langues.
+    — Principe d'universalité SakinaFinance
 
 
 
@@ -115,8 +115,8 @@ sans équipe finance dédiée, tout en produisant les métriques que les investi
 2.2 PME Formelles
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 2
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 2
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -171,15 +171,15 @@ prenantes.
 
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 3
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 3
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
 
 
-3. Vision FinanceOS IA — Les 6 Piliers
-FinanceOS IA repose sur six piliers fondamentaux qui définissent son positionnement
+3. Vision SakinaFinance — Les 6 Piliers
+SakinaFinance repose sur six piliers fondamentaux qui définissent son positionnement
 unique sur le marché. Ces piliers ne sont pas des fonctionnalités isolées — ils forment un
 système cohérent où chaque composante renforce les autres.
 
@@ -229,8 +229,8 @@ leurs prédictions.
 
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 4
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 4
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -288,8 +288,8 @@ données réelles.
 
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 5
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 5
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -301,7 +301,7 @@ Enterprise2026
 
 
 5. Module Comptabilité Formelle & Normes Comptables
-Ce module est le socle légal de FinanceOS IA. Il permet à toute entreprise formelle — PME,
+Ce module est le socle légal de SakinaFinance. Il permet à toute entreprise formelle — PME,
 ETI, grande entreprise — de tenir une comptabilité conforme aux normes en vigueur, de
 produire des états financiers réglementaires, et de préparer les déclarations fiscales sans
 effort manuel excessif.
@@ -344,8 +344,8 @@ effort manuel excessif.
 
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 6
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 6
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -359,7 +359,7 @@ Enterprise2026
 
 
 5.3 États Financiers Automatiques
-FinanceOS IA génère les états financiers réglementaires à la demande ou selon un
+SakinaFinance génère les états financiers réglementaires à la demande ou selon un
 calendrier automatique, directement depuis les données comptables — sans saisie
 supplémentaire.
 
@@ -398,8 +398,8 @@ structures : du fondateur qui surveille son compte unique jusqu'au trésorier co
 pilote des dizaines de comptes dans plusieurs devises et pays.
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 7
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 7
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -428,7 +428,7 @@ Enterprise2026
 
 6.2 Gestion du BFR (Besoin en Fonds de Roulement)
 Le BFR est souvent la cause cachée de crises de trésorerie dans les entreprises rentables.
-FinanceOS IA calcule, analyse et prédit l'évolution du BFR en temps réel.
+SakinaFinance calcule, analyse et prédit l'évolution du BFR en temps réel.
 
     ▸​ Calcul automatique : BFR = Stocks + Créances clients - Dettes fournisseurs — mis
        à jour à chaque transaction
@@ -456,8 +456,8 @@ internationaux), le risque de change est un enjeu financier majeur souvent sous-
 
 
 
-© 2026 FinanceOS IA — Tous droits réservésPage 8
-FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+© 2026 SakinaFinance — Tous droits réservésPage 8
+SakinaFinance — Système d'Intelligence Financière Universel | Document Stratégique — Édition
 Enterprise2026
 
 
@@ -474,7 +474,7 @@ Enterprise2026
 
 
 6.4 Financement & Relations Bancaires
-FinanceOS IA centralise la gestion des financements bancaires et génère automatiquement
+SakinaFinance centralise la gestion des financements bancaires et génère automatiquement
 les documents nécessaires aux demandes de crédit.
 
     ▸​ Tableau de la dette : Suivi de tous les emprunts, lignes de crédit, obligations —

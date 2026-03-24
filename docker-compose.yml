@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     environment:
-      - DEBUG=True # Set to False for production
+      - DJANGO_SETTINGS_MODULE=sakinafinance.settings
     restart: always
 
 volumes:

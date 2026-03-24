@@ -1,7 +1,7 @@
 {% extends 'dashboard_base.html' %}
 {% load humanize %}
 
-{% block title %}Factures - FinanceOS IA{% endblock %}
+{% block title %}Factures - SakinaFinance{% endblock %}
 {% block page_title %}Mes Factures{% endblock %}
 
 {% block content %}
@@ -46,7 +46,7 @@
                                     <td class="ps-4 fw-bold text-dark">{{ invoice.invoice_number }}</td>
                                     <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
                                     <td>
-                                        <div class="small fw-semibold text-dark">{{ invoice.description|default:"Abonnement FinanceOS IA" }}</div>
+                                        <div class="small fw-semibold text-dark">{{ invoice.description|default:"Abonnement SakinaFinance" }}</div>
                                         <div class="text-muted x-small">ID: {{ invoice.stripe_invoice_id|truncatechars:10 }}</div>
                                     </td>
                                     <td>

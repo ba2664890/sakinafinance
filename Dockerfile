@@ -31,7 +31,8 @@ RUN chmod +x /app/entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run gunicorn with increased timeout and optimized worker config for RAM
-CMD gunicorn financeos.wsgi:application \
+ENV DJANGO_SETTINGS_MODULE=sakinafinance.settings
+CMD gunicorn sakinafinance.wsgi:application \
     --bind 0.0.0.0:${PORT:-8000} \
     --workers 1 \
     --threads 4 \

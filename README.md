@@ -1,11 +1,11 @@
-# FinanceOS IA - Système d'Intelligence Financière Universel
+# SakinaFinance - Système d'Intelligence Financière Universel
 
-![FinanceOS IA](https://img.shields.io/badge/FinanceOS-IA-blue)
+![SakinaFinance](https://img.shields.io/badge/SakinaFinance-blue)
 ![Django](https://img.shields.io/badge/Django-5.0-green)
 ![Python](https://img.shields.io/badge/Python-3.11+-yellow)
 ![License](https://img.shields.io/badge/License-Enterprise-red)
 
-FinanceOS IA est un système d'intelligence financière de nouvelle génération conçu pour répondre aux besoins de toutes les structures — de la startup de 3 personnes au groupe industriel multi-filiales.
+SakinaFinance est un système d'intelligence financière de nouvelle génération conçu pour répondre aux besoins de toutes les structures — de la startup de 3 personnes au groupe industriel multi-filiales.
 
 ## 🎯 Les 6 Piliers
 
@@ -71,8 +71,8 @@ FinanceOS IA est un système d'intelligence financière de nouvelle génération
 
 1. **Cloner le repository**
 ```bash
-git clone https://github.com/your-org/financeos-ia.git
-cd financeos-ia
+git clone https://github.com/your-org/sakinafinance.git
+cd sakinafinance
 ```
 
 2. **Créer un environnement virtuel**
@@ -130,8 +130,8 @@ Pour Gmail, utiliser un [mot de passe d'application](https://support.google.com/
 ## 📁 Structure du Projet
 
 ```
-financeos_ia/
-├── financeos/              # Configuration Django
+sakinafinance/
+├── sakinafinance/          # Configuration Django
 │   ├── settings.py         # Paramètres
 │   ├── urls.py            # URLs principales
 │   ├── wsgi.py            # WSGI
@@ -243,7 +243,7 @@ L'API REST complète est disponible à `/api/v1/` avec documentation automatique
 python manage.py test
 
 # Lancer les tests d'un module
-python manage.py test financeos.accounting
+python manage.py test sakinafinance.accounting
 
 # Avec couverture
 coverage run manage.py test
@@ -268,9 +268,9 @@ docker-compose up -d
 
 ## 📞 Support
 
-- **Email** : support@financeos.ai
-- **Documentation** : https://docs.financeos.ai
-- **Status** : https://status.financeos.ai
+- **Email** : support@sakinafinance.ai
+- **Documentation** : https://docs.sakinafinance.ai
+- **Status** : https://status.sakinafinance.ai
 
 ## 📄 Licence
 
@@ -286,6 +286,6 @@ Ce projet est sous licence Enterprise. Tous droits réservés.
 
 ---
 
-**FinanceOS IA** - Le Système d'Intelligence Financière Universel
-© 2024 FinanceOS IA. Tous droits réservés.
+**SakinaFinance** - Le Système d'Intelligence Financière Universel
+© 2024 SakinaFinance. Tous droits réservés.
 # sakinafinance

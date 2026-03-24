@@ -1,15 +1,15 @@
-Bienvenue sur FinanceOS IA
+Bienvenue sur SakinaFinance
 
 Bonjour {{ first_name }},
 
-Nous sommes ravis de vous accueillir au sein de la communauté FinanceOS IA ! Votre compte a été créé avec succès et votre espace de travail est prêt.
+Nous sommes ravis de vous accueillir au sein de la communauté SakinaFinance ! Votre compte a été créé avec succès et votre espace de travail est prêt.
 
 Détails de votre compte :
 - Email : {{ email }}
 - Entreprise : {{ company_name }}
 - Plan : Essai gratuit (14 jours)
 
-FinanceOS IA vous aide à transformer votre gestion financière grâce à l'intelligence artificielle. Voici ce que vous pouvez faire dès maintenant :
+SakinaFinance vous aide à transformer votre gestion financière grâce à l'intelligence artificielle. Voici ce que vous pouvez faire dès maintenant :
 - Configurer vos journaux comptables
 - Importer vos premières transactions
 - Activer l'IA Advisor pour des analyses en temps réel
@@ -17,4 +17,4 @@ FinanceOS IA vous aide à transformer votre gestion financière grâce à l'inte
 Accéder à mon tableau de bord : {{ dashboard_url }}
 
 Si vous avez des questions, notre équipe support est à votre disposition.
-L'équipe FinanceOS IA
+L'équipe SakinaFinance
