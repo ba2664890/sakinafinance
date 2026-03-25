@@ -18,4 +18,5 @@ urlpatterns = [
     path('api/notifications/', views.api_notifications, name='api_notifications'),
     path('api/executive/', views.api_executive_data, name='api_executive_data'),
     path('api/consolidation/', views.api_consolidation_data, name='api_consolidation_data'),
+    path('api/run-consolidation/', views.run_consolidation, name='api_run_consolidation'),
 ]

@@ -603,3 +603,63 @@ def api_consolidation_data(request):
     }
     
     return JsonResponse(data)
+
+@login_required
+def run_consolidation(request):
+    """API: Lancement du processus de consolidation réelle"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Requête POST requise'}, status=405)
+    
+    user = request.user
+    company = user.company
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    # Calcul des totaux réels sur toutes les entités
+    entities = company.entities.all()
+    total_rev = Decimal('0')
+    total_net = Decimal('0')
+    
+    for ent in entities:
+        rev = TransactionLine.objects.filter(
+            transaction__entity=ent, 
+            transaction__status='posted', 
+            account__account_class='7'
+        ).aggregate(t=Sum('credit') - Sum('debit'))['t'] or Decimal('0')
+        
+        exp = TransactionLine.objects.filter(
+            transaction__entity=ent, 
+            transaction__status='posted', 
+            account__account_class='6'
+        ).aggregate(t=Sum('debit') - Sum('credit'))['t'] or Decimal('0')
+        
+        total_rev += rev
+        total_net += (rev - exp)
+
+    # Créer ou mettre à jour le rapport officiel pour le mois en cours
+    today = timezone.now().date()
+    p_start = today.replace(day=1)
+    
+    # Calcul de la fin du mois
+    next_m = today.replace(day=28) + timedelta(days=4)
+    p_end = next_m - timedelta(days=next_m.day)
+    
+    report, created = ConsolidationReport.objects.update_or_create(
+        company=company,
+        period_start=p_start,
+        defaults={
+            'period_end': p_end,
+            'title': f"Consolidation mensuelle - {today.strftime('%B %Y')}",
+            'consolidated_revenue': total_rev,
+            'consolidated_net_income': total_net,
+            'status': 'published',
+            'generated_by': user
+        }
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'La consolidation a été effectuée avec succès sur toutes les entités.',
+        'report_id': str(report.id)
+    })
+
