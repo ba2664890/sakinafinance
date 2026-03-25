@@ -7,11 +7,27 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 from sakinafinance.accounting.models import Transaction, Invoice, Account
 from sakinafinance.hr.models import Employee
 from sakinafinance.procurement.models import PurchaseOrder
+
+
+def _get_period_range(period='year'):
+    """Return (start_date, end_date) for the given period string."""
+    today = timezone.now().date()
+    if period == 'month':
+        start = today.replace(day=1)
+        end = today
+    elif period == 'quarter':
+        q_start_month = ((today.month - 1) // 3) * 3 + 1
+        start = today.replace(month=q_start_month, day=1)
+        end = today
+    else:  # year
+        start = today.replace(month=1, day=1)
+        end = today
+    return start, end
 
 
 def home_view(request):
@@ -107,102 +123,197 @@ def settings_view(request):
 # API Views
 @login_required
 def api_dashboard_data(request):
-    """API: Get Dashboard Data with Real Database Values"""
+    """API: Get Dashboard Data with Real Database Values + period filter + EBITDA"""
     user = request.user
     company = user.company
-    
-    # Defaults
+    period = request.GET.get('period', 'year')  # month | quarter | year
+
+    today = timezone.now().date()
+    if period == 'month':
+        period_start = today.replace(day=1)
+    elif period == 'quarter':
+        q_start_month = ((today.month - 1) // 3) * 3 + 1
+        period_start = today.replace(month=q_start_month, day=1)
+    else:
+        period_start = today.replace(month=1, day=1)
+    period_end = today
+
     data = {
         'kpis': {
             'total_revenue': 0,
+            'expenses': 0,
+            'net_income': 0,
             'revenue_growth': 0,
             'net_cash': 0,
+            'cash_inflows': 0,
+            'cash_outflows': 0,
             'cash_growth': 0,
             'ebitda': 0,
             'ebitda_margin': 0,
             'pending_invoices': 0,
             'overdue_invoices': 0,
+            'employee_count': 0,
+            'period': period,
         },
         'chart_data': {
             'labels': [],
             'revenue': [],
-            'target': [300, 310, 320, 330, 340, 350, 360, 370],
+            'expenses': [],
+            'ebitda': [],
         },
         'recent_transactions': [],
-        'alerts': []
+        'top_invoices': [],
+        'alerts': [],
+        'cash_flow': {'inflows': 0, 'outflows': 0, 'reserve': 0},
     }
-    
-    if company:
-        # 1. Total Revenue
-        revenue = Transaction.objects.filter(
-            company=company, 
-            journal__journal_type='sales',
-            status='posted'
-        ).aggregate(total=Sum('total_credit'))['total'] or 0
-        
-        # 1.1 Chart Data (Last 8 months)
-        today = timezone.now().date()
-        labels = []
-        revenue_data = []
-        for i in range(7, -1, -1):
-            first_day = (today.replace(day=1) - timedelta(days=i*30)).replace(day=1)
-            last_day = (first_day + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-            
-            month_rev = Transaction.objects.filter(
-                company=company,
-                journal__journal_type='sales',
-                status='posted',
-                date__range=[first_day, last_day]
-            ).aggregate(total=Sum('total_credit'))['total'] or 0
-            
-            labels.append(first_day.strftime('%b'))
-            revenue_data.append(float(month_rev) / 1000000)
-            
-        data['chart_data']['labels'] = labels
-        data['chart_data']['revenue'] = revenue_data
-        
-        # 2. Net Cash
-        cash = Transaction.objects.filter(
-            company=company,
-            journal__journal_type__in=['bank', 'cash'],
-            status='posted'
-        ).aggregate(dr=Sum('total_debit'), cr=Sum('total_credit'))
-        net_cash = (cash['dr'] or 0) - (cash['cr'] or 0)
-        
-        # 3. Invoices
-        inv_stats = Invoice.objects.filter(company=company).aggregate(
-            pending=Count('id', filter=Q(status='sent')),
-            overdue=Count('id', filter=Q(status='overdue'))
-        )
-        
-        data['kpis'].update({
-            'total_revenue': float(revenue),
-            'net_cash': float(net_cash),
-            'pending_invoices': inv_stats['pending'],
-            'overdue_invoices': inv_stats['overdue'],
+
+    if not company:
+        return JsonResponse(data)
+
+    # ── Revenue & Expenses (period-scoped) ──
+    revenue = Transaction.objects.filter(
+        company=company,
+        journal__journal_type='sales',
+        status='posted',
+        date__range=[period_start, period_end],
+    ).aggregate(total=Sum('total_credit'))['total'] or Decimal('0')
+
+    expenses = Transaction.objects.filter(
+        company=company,
+        journal__journal_type__in=['purchases', 'od'],
+        status='posted',
+        date__range=[period_start, period_end],
+    ).aggregate(total=Sum('total_debit'))['total'] or Decimal('0')
+
+    ebitda = revenue - expenses
+    ebitda_margin = round(float(ebitda) / float(revenue) * 100, 1) if revenue else 0
+    net_income = ebitda  # simplified (no D&A model yet)
+
+    # ── Cash (all-time positions) ──
+    cash_qs = Transaction.objects.filter(
+        company=company,
+        journal__journal_type__in=['bank', 'cash'],
+        status='posted',
+    ).aggregate(dr=Sum('total_debit'), cr=Sum('total_credit'))
+    cash_in = float(cash_qs['dr'] or 0)
+    cash_out = float(cash_qs['cr'] or 0)
+    net_cash = cash_in - cash_out
+
+    # ── Invoices ──
+    inv_stats = Invoice.objects.filter(company=company).aggregate(
+        pending=Count('id', filter=Q(status='sent')),
+        overdue=Count('id', filter=Q(status='overdue')),
+    )
+
+    # ── Employees ──
+    try:
+        emp_count = Employee.objects.filter(company=company, status='active').count()
+    except Exception:
+        emp_count = 0
+
+    data['kpis'].update({
+        'total_revenue': float(revenue),
+        'expenses': float(expenses),
+        'net_income': float(net_income),
+        'net_cash': net_cash,
+        'cash_inflows': cash_in,
+        'cash_outflows': cash_out,
+        'ebitda': float(ebitda),
+        'ebitda_margin': ebitda_margin,
+        'pending_invoices': inv_stats['pending'],
+        'overdue_invoices': inv_stats['overdue'],
+        'employee_count': emp_count,
+    })
+
+    # Cash flow breakdown for donut chart
+    reserve = max(net_cash, 0)
+    data['cash_flow'] = {
+        'inflows': cash_in,
+        'outflows': cash_out,
+        'reserve': reserve,
+    }
+
+    # ── 8-month chart ──
+    labels, rev_data, exp_data, ebitda_data = [], [], [], []
+    for i in range(7, -1, -1):
+        first_day = (today.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+        last_day = (first_day + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+
+        m_rev = float(Transaction.objects.filter(
+            company=company, journal__journal_type='sales', status='posted',
+            date__range=[first_day, last_day],
+        ).aggregate(t=Sum('total_credit'))['t'] or 0) / 1_000_000
+
+        m_exp = float(Transaction.objects.filter(
+            company=company, journal__journal_type__in=['purchases', 'od'], status='posted',
+            date__range=[first_day, last_day],
+        ).aggregate(t=Sum('total_debit'))['t'] or 0) / 1_000_000
+
+        labels.append(first_day.strftime('%b'))
+        rev_data.append(round(m_rev, 2))
+        exp_data.append(round(m_exp, 2))
+        ebitda_data.append(round(m_rev - m_exp, 2))
+
+    data['chart_data'] = {
+        'labels': labels,
+        'revenue': rev_data,
+        'expenses': exp_data,
+        'ebitda': ebitda_data,
+    }
+
+    # ── Recent Transactions ──
+    recent = Transaction.objects.filter(
+        company=company, status='posted'
+    ).order_by('-date')[:8]
+    for t in recent:
+        data['recent_transactions'].append({
+            'id': str(t.id),
+            'date': t.date.strftime('%d %b %Y'),
+            'description': t.description[:60],
+            'amount': float(t.total_debit - t.total_credit),
+            'type': t.journal.journal_type,
+            'status': t.get_status_display(),
+            'currency': t.currency,
         })
-        
-        # 4. Recent Transactions
-        recent = Transaction.objects.filter(company=company, status='posted').order_by('-date')[:5]
-        for t in recent:
-            data['recent_transactions'].append({
-                'id': str(t.id),
-                'date': t.date.strftime('%d %b %Y'),
-                'description': t.description,
-                'amount': float(t.total_debit - t.total_credit),
-                'status': t.get_status_display()
-            })
-            
-        # 5. Alerts
-        if inv_stats['overdue'] > 0:
-            data['alerts'].append({
-                'type': 'danger',
-                'title': f"{inv_stats['overdue']} factures en retard",
-                'message': "Action requise pour la relance client.",
-                'action_text': 'Voir les factures',
-                'action_url': '/accounting/'
-            })
-            
+
+    # ── Top Invoices ──
+    top_inv = Invoice.objects.filter(
+        company=company, status__in=['sent', 'overdue']
+    ).order_by('-total')[:5]
+    for inv in top_inv:
+        data['top_invoices'].append({
+            'number': inv.invoice_number,
+            'partner': inv.partner_name,
+            'total': float(inv.total),
+            'due': inv.due_date.strftime('%d %b %Y'),
+            'status': inv.status,
+            'status_label': inv.get_status_display(),
+            'currency': inv.currency,
+        })
+
+    # ── Alerts ──
+    if inv_stats['overdue'] > 0:
+        overdue_amount = Invoice.objects.filter(
+            company=company, status='overdue'
+        ).aggregate(s=Sum('amount_due'))['s'] or 0
+        data['alerts'].append({
+            'type': 'danger',
+            'icon': 'bi-exclamation-triangle-fill',
+            'title': f"{inv_stats['overdue']} facture(s) en retard",
+            'message': f"Montant en souffrance : {float(overdue_amount):,.0f} {inv_stats.get('currency', 'XOF')}",
+            'action_text': 'Relancer clients',
+            'action_url': '/accounting/',
+        })
+    if inv_stats['pending'] > 0:
+        data['alerts'].append({
+            'type': 'warning',
+            'icon': 'bi-clock-fill',
+            'title': f"{inv_stats['pending']} facture(s) en attente",
+            'message': "Ces factures n'ont pas encore été payées.",
+            'action_text': 'Voir factures',
+            'action_url': '/accounting/',
+        })
+
     return JsonResponse(data)
 
 
@@ -215,23 +326,41 @@ def api_kpi_data(request):
 
 @login_required
 def api_notifications(request):
-    """API: Get Notifications"""
+    """API: Get Notifications — returns real count for badge"""
     user = request.user
     company = user.company
     notifications = []
-    
+    total_count = 0
+
     if company:
         overdue_count = Invoice.objects.filter(company=company, status='overdue').count()
+        pending_count = Invoice.objects.filter(company=company, status='sent').count()
+
         if overdue_count > 0:
             notifications.append({
-                'id': 'notif-1',
-                'title': 'Factures en retard',
-                'message': f'Vous avez {overdue_count} factures impayées.',
-                'type': 'warning',
-                'time': 'À l\'instant',
+                'id': 'notif-overdue',
+                'title': f'{overdue_count} facture(s) en retard',
+                'message': 'Action requise — relancer les clients.',
+                'type': 'danger',
+                'icon': 'bi-exclamation-triangle',
+                'time': 'Aujourd\'hui',
+                'url': '/accounting/',
             })
-            
-    return JsonResponse({'notifications': notifications})
+            total_count += overdue_count
+
+        if pending_count > 0:
+            notifications.append({
+                'id': 'notif-pending',
+                'title': f'{pending_count} facture(s) en attente',
+                'message': 'Ces factures attendent un paiement.',
+                'type': 'warning',
+                'icon': 'bi-clock',
+                'time': 'Aujourd\'hui',
+                'url': '/accounting/',
+            })
+            total_count += pending_count
+
+    return JsonResponse({'notifications': notifications, 'total_count': total_count})
 
 
 @login_required
