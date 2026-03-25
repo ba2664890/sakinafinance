@@ -9,7 +9,7 @@ from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
 from datetime import datetime, timedelta, date
 from decimal import Decimal
-from sakinafinance.accounting.models import Transaction, Invoice, Account
+from sakinafinance.accounting.models import Transaction, Invoice, Account, TransactionLine
 from sakinafinance.hr.models import Employee
 from sakinafinance.procurement.models import PurchaseOrder
 
@@ -365,85 +365,149 @@ def api_notifications(request):
 
 @login_required
 def api_executive_data(request):
-    """API: Get Executive Dashboard Data — Consolidated Group View"""
+    """API: Get Executive Dashboard Data — Consolidated Group View (100% Real Data)"""
     user = request.user
     company = user.company
+    if not company:
+        return JsonResponse({'error': 'No company associated'}, status=400)
+
+    now = timezone.now()
+    last_year = now - timedelta(days=365)
     
-    # 1. Base Real Data (Same logic as dashboard but simplified for group view)
-    revenue = Transaction.objects.filter(company=company, journal__journal_type='sales', status='posted').aggregate(total=Sum('total_credit'))['total'] or Decimal('0')
+    # 1. KPIs Consolidés (Toutes entités du groupe)
+    # Revenue (Class 7 - Produits)
+    revenue_agg = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='7'
+    ).aggregate(total=Sum('credit') - Sum('debit'))
+    total_revenue = float(revenue_agg['total'] or 0)
     
-    cash_qs = Transaction.objects.filter(company=company, journal__journal_type__in=['bank', 'cash'], status='posted').aggregate(dr=Sum('total_debit'), cr=Sum('total_credit'))
-    net_cash = float(cash_qs['dr'] or 0) - float(cash_qs['cr'] or 0)
+    # Expenses (Class 6 - Charges)
+    expense_agg = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='6'
+    ).aggregate(total=Sum('debit') - Sum('credit'))
+    total_expenses = float(expense_agg['total'] or 0)
     
-    inv_stats = Invoice.objects.filter(company=company).aggregate(
-        overdue_count=Count('id', filter=Q(status='overdue')),
-        overdue_amount=Sum('total', filter=Q(status='overdue'))
-    )
+    ebitda = total_revenue - total_expenses
+    ebitda_margin = float(round(ebitda / total_revenue * 100, 1)) if total_revenue > 0 else 0.0
     
-    # 2. Simulated Metrics (derived from real data)
-    revenue_f = float(revenue)
-    ebitda = revenue_f * 0.22  # Mock margin for now (22%)
-    ebitda_margin = 22.0
-    liquidity_ratio = round(net_cash / (float(inv_stats['overdue_amount'] or 1) + 5000000), 2) if net_cash > 0 else 0.85
+    # Cash
+    cash_agg = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='5'
+    ).aggregate(total=Sum('debit') - Sum('credit'))
+    net_cash = float(cash_agg['total'] or 0)
     
+    # Growth (Simplifié: CA vs même mois année dernière ou mois précédent)
+    last_month = now - timedelta(days=30)
+    prev_revenue_agg = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        transaction__date__lt=last_month,
+        transaction__date__gte=last_month - timedelta(days=30),
+        account__account_class='7'
+    ).aggregate(total=Sum('credit') - Sum('debit'))
+    prev_rev = float(prev_revenue_agg['total'] or 0)
+    revenue_growth = float(round((total_revenue - prev_rev) / prev_rev * 100, 1)) if prev_rev > 0 else 0.0
+    
+    # 2. Risques Réels (Basés sur Invoices & Ratios)
+    overdue_invoices = Invoice.objects.filter(company=company, status='overdue')
+    overdue_stats = overdue_invoices.aggregate(total=Sum('amount_due'), count=Count('id'))
+    
+    # Ratio de liquidité (Cash / Dettes CT - ici invoices en retard + 5M estimé)
+    liquidity_ratio = float(round(net_cash / (float(overdue_stats['total'] or 0) + 1), 2))
+    
+    # 3. Répartition par Entité (Données réelles du modèle Entity)
+    entities_data = []
+    entities = company.entities.all()
+    if not entities.exists():
+        # Fallback if no entities: show company as single entity
+        entities_data.append({
+            'name': company.name,
+            'type': 'HQ',
+            'revenue': total_revenue,
+            'margin': ebitda_margin,
+            'cash': net_cash,
+            'vitality': 85 if net_cash > 0 else 40
+        })
+    else:
+        for ent in entities:
+            ent_rev = float(TransactionLine.objects.filter(transaction__entity=ent, transaction__status='posted', account__account_class='7').aggregate(t=Sum('credit'))['t'] or 0)
+            ent_exp = float(TransactionLine.objects.filter(transaction__entity=ent, transaction__status='posted', account__account_class='6').aggregate(t=Sum('debit'))['t'] or 0)
+            ent_cash = float(TransactionLine.objects.filter(transaction__entity=ent, transaction__status='posted', account__account_class='5').aggregate(t=Sum('debit') - Sum('credit'))['t'] or 0)
+            ent_margin = float(round((ent_rev - ent_exp) / ent_rev * 100, 1) if ent_rev > 0 else 0.0)
+            entities_data.append({
+                'name': ent.name,
+                'type': ent.get_entity_type_display(),
+                'revenue': ent_rev,
+                'margin': ent_margin,
+                'cash': ent_cash,
+                'vitality': int(min(100, int(ent_margin * 2 + 50))) if ent_rev > 0 else 30
+            })
+
+    # 4. Géographie (Basée sur le pays des entités)
+    geography = []
+    countries = entities.values('country').annotate(val=Sum('transactions__total_credit', filter=Q(transactions__journal__journal_type='sales'))).order_by('-val')
+    for c in countries:
+        if c['country']:
+            geography.append({'region': c['country'], 'value': float(c['val'] or 0)})
+    
+    if not geography: # Fallback UI
+        geography = [{'region': company.country, 'value': total_revenue}]
+
+    # 5. Graphique Performance (8 derniers mois réels)
+    chart_labels = []
+    chart_actual = []
+    chart_target = []
+    for i in range(7, -1, -1):
+        month_date = now - timedelta(days=i*30)
+        month_label = month_date.strftime('%b').upper()
+        chart_labels.append(month_label)
+        
+        m_rev = float(TransactionLine.objects.filter(
+            transaction__company=company,
+            transaction__status='posted',
+            transaction__date__month=month_date.month,
+            transaction__date__year=month_date.year,
+            account__account_class='7'
+        ).aggregate(t=Sum('credit'))['t'] or 0)
+        
+        chart_actual.append(float(round(m_rev / 1_000_000, 2)))
+        chart_target.append(float(round((total_revenue / 8 / 1_000_000) * 1.1, 2))) # Cible = moyenne + 10%
+
     data = {
         'kpis': {
-            'revenue': revenue_f,
-            'revenue_growth': 14.2,  # Mock
+            'revenue': total_revenue,
+            'revenue_growth': revenue_growth,
             'ebitda': ebitda,
             'ebitda_margin': ebitda_margin,
             'net_cash': net_cash,
-            'liquidity_ratio': max(0.5, liquidity_ratio),
+            'liquidity_ratio': liquidity_ratio,
         },
         'risks': [
             {
                 'title': 'Exposition Retards Clients',
-                'level': 'danger' if inv_stats['overdue_count'] > 3 else 'warning',
-                'exposure': float(inv_stats['overdue_amount'] or 0),
-                'probability': 85 if inv_stats['overdue_count'] > 0 else 15
+                'level': 'danger' if overdue_stats['count'] > 3 else 'warning',
+                'exposure': float(overdue_stats['total'] or 0),
+                'probability': 85 if overdue_stats['count'] > 0 else 10
             },
             {
-                'title': 'Ratio de Liquidité',
-                'level': 'success' if liquidity_ratio > 1.5 else 'warning',
+                'title': 'Ratio Cash/Dettes',
+                'level': 'success' if liquidity_ratio > 1.2 else 'danger',
                 'exposure': 0,
-                'probability': 25
+                'probability': 20
             }
         ],
-        'entities': [
-            {
-                'name': company.name if company else 'Holding Sakina',
-                'type': 'HQ • AFRICA',
-                'revenue': revenue_f,
-                'margin': 22.0,
-                'cash': net_cash,
-                'vitality': 92 if net_cash > 0 else 65
-            },
-            {
-                'name': 'Sakina Tech Hub',
-                'type': 'TECH • EMEA',
-                'revenue': revenue_f * 0.35,
-                'margin': 28.5,
-                'cash': net_cash * 0.2,
-                'vitality': 98
-            },
-            {
-                'name': 'Dakar Logistics',
-                'type': 'OPS • WEST AFRICA',
-                'revenue': revenue_f * 0.15,
-                'margin': 12.8,
-                'cash': net_cash * 0.05,
-                'vitality': 74
-            }
-        ],
-        'geography': [
-            {'region': 'Afrique de l\'Ouest', 'value': revenue_f * 0.6},
-            {'region': 'Europe / EMEA', 'value': revenue_f * 0.3},
-            {'region': 'Autres', 'value': revenue_f * 0.1}
-        ],
+        'entities': entities_data,
+        'geography': geography,
         'chart_data': {
-            'labels': ['OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR', 'APR', 'MAY'],
-            'actual': [320, 280, 350, 380, 400, 420, 410, round(revenue_f / 1_000_000, 2)],
-            'target': [300, 300, 320, 350, 380, 400, 420, 450]
+            'labels': chart_labels,
+            'actual': chart_actual,
+            'target': chart_target
         }
     }
     
