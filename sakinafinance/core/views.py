@@ -365,76 +365,84 @@ def api_notifications(request):
 
 @login_required
 def api_executive_data(request):
-    """API: Get Executive Dashboard Data"""
+    """API: Get Executive Dashboard Data — Consolidated Group View"""
     user = request.user
     company = user.company
     
-    # Base Data from Dashboard API logic (reused)
-    revenue = Transaction.objects.filter(company=company, journal__journal_type='sales', status='posted').aggregate(total=Sum('total_credit'))['total'] or 0
-    cash = Transaction.objects.filter(company=company, journal__journal_type__in=['bank', 'cash'], status='posted').aggregate(dr=Sum('total_debit'), cr=Sum('total_credit'))
-    net_cash = (cash['dr'] or 0) - (cash['cr'] or 0)
+    # 1. Base Real Data (Same logic as dashboard but simplified for group view)
+    revenue = Transaction.objects.filter(company=company, journal__journal_type='sales', status='posted').aggregate(total=Sum('total_credit'))['total'] or Decimal('0')
+    
+    cash_qs = Transaction.objects.filter(company=company, journal__journal_type__in=['bank', 'cash'], status='posted').aggregate(dr=Sum('total_debit'), cr=Sum('total_credit'))
+    net_cash = float(cash_qs['dr'] or 0) - float(cash_qs['cr'] or 0)
+    
     inv_stats = Invoice.objects.filter(company=company).aggregate(
         overdue_count=Count('id', filter=Q(status='overdue')),
         overdue_amount=Sum('total', filter=Q(status='overdue'))
     )
     
+    # 2. Simulated Metrics (derived from real data)
+    revenue_f = float(revenue)
+    ebitda = revenue_f * 0.22  # Mock margin for now (22%)
+    ebitda_margin = 22.0
+    liquidity_ratio = round(net_cash / (float(inv_stats['overdue_amount'] or 1) + 5000000), 2) if net_cash > 0 else 0.85
+    
     data = {
         'kpis': {
-            'revenue': float(revenue),
-            'revenue_growth': 12.4, # Simulé
-            'ebitda': float(revenue * Decimal('0.2')), # Simulé
-            'ebitda_margin': 20.0,
-            'net_cash': float(net_cash),
-            'liquidity_ratio': 2.4,
+            'revenue': revenue_f,
+            'revenue_growth': 14.2,  # Mock
+            'ebitda': ebitda,
+            'ebitda_margin': ebitda_margin,
+            'net_cash': net_cash,
+            'liquidity_ratio': max(0.5, liquidity_ratio),
         },
         'risks': [
             {
-                'title': 'Factures en retard',
-                'level': 'danger' if inv_stats['overdue_count'] > 5 else 'warning',
+                'title': 'Exposition Retards Clients',
+                'level': 'danger' if inv_stats['overdue_count'] > 3 else 'warning',
                 'exposure': float(inv_stats['overdue_amount'] or 0),
-                'probability': 85 if inv_stats['overdue_count'] > 0 else 10
+                'probability': 85 if inv_stats['overdue_count'] > 0 else 15
             },
             {
-                'title': 'Inflation Fournisseurs',
-                'level': 'warning',
-                'exposure': float(revenue * Decimal('0.05')),
-                'probability': 45
+                'title': 'Ratio de Liquidité',
+                'level': 'success' if liquidity_ratio > 1.5 else 'warning',
+                'exposure': 0,
+                'probability': 25
             }
         ],
         'entities': [
             {
-                'name': company.name if company else 'Holding Principale',
+                'name': company.name if company else 'Holding Sakina',
                 'type': 'HQ • AFRICA',
-                'revenue': float(revenue),
-                'margin': 20.0,
-                'cash': float(net_cash),
-                'vitality': 95
+                'revenue': revenue_f,
+                'margin': 22.0,
+                'cash': net_cash,
+                'vitality': 92 if net_cash > 0 else 65
             },
             {
-                'name': 'Cloud Services LLC',
-                'type': 'TECH • NORTH AMERICA',
-                'revenue': float(revenue * Decimal('0.4')),
-                'margin': 28.4,
-                'cash': float(net_cash * Decimal('0.3')),
+                'name': 'Sakina Tech Hub',
+                'type': 'TECH • EMEA',
+                'revenue': revenue_f * 0.35,
+                'margin': 28.5,
+                'cash': net_cash * 0.2,
                 'vitality': 98
             },
             {
-                'name': 'UK Logistics Hub',
-                'type': 'TRANSPORT • EMEA',
-                'revenue': float(revenue * Decimal('0.15')),
-                'margin': 12.1,
-                'cash': float(net_cash * Decimal('0.1')),
-                'vitality': 64
+                'name': 'Dakar Logistics',
+                'type': 'OPS • WEST AFRICA',
+                'revenue': revenue_f * 0.15,
+                'margin': 12.8,
+                'cash': net_cash * 0.05,
+                'vitality': 74
             }
         ],
         'geography': [
-            {'region': 'North America', 'value': float(revenue * Decimal('0.5'))},
-            {'region': 'EMEA Region', 'value': float(revenue * Decimal('0.3'))},
-            {'region': 'Asia Pacific', 'value': float(revenue * Decimal('0.2'))}
+            {'region': 'Afrique de l\'Ouest', 'value': revenue_f * 0.6},
+            {'region': 'Europe / EMEA', 'value': revenue_f * 0.3},
+            {'region': 'Autres', 'value': revenue_f * 0.1}
         ],
         'chart_data': {
             'labels': ['OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR', 'APR', 'MAY'],
-            'actual': [320, 280, 350, 380, 400, 420, 410, float(revenue) / 1000000 if revenue else 428],
+            'actual': [320, 280, 350, 380, 400, 420, 410, round(revenue_f / 1_000_000, 2)],
             'target': [300, 300, 320, 350, 380, 400, 420, 450]
         }
     }

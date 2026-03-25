@@ -1,157 +1,219 @@
 {% extends 'dashboard_base.html' %}
 
-{% block title %}Executive View - SakinaFinance{% endblock %}
-{% block page_title %}Universal Group Performance{% endblock %}
+{% block title %}Vue Executive - SakinaFinance{% endblock %}
+{% block page_title %}Performance Consolidée du Groupe{% endblock %}
+
+{% block extra_css %}
+/* ── Animations ── */
+@keyframes pulse-ai { 0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.4); } 70% { box-shadow: 0 0 0 15px rgba(37,99,235,0); } 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } }
+@keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+/* ── Executive KPI Cards ── */
+.exec-kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.exec-kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: var(--primary-color); }
+.exec-kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); font-weight: 700; margin-bottom: 0.5rem; }
+.exec-kpi-value { font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem; }
+.exec-progress-container { background: rgba(0,0,0,0.05); height: 6px; border-radius: 10px; margin-top: 1rem; position: relative; }
+.exec-progress-bar { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--primary-color), #06b6d4); transition: width 1s ease-in-out; }
+
+/* ── AI Intelligence Card ── */
+.ai-exec-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+.ai-exec-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    animation: scan 3s linear infinite;
+}
+.ai-exec-icon {
+    width: 54px; height: 54px; border-radius: 14px;
+    background: rgba(59,130,246,0.15); color: #3b82f6;
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    margin-bottom: 1.5rem; animation: pulse-ai 2s infinite;
+}
+
+/* ── Entity Table ── */
+.entity-row { cursor: pointer; transition: background 0.2s; }
+.entity-row:hover { background: rgba(0,0,0,0.02); }
+.vitality-badge { font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 20px; }
+
+/* ── Risk Cards ── */
+.risk-item { border-left: 3px solid transparent; padding-left: 1rem; margin-bottom: 1.5rem; }
+.risk-item.danger { border-color: #ef4444; }
+.risk-item.warning { border-color: #f59e0b; }
+.risk-item.success { border-color: #10b981; }
+
+.btn-premium-sync {
+    background: rgba(37,99,235,0.1); color: var(--primary-color); border: 1px solid rgba(37,99,235,0.2);
+    font-weight: 600; padding: 0.5rem 1.25rem; border-radius: 10px; transition: all 0.2s;
+}
+.btn-premium-sync:hover { background: var(--primary-color); color: white; }
+.btn-premium-sync.loading i { animation: spin 1s linear infinite; }
+{% endblock %}
 
 {% block content %}
-<!-- Sub Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+
+<!-- Header & Global Actions -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5 fade-in">
     <div>
-        <span class="badge bg-primary bg-opacity-10 text-primary mb-2">LIVE INTELLIGENCE REPORT</span>
-        <p class="text-muted mb-0">FY2024 • Third Quarter Consolidation • Updated 2m ago</p>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size:0.65rem; font-weight:800; letter-spacing:0.05em;">LIVE CONSOLIDATION</span>
+            <small class="text-muted"><i class="bi bi-clock-history me-1"></i>Dernière analyse : il y a 2 min</small>
+        </div>
+        <h4 class="fw-bold mb-0">Sakina Group Performance</h4>
     </div>
-    <div>
-        <button class="btn btn-outline-secondary me-2">
-            <i class="bi bi-download me-1"></i>Export
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary d-flex align-items-center gap-2" id="btn-export">
+            <i class="bi bi-download"></i> <span class="d-none d-sm-inline">Exporter Group (.csv)</span>
         </button>
-        <button class="btn btn-primary">
-            <i class="bi bi-arrow-clockwise me-1"></i>RE-SYNC IA
+        <button class="btn btn-premium-sync d-flex align-items-center gap-2" id="refresh-ai">
+            <i class="bi bi-robot"></i> <span id="sync-text">Réanalyser IA</span>
         </button>
     </div>
 </div>
 
-<!-- KPI Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-xl-4 col-md-6">
-        <div class="kpi-card">
-            <div class="kpi-label">TOTAL REVENUE</div>
-            <div class="kpi-value" id="exec-kpi-revenue">0 XOF</div>
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="kpi-change positive" id="exec-kpi-revenue-change">
-                    <i class="bi bi-arrow-up-short"></i>+0%
-                </span>
-                <div class="text-end">
-                    <small class="text-muted">Progress to FY Target</small>
-                    <div class="progress" style="width: 100px; height: 6px;">
-                        <div class="progress-bar bg-primary" id="exec-kpi-revenue-progress" style="width: 0%"></div>
-                    </div>
-                    <small class="text-muted" id="exec-kpi-revenue-progress-text">0%</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-4 col-md-6">
-        <div class="kpi-card">
-            <div class="kpi-label">GROUP EBITDA</div>
-            <div class="kpi-value" id="exec-kpi-ebitda">0 XOF</div>
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="kpi-change positive" id="exec-kpi-ebitda-change">
-                    <i class="bi bi-arrow-up-short"></i>+0%
-                </span>
-                <div class="text-end">
-                    <small class="text-muted">Operating Margin</small>
-                    <div class="fw-bold" id="exec-kpi-ebitda-margin">0%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-4 col-md-6">
-        <div class="kpi-card">
-            <div class="kpi-label">NET CASH POSITION</div>
-            <div class="kpi-value" id="exec-kpi-cash">0 XOF</div>
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="kpi-change positive" id="exec-kpi-cash-change">
-                    <i class="bi bi-arrow-up-short"></i>+0%
-                </span>
-                <div class="text-end">
-                    <small class="text-muted">Liquidity Ratio</small>
-                    <div class="fw-bold" id="exec-kpi-cash-ratio">1.0x</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- AI Insight & Risks -->
-<div class="row g-4 mb-4">
-    <div class="col-lg-8">
-        <div class="ai-insight-card">
-            <div class="ai-insight-header">
-                <div class="ai-insight-icon">
-                    <i class="bi bi-robot"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="ai-insight-title">IA Intelligence Directive</div>
-                    <div class="ai-insight-subtitle">NEURAL ANALYSIS ACTIVE</div>
-                </div>
-                <span class="badge bg-success">CONFIDENCE SCORE: 94.8%</span>
-            </div>
-            <div class="ai-insight-content">
-                <p>Group performance remains <span class="ai-highlight">exceptionally strong</span> with a 12% YoY revenue growth. However, EBITDA margins in the EMEA region are under pressure due to a <span class="ai-highlight">14% rise</span> in operational energy costs.</p>
-                <p class="mb-0">IA identifies a <span class="ai-highlight">strategic opportunity</span> to reallocate capital from the APAC cash reserves into Q4 tech acquisitions, potentially increasing FY25 margins by 3.2%.</p>
-            </div>
-            <div class="mt-3 d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="d-flex">
-                        <div class="bg-primary rounded-circle" style="width: 24px; height: 24px;"></div>
-                        <div class="bg-success rounded-circle" style="width: 24px; height: 24px; margin-left: -8px;"></div>
-                    </div>
-                    <small>IA Analysis Active</small>
-                </div>
-                <a href="{% url 'ai_advisor' %}" class="text-primary">FULL STRATEGY DEEP-DIVE <i class="bi bi-arrow-right"></i></a>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Critical Risks</h5>
-                <i class="bi bi-exclamation-triangle text-warning"></i>
-            </div>
-            <div class="card-body" id="exec-risk-container">
-                <div class="text-center py-4">
-                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts Row -->
-<div class="row g-4 mb-4">
-    <div class="col-xl-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+<!-- Main KPIs -->
+<div class="row g-4 mb-5 slide-up">
+    <div class="col-xl-4">
+        <div class="exec-kpi-card h-100">
+            <div class="exec-kpi-label">Revenus Consolidés</div>
+            <div class="exec-kpi-value" id="exec-revenue">—</div>
+            <div class="d-flex justify-content-between align-items-end">
                 <div>
-                    <h5 class="card-title mb-0">Consolidated Performance Trend</h5>
-                    <small class="text-muted">REVENUE VS BUDGETED EXPECTATIONS</small>
+                    <span class="text-success fw-bold" id="exec-growth"><i class="bi bi-arrow-up-short"></i>+0%</span>
+                    <div class="text-muted small">v.s Année Précédente</div>
                 </div>
-                <div class="d-flex gap-2">
-                    <span class="badge bg-primary"><i class="bi bi-circle-fill me-1" style="font-size: 6px;"></i>ACTUAL REVENUE</span>
-                    <span class="badge bg-light text-dark"><i class="bi bi-circle-fill me-1" style="font-size: 6px;"></i>TARGET BUDGET</span>
+                <div class="text-end">
+                    <div class="text-muted small mb-1">Objectif Annuel</div>
+                    <div class="fw-bold text-primary" id="progress-text">0%</div>
                 </div>
             </div>
-            <div class="card-body">
-                <canvas id="performanceTrendChart" height="250"></canvas>
+            <div class="exec-progress-container">
+                <div class="exec-progress-bar" id="exec-progress" style="width: 0%"></div>
             </div>
         </div>
     </div>
     <div class="col-xl-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Global Distribution</h5>
-                <span class="badge bg-primary"><i class="bi bi-geo-alt me-1"></i>LIVE MAP</span>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <div style="height: 150px; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-globe text-primary" style="font-size: 4rem;"></i>
+        <div class="exec-kpi-card h-100">
+            <div class="exec-kpi-label">EBITDA Groupe</div>
+            <div class="exec-kpi-value" id="exec-ebitda">—</div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary-subtle rounded-circle p-2" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-pie-chart-fill text-primary" style="font-size:0.8rem;"></i>
                     </div>
+                    <span class="text-muted small">Marge Opérationnelle</span>
                 </div>
-                <div class="list-group list-group-flush" id="exec-geo-distribution">
-                    <div class="text-center py-4">
-                        <small class="text-muted">Loading regional data...</small>
-                    </div>
+                <div class="h3 fw-bold mb-0 text-primary" id="exec-margin">0%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="exec-kpi-card h-100">
+            <div class="exec-kpi-label">Trésorerie Nette Pro-Forma</div>
+            <div class="exec-kpi-value" id="exec-cash">—</div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Ratio de Liquidité Immédiate</div>
+                    <div class="fw-bold" id="exec-ratio">0.0x</div>
+                </div>
+                <div id="ratio-badge" class="badge bg-success-subtle text-success border border-success-subtle">SANTÉ OPTIMALE</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Intelligence & Risk -->
+<div class="row g-4 mb-5">
+    <div class="col-xl-8">
+        <div class="ai-exec-card h-100">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="ai-exec-icon">
+                    <i class="bi bi-cpu-fill"></i>
+                </div>
+                <div class="text-end">
+                    <div class="badge bg-primary text-white mb-2" style="font-size:0.65rem;">NEURAL ANALYSIS ACTIVE</div>
+                    <div class="text-white-50 small">Confidence: 94.8%</div>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-3">Diagnostic Stratégique IA</h3>
+            <div class="ai-content-glow mb-4" id="ai-insight-text">
+                <p style="font-size: 1.1rem; line-height: 1.7; color: rgba(255,255,255,0.9);">
+                    La performance du groupe Sakina affiche une <strong style="color: #3b82f6;">croissance record de 14.2%</strong>.
+                    L'IA détecte une opportunité de réallocation des réserves de trésorerie vers l'entité <strong style="color: #10b981;">Sakina Tech Hub</strong>
+                    pour accélérer la marge du T4. Attention à l'exposition croissante sur les retards de paiements clients en Afrique de l'Ouest.
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{% url 'ai_advisor' %}" class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 border-0 shadow-lg" style="background: linear-gradient(135deg, #2563eb, #06b6d4);">
+                    <i class="bi bi-lightning-charge-fill"></i> Full Strategy Deep-Dive
+                </a>
+                <button class="btn btn-link text-white-50 text-decoration-none d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-dots-fill"></i> Questionner l'expert IA
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius:24px;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Exposition aux Risques</h5>
+                <i class="bi bi-shield-exclamation text-warning fs-4"></i>
+            </div>
+            <div class="card-body p-4" id="risk-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Trends & Geography -->
+<div class="row g-4 mb-5">
+    <div class="col-xl-8">
+        <div class="card shadow-sm border-0" style="border-radius:24px;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0">Trajectoire de Performance Consolidée</h5>
+                    <small class="text-muted">RÉALISÉ VS OBJECTIF BUDGÉTAIRE</small>
+                </div>
+            </div>
+            <div class="card-body px-4 pb-4">
+                <div style="height: 320px;">
+                    <canvas id="execPerformanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card shadow-sm border-0" style="border-radius:24px;">
+            <div class="card-header bg-transparent border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0">Distribution Géographique</h5>
+                <small class="text-muted">PAR CHIFFRE D'AFFAIRES</small>
+            </div>
+            <div class="card-body p-4">
+                <div id="geo-list">
+                    <!-- Dynamic -->
+                </div>
+                <div class="mt-4 pt-3 border-top">
+                    <a href="{% url 'consolidation' %}" class="btn btn-light w-100 d-flex align-items-center justify-content-center gap-2 py-2">
+                        <i class="bi bi-map"></i> Vue Mappemonde Détaillée
+                    </a>
                 </div>
             </div>
         </div>
@@ -159,36 +221,31 @@
 </div>
 
 <!-- Entity Breakdown -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+<div class="card shadow-sm border-0 mb-5" style="border-radius:24px;">
+    <div class="card-header bg-transparent border-0 py-4 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h5 class="card-title mb-0">Entity Consolidated Breakdown</h5>
-            <small class="text-muted">GRANULAR SUB-HOLDING PERFORMANCE INDICATORS</small>
+            <h5 class="fw-bold mb-0">Portefeuille d'Entités & Filiales</h5>
+            <small class="text-muted">DÉTAIL DE LA PERFORMANCE PAR UNITÉ COMMERCIALE</small>
         </div>
-        <a href="{% url 'consolidation' %}" class="btn btn-sm btn-outline-primary">
-            DEEP DIVE: GROUP CONSOLIDATION <i class="bi bi-box-arrow-up-right ms-1"></i>
+        <a href="{% url 'consolidation' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2 px-3">
+            Gérer la Consolidation <i class="bi bi-box-arrow-up-right"></i>
         </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table mb-0">
-                <thead>
+            <table class="table align-middle table-hover mb-0" id="entity-table">
+                <thead class="bg-light text-muted" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                     <tr>
-                        <th>ENTITY PORTFOLIO</th>
-                        <th>GROSS REVENUE</th>
-                        <th>EBITDA MARGIN</th>
-                        <th>CASH ASSET</th>
-                        <th>IA VITALITY</th>
-                        <th></th>
+                        <th class="ps-4">Entité / Portfolio</th>
+                        <th>Chiffre d'Affaire</th>
+                        <th>Marge EBITDA</th>
+                        <th>Trésorerie</th>
+                        <th>Vitalité IA</th>
+                        <th class="pe-4 text-end">Action</th>
                     </tr>
                 </thead>
-                <tbody id="exec-entity-table-body">
-                    <tr>
-                        <td colspan="6" class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2 text-muted">Retrieving portfolio performance...</p>
-                        </td>
-                    </tr>
+                <tbody id="entity-list">
+                    <!-- Dynamic -->
                 </tbody>
             </table>
         </div>
@@ -196,131 +253,170 @@
 </div>
 
 <script>
-    // Global Chart instance
-    let trendChart = null;
+let perfChart = null;
 
-    async function loadExecutiveData() {
-        try {
-            const response = await fetch('{% url "api_executive_data" %}');
-            const data = await response.json();
+const fmt = (v) => new Intl.NumberFormat('fr-FR').format(Math.round(v)) + ' XOF';
+const fmtM = v => (v >= 1e6 ? (v/1e6).toFixed(1) + 'M' : v >= 1e3 ? (v/1e3).toFixed(0) + 'K' : v.toFixed(0));
 
-            const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+async function loadExecutive() {
+    try {
+        const res = await fetch('{% url "api_executive_data" %}');
+        const d = await res.json();
 
-            // Update KPIs
-            document.getElementById('exec-kpi-revenue').textContent = `${fmt(data.kpis.revenue)} XOF`;
-            document.getElementById('exec-kpi-ebitda').textContent = `${fmt(data.kpis.ebitda)} XOF`;
-            document.getElementById('exec-kpi-cash').textContent = `${fmt(data.kpis.net_cash)} XOF`;
-            
-            document.getElementById('exec-kpi-revenue-change').innerHTML = `<i class="bi bi-arrow-up-short"></i>+${data.kpis.revenue_growth}%`;
-            document.getElementById('exec-kpi-ebitda-change').innerHTML = `<i class="bi bi-arrow-up-short"></i>+${data.kpis.ebitda_margin}%`; // Using margin as fallback change
-            document.getElementById('exec-kpi-ebitda-margin').textContent = `${data.kpis.ebitda_margin}%`;
-            document.getElementById('exec-kpi-cash-ratio').textContent = `${data.kpis.liquidity_ratio}x`;
+        // KPIs
+        document.getElementById('exec-revenue').textContent = fmtM(d.kpis.revenue) + ' XOF';
+        document.getElementById('exec-ebitda').textContent  = fmtM(d.kpis.ebitda)  + ' XOF';
+        document.getElementById('exec-cash').textContent    = fmtM(d.kpis.net_cash) + ' XOF';
+        document.getElementById('exec-growth').innerHTML    = `<i class="bi bi-arrow-up-short"></i>+${d.kpis.revenue_growth}%`;
+        document.getElementById('exec-margin').textContent   = d.kpis.ebitda_margin + '%';
+        document.getElementById('exec-ratio').textContent    = d.kpis.liquidity_ratio + 'x';
 
-            // Progress Bar (Simple calc: actual vs target last month)
-            const progress = Math.min(100, (data.kpis.revenue / 5000000) * 100); 
-            document.getElementById('exec-kpi-revenue-progress').style.width = `${progress}%`;
-            document.getElementById('exec-kpi-revenue-progress-text').textContent = `${Math.round(progress)}%`;
-
-            // Update Risks
-            const riskContainer = document.getElementById('exec-risk-container');
-            riskContainer.innerHTML = data.risks.map((risk, idx) => `
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium">${risk.title}</span>
-                        <span class="badge bg-${risk.level}">${risk.level === 'danger' ? 'HIGH EXPOSURE' : 'MEDIUM'}</span>
-                    </div>
-                    <small class="text-muted">EXPOSURE: ${fmt(risk.exposure)} XOF</small>
-                    <div class="d-flex justify-content-between mt-1">
-                        <small class="text-muted">PROBABILITY: ${risk.probability}%</small>
-                    </div>
-                </div>
-                ${idx < data.risks.length - 1 ? '<hr>' : ''}
-            `).join('');
-
-            // Update Geography
-            const geoContainer = document.getElementById('exec-geo-distribution');
-            const colors = ['bg-primary', 'bg-warning', 'bg-info'];
-            geoContainer.innerHTML = data.geography.map((geo, idx) => `
-                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                    <div class="d-flex align-items-center">
-                        <span class="badge ${colors[idx % colors.length]} me-2" style="width: 8px; height: 8px; padding: 0;"></span>
-                        <span>${geo.region}</span>
-                    </div>
-                    <span class="fw-bold">${fmt(geo.value)} XOF</span>
-                </div>
-            `).join('');
-
-            // Update Entities Table
-            const tableBody = document.getElementById('exec-entity-table-body');
-            tableBody.innerHTML = data.entities.map(entity => `
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
-                                <i class="bi bi-building text-primary"></i>
-                            </div>
-                            <div>
-                                <p class="mb-0 fw-medium">${entity.name}</p>
-                                <small class="text-muted">${entity.type}</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <p class="mb-0 fw-medium">${fmt(entity.revenue)} XOF</p>
-                        <small class="text-success">+12% YoY</small>
-                    </td>
-                    <td><span class="fw-medium">${entity.margin}%</span></td>
-                    <td><span class="fw-medium">${fmt(entity.cash)} XOF</span></td>
-                    <td><span class="badge bg-${entity.vitality > 80 ? 'success' : 'warning'}">${entity.vitality}/100</span></td>
-                    <td>
-                        <button class="btn btn-sm btn-link text-muted">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-
-            // Render Chart
-            renderTrendChart(data.chart_data);
-
-        } catch (error) {
-            console.error('Error loading executive data:', error);
+        // Ratio Badge color
+        const rb = document.getElementById('ratio-badge');
+        if (d.kpis.liquidity_ratio < 1) {
+            rb.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
+            rb.textContent = 'ATTENTION LIQUIDITÉ';
+        } else if (d.kpis.liquidity_ratio < 1.5) {
+            rb.className = 'badge bg-warning-subtle text-warning border border-warning-subtle';
+            rb.textContent = 'PRUDENCE REQUISE';
         }
-    }
 
-    function renderTrendChart(chartData) {
-        const ctx = document.getElementById('performanceTrendChart').getContext('2d');
-        if (trendChart) trendChart.destroy();
-        
-        trendChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: 'Actual Revenue',
-                    data: chartData.actual,
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4
-                }, {
-                    label: 'Target Budget',
-                    data: chartData.target,
-                    backgroundColor: '#e2e8f0',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
-                    x: { grid: { display: false } }
-                }
+        // Progress bar (Target 5M for demo)
+        const progress = Math.min(100, Math.round((d.kpis.revenue / 5000000) * 100));
+        document.getElementById('exec-progress').style.width = progress + '%';
+        document.getElementById('progress-text').textContent = progress + '%';
+
+        // Risks
+        const rc = document.getElementById('risk-container');
+        rc.innerHTML = d.risks.map(r => `
+            <div class="risk-item ${r.level}">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="fw-bold small">${r.title}</span>
+                    <span class="badge bg-${r.level}-subtle text-${r.level}" style="font-size:0.6rem;">${r.level.toUpperCase()}</span>
+                </div>
+                <div class="text-muted mb-1" style="font-size:0.75rem;">Exposition : ${fmtM(r.exposure)} XOF</div>
+                <div class="progress" style="height: 4px; background: rgba(0,0,0,0.05);">
+                    <div class="progress-bar bg-${r.level}" style="width: ${r.probability}%"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1" style="font-size:0.65rem;">
+                    <span class="text-muted">Probabilité</span>
+                    <span class="fw-bold">${r.probability}%</span>
+                </div>
+            </div>
+        `).join('');
+
+        // Geo
+        const colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'];
+        document.getElementById('geo-list').innerHTML = d.geography.map((g, i) => `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between text-muted mb-1" style="font-size:0.8rem;">
+                    <span class="fw-medium">${g.region}</span>
+                    <span>${fmtM(g.value)}</span>
+                </div>
+                <div class="progress" style="height:6px; border-radius:10px;">
+                    <div class="progress-bar" style="width: ${Math.round((g.value/d.kpis.revenue)*100)}%; background:${colors[i%colors.length]}; border-radius:10px;"></div>
+                </div>
+            </div>
+        `).join('');
+
+        // Entities
+        document.getElementById('entity-list').innerHTML = d.entities.map(e => `
+            <tr class="entity-row">
+                <td class="ps-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;flex-shrink:0;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold small">${e.name}</div>
+                            <div class="text-muted" style="font-size:0.65rem;">${e.type}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="fw-bold small">${fmtM(e.revenue)}</td>
+                <td><span class="fw-bold text-primary">${e.margin}%</span></td>
+                <td class="text-muted small">${fmtM(e.cash)}</td>
+                <td>
+                    <span class="vitality-badge bg-${e.vitality > 85 ? 'success' : e.vitality > 70 ? 'warning' : 'danger'}-subtle text-${e.vitality > 85 ? 'success' : e.vitality > 70 ? 'warning' : 'danger'}">
+                        ${e.vitality}/100
+                    </span>
+                </td>
+                <td class="pe-4 text-end">
+                    <button class="btn btn-sm btn-light rounded-circle" style="width:32px;height:32px;padding:0;"><i class="bi bi-chevron-right"></i></button>
+                </td>
+            </tr>
+        `).join('');
+
+        renderChart(d.chart_data);
+
+    } catch(e) { console.error(e); }
+}
+
+function renderChart(d) {
+    const ctx = document.getElementById('execPerformanceChart').getContext('2d');
+    if (perfChart) perfChart.destroy();
+    perfChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: d.labels,
+            datasets: [
+                { label: 'Réalisé', data: d.actual, backgroundColor: '#2563eb', borderRadius: 8, barThickness: 24 },
+                { label: 'Objectif', data: d.target, backgroundColor: 'rgba(37,99,235,0.08)', borderRadius: 8, barThickness: 24 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => v + 'M' } },
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } }
             }
-        });
-    }
+        }
+    });
+}
 
-    // Initialize
-    loadExecutiveData();
+// ── BUTTON ACTIONS ──
+
+// 1. Sync AI Button
+document.getElementById('refresh-ai').addEventListener('click', function() {
+    const btn = this;
+    const text = document.getElementById('sync-text');
+    btn.classList.add('loading', 'disabled');
+    text.textContent = 'Analyse neurale...';
+    
+    // Simulate API call
+    setTimeout(() => {
+        loadExecutive();
+        btn.classList.remove('loading', 'disabled');
+        text.textContent = 'Réanalyser IA';
+        // Confetti or success toast here if desired
+    }, 2000);
+});
+
+// 2. Export Button
+document.getElementById('btn-export').addEventListener('click', function() {
+    const table = document.getElementById('entity-table');
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [], cols = rows[i].querySelectorAll('td, th');
+        for (let j = 0; j < cols.length - 1; j++) { // Exclude last action col
+            row.push('"' + cols[j].innerText.trim().replace(/\n/g, ' ') + '"');
+        }
+        csv.push(row.join(','));
+    }
+    
+    const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const downloadLink = document.createElement('a');
+    const date = new Date().toISOString().split('T')[0];
+    downloadLink.download = `Sakina_Executive_Report_${date}.csv`;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+});
+
+document.addEventListener('DOMContentLoaded', loadExecutive);
 </script>
 {% endblock %}
