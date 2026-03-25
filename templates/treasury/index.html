@@ -323,11 +323,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('tres-dpo-progress').style.width = `${Math.min(data.dpo_days, 100)}%`;
 
             // IA Insight
-            document.getElementById('tres-ai-insight').innerHTML = `
-                L'IA prévoit un <span class="text-primary fw-bold">excédent de liquidité</span>. 
-                Optimisez votre <span class="text-white fw-bold">Cycle de Conversion du Cash (${data.cash_cycle_days} jours)</span> 
-                en plaçant vos surplus sur un compte à terme.
-            `;
+            const aiInsightElem = document.getElementById('tres-ai-insight');
+            if (aiInsightElem && data.ai_insight) {
+                aiInsightElem.innerHTML = data.ai_insight;
+            }
 
             // Exposure
             const expContainer = document.getElementById('tres-currency-exposure');

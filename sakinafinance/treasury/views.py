@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.db.models import Sum, Q
 from decimal import Decimal
 from sakinafinance.accounting.models import Transaction, TransactionLine, Entity
+from sakinafinance.ai_engine.services import AIService
 
 @login_required
 def treasury_view(request):
@@ -78,6 +79,12 @@ def api_treasury_data(request):
         'dio_days': 45,
         'dpo_days': 55,
     }
+
+    # 4. Generate AI Insights
+    ai_service = AIService()
+    ai_insight = ai_service.generate_treasury_insights(data)
+    data['ai_insight'] = ai_insight
+
     return JsonResponse(data)
 
 @login_required
