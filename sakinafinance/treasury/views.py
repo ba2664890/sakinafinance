@@ -6,7 +6,8 @@ from datetime import timedelta
 
 from django.db.models import Sum, Q
 from decimal import Decimal
-from sakinafinance.accounting.models import Transaction, TransactionLine, Entity
+from sakinafinance.accounting.models import Transaction, TransactionLine
+from sakinafinance.accounts.models import Entity
 from sakinafinance.ai_engine.services import AIService
 
 @login_required
