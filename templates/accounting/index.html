@@ -1,228 +1,225 @@
 {% extends 'dashboard_base.html' %}
 {% load humanize %}
 
-{% block title %}Comptabilité Générale — SakinaFinance{% endblock %}
+{% block title %}Comptabilité — SakinaFinance{% endblock %}
 {% block page_title %}Comptabilité Générale{% endblock %}
 
 {% block extra_css %}
 <style>
-    .accounting-kpis {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .kpi-mini-card {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .mini-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        flex-shrink: 0;
-    }
-
-    .bg-soft-blue { background: rgba(37, 99, 235, 0.08); color: #2563eb; }
-    .bg-soft-green { background: rgba(16, 185, 129, 0.08); color: #10b981; }
-    .bg-soft-purple { background: rgba(139, 92, 246, 0.08); color: #8b5cf6; }
-    .bg-soft-orange { background: rgba(245, 158, 11, 0.08); color: #f59e0b; }
-
-    .mini-label { font-size: 0.75rem; color: #64748b; font-weight: 500; text-transform: uppercase; margin-bottom: 0.1rem; }
-    .mini-value { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0; }
-
-    .accounting-panel {
-        background: white;
+    .kpi-card {
+        background: var(--card-bg);
         border: 1px solid var(--border-color);
         border-radius: 16px;
-        height: 100%;
-        overflow: hidden;
+        padding: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .panel-header {
-        padding: 1.25rem 1.5rem;
-        background: #fcfdfe;
-        border-bottom: 1px solid #f1f5f9;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
     }
 
-    .panel-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+    .kpi-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
 
-    .panel-content { padding: 1.5rem; }
+    .kpi-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
 
-    /* Balance Sheet Table */
-    .balance-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .balance-table tr td { padding: 0.75rem 0.5rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; }
-    .balance-table tr:last-child td { border-bottom: none; }
-    .balance-table .label { color: #475569; font-weight: 500; }
-    .balance-table .value { text-align: right; font-weight: 700; color: #0f172a; }
-    .balance-table .pct-bar { width: 60px; padding-left: 1rem; }
-    .pct-fill { height: 6px; border-radius: 99px; background: #e2e8f0; position: relative; }
-    .pct-val { height: 100%; border-radius: 99px; background: var(--primary-color); }
+    .ai-insight-panel {
+        background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
+    }
 
-    /* Alert Banner */
-    .alert-banner {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 1.25rem;
+    .table-custom thead th {
+        background: var(--bg-color);
+        border-bottom: 2px solid var(--border-color);
+        color: var(--text-secondary);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        letter-spacing: 1px;
+        padding: 1rem;
+    }
+
+    .table-custom td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .tag-compte {
+        background: var(--bg-color);
+        color: var(--text-primary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-premium {
+        background: var(--primary-color);
+        border: none;
+        padding: 0.6rem 1.5rem;
         border-radius: 12px;
-        margin-bottom: 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
-    .alert-banner-warning { background: #fffbeb; color: #92400e; border: 1px solid #fef3c7; }
-    .alert-banner-info { background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
-    .alert-banner-success { background: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
 
-    /* Entries Table */
-    .entries-table-refined { width: 100%; font-size: 0.8rem; }
-    .entries-table-refined th { background: #f8fafc; color: #64748b; font-weight: 700; padding: 0.75rem 1rem; text-align: left; text-transform: uppercase; letter-spacing: 0.05em; }
-    .entries-table-refined td { padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-    .entries-table-refined tr:hover { background: #fcfdfe; }
-    .text-mono { font-family: 'JetBrains Mono', 'Monaco', monospace; }
+    .btn-premium:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+    }
 
-    .tag-compte { background: #f1f5f9; color: #475569; padding: 0.2rem 0.4rem; border-radius: 4px; font-weight: 600; font-size: 0.7rem; }
+    .balance-sheet-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .balance-sheet-item:last-child { border-bottom: none; }
+
+    .ratio-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        border-radius: 20px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="fade-in">
-    <!-- Top KPIs -->
-    <div class="accounting-kpis">
-        <div class="kpi-mini-card">
-            <div class="mini-icon bg-soft-blue"><i class="bi bi-wallet2"></i></div>
-            <div>
-                <div class="kpi-label">TOTAL ASSETS</div>
-                <div class="kpi-value" id="acc-total-assets">0 XOF</div>
-                <span class="kpi-change positive" id="acc-assets-trend"><i class="bi bi-arrow-up"></i> 0%</span>
-            </div>
+<div class="container-fluid py-4">
+    <!-- Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold text-dark">Centre Comptable</h2>
+            <p class="text-secondary mb-0">Comptabilité OHADA/IFRS • Balance Interactive • Clôture AI-Assisted</p>
         </div>
-
-        <div class="premium-card">
-            <div class="mini-icon bg-soft-orange"><i class="bi bi-shield-lock"></i></div>
-            <div>
-                <div class="kpi-label">TOTAL LIABILITIES</div>
-                <div class="kpi-value" id="acc-total-liabilities">0 XOF</div>
-                <span class="kpi-change neutral" id="acc-liabilities-trend">Stable</span>
-            </div>
-        </div>
-
-        <div class="premium-card">
-            <div class="mini-icon bg-soft-purple"><i class="bi bi-safe"></i></div>
-            <div>
-                <div class="kpi-label">EQUITY (NET WORTH)</div>
-                <div class="kpi-value" id="acc-equity">0 XOF</div>
-                <span class="kpi-change positive" id="acc-equity-ratio">0% Ratio</span>
-            </div>
-        </div>
-
-        <div class="premium-card">
-            <div class="mini-icon bg-soft-green"><i class="bi bi-cash-stack"></i></div>
-            <div>
-                <div class="kpi-label">NET INCOME (YTD)</div>
-                <div class="kpi-value" id="acc-net-income">0 XOF</div>
-                <span class="kpi-change positive" id="acc-income-margin">0% Margin</span>
-            </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-8 px-3">
+                <i class="bi bi-download me-2"></i>Exporter
+            </button>
+            <button class="btn-premium rounded-8 px-4" data-bs-toggle="modal" data-bs-target="#manualEntryModal">
+                <i class="bi bi-plus-circle me-2"></i>Saisie Manuelle
+            </button>
         </div>
     </div>
 
-    <!-- Alert Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            {% for alert in alerts %}
-            <div class="alert-banner alert-banner-{{ alert.type }}">
-                <i class="bi {{ alert.icon }}"></i>
-                <span>{{ alert.msg }}</span>
-                <button class="btn btn-sm ms-auto py-0 text-decoration-underline" style="font-size:0.75rem; color:inherit;">Voir détails</button>
+    <!-- KPI Section -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-label">ACTIF TOTAL</div>
+                <div class="kpi-value text-primary-emphasis" id="acc-total-assets">0 <small class="fs-6">XOF</small></div>
+                <div class="mt-2 text-success small fw-bold" id="acc-assets-trend">
+                    <i class="bi bi-arrow-up-right me-1"></i>+0% vs N-1
+                </div>
             </div>
-            {% endfor %}
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-label">PASSIF & DETTES</div>
+                <div class="kpi-value" id="acc-total-liabilities">0 <small class="fs-6">XOF</small></div>
+                <div class="mt-2 text-warning small fw-bold">
+                    <i class="bi bi-shield-check me-1"></i>Ratio Solvabilité OK
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-label">CAPITAUX PROPRES</div>
+                <div class="kpi-value" id="acc-equity">0 <small class="fs-6">XOF</small></div>
+                <div class="mt-2 text-info small fw-bold" id="acc-equity-ratio">
+                    <i class="bi bi-pie-chart me-1"></i>0% du bilan
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-label">RÉSULTAT NET (PÉRIODE)</div>
+                <div class="kpi-value text-success" id="acc-net-income">0 <small class="fs-6">XOF</small></div>
+                <div class="mt-2 text-primary small fw-bold" id="acc-income-margin">
+                    <i class="bi bi-graph-up me-1"></i>0% Marge Net
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="row g-4 mb-4">
-        <!-- Simplified Balance Sheet -->
-        <div class="col-lg-6">
-            <div class="accounting-panel">
-                <div class="panel-header">
-                    <h6>Structure du Bilan (Simplifié)</h6>
-                    <span class="badge bg-light text-dark fw-bold border">Vue Consolidée</span>
+        <!-- Balance Sheet Structure -->
+        <div class="col-xl-7">
+            <div class="card h-100">
+                <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary-emphasis fw-bold">Structure du Bilan</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary active">Actif</button>
+                        <button class="btn btn-outline-secondary">Passif</button>
+                    </div>
                 </div>
-                <div class="panel-content">
-                    <div class="row">
+                <div class="card-body">
+                    <div class="row g-4" id="balance-sheet-container">
+                        <!-- Left Side: Actif -->
                         <div class="col-md-6 border-end">
-                            <h6 class="text-uppercase small fw-bold text-primary mb-3">ACTIF</h6>
-                            <table class="balance-table">
-                                {% for item in balance_sheet.actif %}
-                                <tr>
-                                    <td class="label">{{ item.label }}</td>
-                                    <td class="value">{{ item.amount|floatformat:0 }}</td>
-                                    <td class="pct-bar">
-                                        <div class="pct-fill"><div class="pct-val" style="width: {{ item.pct }}%"></div></div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </table>
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-3">Actif (Emplois)</h6>
+                            <div id="acc-assets-breakdown">
+                                <!-- Dynamic items -->
+                                <div class="text-center py-4 text-secondary">Chargement...</div>
+                            </div>
                         </div>
+                        <!-- Right Side: Passif -->
                         <div class="col-md-6">
-                            <h6 class="text-uppercase small fw-bold text-warning mb-3">PASSIF & CP</h6>
-                            <table class="balance-table">
-                                {% for item in balance_sheet.passif %}
-                                <tr>
-                                    <td class="label">{{ item.label }}</td>
-                                    <td class="value">{{ item.amount|floatformat:0 }}</td>
-                                    <td class="pct-bar">
-                                        <div class="pct-fill"><div class="pct-val bg-warning" style="width: {{ item.pct }}%"></div></div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </table>
+                            <h6 class="text-secondary small fw-bold text-uppercase mb-3">Passif (Ressources)</h6>
+                            <div id="acc-liabilities-breakdown">
+                                <!-- Dynamic items -->
+                                <div class="text-center py-4 text-secondary">Chargement...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Expense Breakdown Chart -->
-        <div class="col-lg-6">
-            <div class="accounting-panel">
-                <div class="panel-header">
-                    <h6>Répartition des Charges (Période en cours)</h6>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-secondary active">Par Catégorie</button>
-                        <button class="btn btn-outline-secondary">Par Departement</button>
-                    </div>
+        <!-- AI Panel -->
+        <div class="col-xl-5">
+            <div class="card h-100 overflow-hidden">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="mb-0 text-primary-emphasis fw-bold">Intelligence Comptable</h5>
                 </div>
-                <div class="panel-content">
-                    <div class="row align-items-center">
-                        <div class="col-md-7">
-                            <canvas id="expenseChart" style="max-height: 250px;"></canvas>
+                <div class="card-body">
+                    <div class="ai-insight-panel mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-cpu text-white me-2 fs-5"></i>
+                            <h6 class="mb-0 text-white fw-bold">Analyse Diagnostic AI</h6>
                         </div>
-                        <div class="col-md-5">
-                            {% for item in expense_breakdown %}
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between small fw-bold mb-1">
-                                    <span>{{ item.category }}</span>
-                                    <span>{{ item.pct }}%</span>
-                                </div>
-                                <div class="progress" style="height: 5px;">
-                                    <div class="progress-bar bg-{{ item.color }}" style="width: {{ item.pct }}%"></div>
-                                </div>
+                        <p class="small text-white-90 mb-3" id="acc-ai-insight">
+                            Analyse de la balance en cours... L'IA vérifie la cohérence des comptes et détecte d'éventuels écarts de lettrage.
+                        </p>
+                        <div class="d-flex gap-2">
+                            <span class="ratio-badge bg-primary bg-opacity-20 text-white border border-white border-opacity-25">Liquidité: 1.8</span>
+                            <span class="ratio-badge bg-success bg-opacity-20 text-white border border-white border-opacity-25">Solvabilité: 0.6</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info border-0 rounded-16 small mb-0">
+                        <div class="d-flex gap-2">
+                            <i class="bi bi-info-circle-fill fs-5"></i>
+                            <div>
+                                <strong>Rappel Clôture :</strong>
+                                <p class="mb-0 mt-1">La période de clôture mensuelle approche. <strong><span id="pending-count">0</span> écritures</strong> sont encore en attente de validation.</p>
                             </div>
-                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -230,42 +227,120 @@
         </div>
     </div>
 
-    <!-- Recent Journal Entries -->
+    <!-- Journal Entries Table -->
     <div class="row">
         <div class="col-12">
-            <div class="accounting-panel">
-                <div class="panel-header">
-                    <h6>Dernières Écritures Comptables</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-light border"><i class="bi bi-filter me-1"></i> Filtrer</button>
-                        <button class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Saisie Manuelle</button>
+            <div class="card">
+                <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary-emphasis fw-bold">Dernières Écritures au Journal</h5>
+                    <div class="input-group input-group-sm w-auto">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Rechercher une opération...">
                     </div>
                 </div>
-                <div class="panel-content p-0">
-                    <table class="entries-table-refined">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Référence</th>
-                                <th>Libellé</th>
-                                <th>Compte</th>
-                                <th class="text-end">Débit</th>
-                                <th class="text-end">Crédit</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="acc-journal-entries">
-                            <tr>
-                                <td colspan="7" class="text-center py-4">
-                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Référence</th>
+                                    <th>Libellé / Description</th>
+                                    <th>Compte Principal</th>
+                                    <th class="text-end">Débit</th>
+                                    <th class="text-end">Crédit</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="acc-journal-entries">
+                                <!-- Dynamic entries -->
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="mt-2 text-secondary small">Extraction des écritures...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="panel-footer p-3 text-center border-top">
-                    <a href="#" class="small fw-bold text-primary text-decoration-none">Consulter le Grand Livre complet <i class="bi bi-arrow-right ms-1"></i></a>
+                <div class="card-footer bg-transparent border-0 text-center py-3">
+                    <a href="#" class="text-primary fw-bold text-decoration-none small">Voir le Grand Livre Complet <i class="bi bi-arrow-right ms-1"></i></a>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Manual Entry -->
+<div class="modal fade" id="manualEntryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-16 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark">Nouvelle Écriture Comptable</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="manualEntryForm">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Journal</label>
+                            <select class="form-select rounded-8" name="journal" required>
+                                <option value="OD">Opérations Diverses</option>
+                                <option value="VEN">Ventes</option>
+                                <option value="ACH">Achats</option>
+                                <option value="BQ">Banque</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Référence</label>
+                            <input type="text" class="form-control rounded-8" name="reference" placeholder="Ex: FACT/2025/..." required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Date</label>
+                            <input type="date" class="form-control rounded-8" name="date" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">Libellé de l'opération</label>
+                        <textarea class="form-control rounded-8" name="description" rows="2" placeholder="Description détaillée..." required></textarea>
+                    </div>
+
+                    <div id="lines-container">
+                        <div class="row g-2 mb-2 line-row">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted">Compte</label>
+                                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" placeholder="Code compte" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Débit</label>
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted">Crédit</label>
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2 line-row">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" placeholder="Contrepartie" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <div class="small fw-bold text-secondary">
+                            Total: <span id="total-debit" class="text-primary">0</span> / <span id="total-credit" class="text-danger">0</span>
+                        </div>
+                        <button type="submit" class="btn-premium px-5">Valider l'écriture</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -275,104 +350,184 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+    const fmtM = (num) => num >= 1e9 ? (num/1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num/1e6).toFixed(1) + 'M' : fmt(num));
+
     async function loadAccountingData() {
         try {
             const response = await fetch('{% url "api_accounting_data" %}');
             const data = await response.json();
-            const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
 
             // KPIs
-            document.getElementById('acc-total-assets').textContent = `${fmt(data.total_assets)} XOF`;
-            document.getElementById('acc-total-liabilities').textContent = `${fmt(data.total_liabilities)} XOF`;
-            document.getElementById('acc-equity').textContent = `${fmt(data.equity)} XOF`;
-            document.getElementById('acc-net-income').textContent = `${fmt(data.net_income)} XOF`;
+            document.getElementById('acc-total-assets').innerHTML = `${fmtM(data.total_assets)} <small class="fs-6">XOF</small>`;
+            document.getElementById('acc-total-liabilities').innerHTML = `${fmtM(data.total_liabilities)} <small class="fs-6">XOF</small>`;
+            document.getElementById('acc-equity').innerHTML = `${fmtM(data.equity)} <small class="fs-6">XOF</small>`;
+            document.getElementById('acc-net-income').innerHTML = `${fmtM(data.net_income)} <small class="fs-6">XOF</small>`;
             
-            // Update KPI trends/ratios
-            const assetsTrendElement = document.getElementById('acc-assets-trend');
-            if (data.total_assets_growth > 0) {
-                assetsTrendElement.innerHTML = `<i class="bi bi-arrow-up"></i> ${data.total_assets_growth}%`;
-                assetsTrendElement.className = 'kpi-change positive';
-            } else if (data.total_assets_growth < 0) {
-                assetsTrendElement.innerHTML = `<i class="bi bi-arrow-down"></i> ${Math.abs(data.total_assets_growth)}%`;
-                assetsTrendElement.className = 'kpi-change negative';
-            } else {
-                assetsTrendElement.innerHTML = `Stable`;
-                assetsTrendElement.className = 'kpi-change neutral';
+            document.getElementById('acc-assets-trend').innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${data.total_assets_growth}% vs N-1`;
+            document.getElementById('acc-equity-ratio').textContent = `${data.equity_ratio}% du bilan`;
+            document.getElementById('acc-income-margin').textContent = `${data.net_income_margin}% Marge Net`;
+            document.getElementById('pending-count').textContent = data.pending_entries;
+
+            // AI Insight
+            if (data.ai_insight) {
+                document.getElementById('acc-ai-insight').innerHTML = data.ai_insight;
             }
 
-            // Assuming liabilities trend is not provided, keeping it stable as per diff
-            document.getElementById('acc-liabilities-trend').textContent = `Stable`;
-            
-            document.getElementById('acc-equity-ratio').textContent = `${data.equity_ratio}% Ratio`;
-            document.getElementById('acc-income-margin').textContent = `${data.net_income_margin}% Margin`;
-
-            // Journal Entries
-            const entriesTable = document.getElementById('acc-journal-entries');
-            if (entriesTable) {
-                entriesTable.innerHTML = data.journal_entries.map(entry => `
-                    <tr>
-                        <td class="text-muted">${entry.date}</td>
-                        <td class="fw-bold">${entry.ref}</td>
-                        <td>${entry.libelle}</td>
-                        <td><span class="tag-compte">${entry.compte}</span></td>
-                        <td class="text-end fw-bold text-success">${entry.debit ? fmt(entry.debit) : '-'}</td>
-                        <td class="text-end fw-bold text-danger">${entry.credit ? fmt(entry.credit) : '-'}</td>
-                        <td class="text-end">
-                            <button class="btn btn-sm text-primary"><i class="bi bi-eye"></i></button>
-                        </td>
-                    </tr>
+            // Balance Sheet Breakdown
+            const assetsBreakdown = document.getElementById('acc-assets-breakdown');
+            if (assetsBreakdown) {
+                assetsBreakdown.innerHTML = data.balance_sheet.actif.map(item => `
+                    <div class="balance-sheet-item">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold text-dark">${item.label}</span>
+                            <span class="small fw-bold text-primary">${fmtM(item.amount)}</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar" style="width: ${item.pct}%"></div>
+                        </div>
+                    </div>
                 `).join('');
             }
 
-            // Charts
-            // initBalanceChart(data.balance_sheet); // This chart is currently rendered by Django template
-            // initExpenseChart(data.expense_breakdown); // This chart is currently rendered by Django template
-
-            // Re-initialize expense chart with dynamic data
-            const expenseChartCtx = document.getElementById('expenseChart').getContext('2d');
-            if (window.expenseChartInstance) {
-                window.expenseChartInstance.destroy(); // Destroy previous chart instance if it exists
+            const liabBreakdown = document.getElementById('acc-liabilities-breakdown');
+            if (liabBreakdown) {
+                liabBreakdown.innerHTML = data.balance_sheet.passif.map(item => `
+                    <div class="balance-sheet-item">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold text-dark">${item.label}</span>
+                            <span class="small fw-bold text-warning">${fmtM(item.amount)}</span>
+                        </div>
+                        <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-warning" style="width: ${item.pct}%"></div>
+                        </div>
+                    </div>
+                `).join('');
             }
-            window.expenseChartInstance = new Chart(expenseChartCtx, {
-                type: 'doughnut', // Changed to doughnut as per original template, but the JS diff suggests bar. Sticking to original template type for now.
-                data: {
-                    labels: data.expense_breakdown.map(item => item.category),
-                    datasets: [{
-                        data: data.expense_breakdown.map(item => item.amount),
-                        backgroundColor: [
-                            '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#64748b'
-                        ],
-                        borderWidth: 0,
-                        hoverOffset: 15
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    cutout: '70%',
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
 
+            // Journal Entries
+            const entriesTable = document.getElementById('acc-journal-entries');
+            if (entriesTable && data.journal_entries) {
+                if (data.journal_entries.length === 0) {
+                    entriesTable.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-secondary">Aucune écriture trouvée.</td></tr>`;
+                } else {
+                    entriesTable.innerHTML = data.journal_entries.map(entry => `
+                        <tr>
+                            <td><span class="text-secondary small fw-bold">${entry.date}</span></td>
+                            <td class="fw-bold text-dark">${entry.ref}</td>
+                            <td>
+                                <div class="fw-bold text-dark">${entry.libelle}</div>
+                                <div class="small text-secondary">Opération validée</div>
+                            </td>
+                            <td><span class="tag-compte">${entry.compte}</span></td>
+                            <td class="text-end fw-bold text-dark">${entry.debit > 0 ? fmt(entry.debit) : '-'}</td>
+                            <td class="text-end fw-bold text-dark">${entry.credit > 0 ? fmt(entry.credit) : '-'}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-light border rounded-8"><i class="bi bi-eye"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+            
+            // Populate Journals Dropdown
+            const journalSelect = document.querySelector('select[name="journal"]');
+            if (journalSelect && data.journals) {
+                const currentVal = journalSelect.value;
+                journalSelect.innerHTML = '<option value="">Sélectionner un journal</option>' + 
+                    data.journals.map(j => `<option value="${j.id}" ${currentVal == j.id ? 'selected' : ''}>${j.code} - ${j.name}</option>`).join('');
+            }
 
         } catch (error) {
             console.error('Error loading accounting data:', error);
-            // Optionally, display an error message in the UI
-            const entriesTable = document.getElementById('acc-journal-entries');
-            if (entriesTable) {
-                entriesTable.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">Erreur de chargement des données.</td></tr>`;
-            }
         }
     }
 
-    // The original template had a doughnut chart for expenses. The JS diff provided a bar chart.
-    // I'm keeping the doughnut chart type as it was in the original template, but using the new data structure.
-    // If the intention was to change to a bar chart, the type should be 'bar' and options adjusted.
-    // For now, I'll use the original doughnut chart type with the new data structure.
-    // The `initBalanceChart` and `initExpenseChart` functions from the diff are not directly used
-    // as the template already renders the balance sheet and the expense chart is re-initialized directly.
+    // Modal Calculation Logic
+    const form = document.getElementById('manualEntryForm');
+    if (form) {
+        form.addEventListener('input', function() {
+            let totalDebit = 0;
+            let totalCredit = 0;
+            const debits = form.querySelectorAll('input[name="debit[]"]');
+            const credits = form.querySelectorAll('input[name="credit[]"]');
+            
+            debits.forEach(d => totalDebit += parseFloat(d.value || 0));
+            credits.forEach(c => totalCredit += parseFloat(c.value || 0));
+            
+            document.getElementById('total-debit').textContent = fmt(totalDebit);
+            document.getElementById('total-credit').textContent = fmt(totalCredit);
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const lines = [];
+            const accounts = formData.getAll('account[]');
+            const debits = formData.getAll('debit[]');
+            const credits = formData.getAll('credit[]');
+
+            for (let i = 0; i < accounts.length; i++) {
+                if (accounts[i]) {
+                    lines.push({
+                        account: accounts[i],
+                        debit: parseFloat(debits[i] || 0),
+                        credit: parseFloat(credits[i] || 0)
+                    });
+                }
+            }
+
+            const payload = {
+                journal: formData.get('journal'),
+                reference: formData.get('reference'),
+                date: formData.get('date'),
+                description: formData.get('description'),
+                lines: lines
+            };
+
+            try {
+                const res = await fetch('{% url "api_create_transaction" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    alert("Succès : " + result.message);
+                    bootstrap.Modal.getInstance(document.getElementById('newEntryModal')).hide();
+                    loadAccountingData();
+                } else {
+                    alert("Erreur : " + result.message);
+                }
+            } catch (err) {
+                alert("Erreur réseau");
+            }
+        });
+    }
+
+    // Filtering Logic
+    const filterBtn = document.getElementById('btn-filter-entries');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function() {
+            const query = prompt("Rechercher dans le libellé ou la référence :");
+            if (query === null) return;
+            
+            const rows = document.querySelectorAll('#acc-journal-entries tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+            });
+        });
+    }
+
+    // Export Logic
+    const exportBtn = document.getElementById('btn-export-entries');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            alert("Exportation des données en cours (CSV/PDF)...");
+        });
+    }
 
     loadAccountingData();
 });

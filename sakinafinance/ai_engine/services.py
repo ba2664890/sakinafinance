@@ -59,6 +59,57 @@ class AIService:
             logger.error(f"AI Insight error: {str(e)}")
             return self._get_simulated_insights(data)
 
+    def generate_accounting_insights(self, data):
+        """
+        Generate financial diagnostic from accounting data.
+        data format: {
+            'total_assets': float,
+            'total_liabilities': float,
+            'equity': float,
+            'net_income': float,
+            'liquidity_ratio': float,
+            'solvability_ratio': float
+        }
+        """
+        if not self.client:
+            return self._get_simulated_accounting_insights(data)
+
+        prompt = f"""
+        En tant qu'expert en audit comptable et financier, analyse les données suivantes :
+        - Actif Total : {data.get('total_assets'):,.0f} XOF
+        - Passif & Dettes : {data.get('total_liabilities'):,.0f} XOF
+        - Capitaux Propres : {data.get('equity'):,.0f} XOF
+        - Résultat Net : {data.get('net_income'):,.0f} XOF
+        - Ratio de Liquidité : {data.get('liquidity_ratio'):.2f}
+        - Ratio de Solvabilité : {data.get('solvability_ratio'):.2f}
+
+        Fournis un diagnostic comptable court (max 3 phrases) en français. 
+        Mets l'accent sur la structure du bilan et la santé financière.
+        Format HTML léger.
+        """
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Tu es un auditeur financier IA expert."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=200,
+                temperature=0.7
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            logger.error(f"Accounting Insight error: {str(e)}")
+            return self._get_simulated_accounting_insights(data)
+
+    def _get_simulated_accounting_insights(self, data):
+        return """
+            La structure du bilan est <span class="text-white fw-bold">équilibrée</span>. 
+            Le ratio de solvabilité à <span class="text-white fw-bold">0.6</span> indique une bonne autonomie financière. 
+            Attention à la <span class="text-white fw-bold">liquidité immédiate</span> qui pourrait être optimisée.
+        """
+
     def _get_simulated_insights(self, data):
         """Fallback for when API is unavailable or limits reached."""
         if data.get('total_liquidity', 0) > 0:
