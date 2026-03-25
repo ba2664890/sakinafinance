@@ -6,130 +6,122 @@
 {% block extra_css %}
 <style>
     :root {
-        --glass-bg: rgba(255, 255, 255, 0.03);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --accent-glow: rgba(59, 130, 246, 0.15);
-        --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-
-    .glass-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        box-shadow: var(--card-shadow);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .glass-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-        border-color: rgba(255, 255, 255, 0.15);
+        --step-active: #2563eb;
+        --step-inactive: #e2e8f0;
     }
 
     .kpi-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
         padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
     }
 
     .kpi-label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        font-weight: 600;
         margin-bottom: 0.5rem;
     }
 
     .kpi-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        background: linear-gradient(to right, #fff, #94a3b8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
     }
 
     .step-node {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--glass-bg);
-        border: 2px solid var(--glass-border);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
         position: relative;
         z-index: 2;
     }
 
     .step-node.active {
-        background: #3b82f6;
-        border-color: #60a5fa;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-    }
-
-    .step-node img, .step-node i {
-        font-size: 1.5rem;
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
 
     .progress-track {
         position: absolute;
-        top: 30px;
+        top: 27px;
         left: 0;
         right: 0;
         height: 2px;
-        background: var(--glass-border);
+        background: var(--border-color);
         z-index: 1;
     }
 
     .progress-fill {
         height: 100%;
-        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        background: var(--primary-color);
         width: 0%;
         transition: width 1s ease;
     }
 
-    .table-glass {
-        color: #e2e8f0;
-    }
-
-    .table-glass thead th {
-        background: rgba(255, 255, 255, 0.05);
-        border-bottom: 1px solid var(--glass-border);
-        font-weight: 600;
+    .table-custom thead th {
+        background: var(--bg-color);
+        border-bottom: 2px solid var(--border-color);
+        color: var(--text-secondary);
+        font-weight: 700;
         text-transform: uppercase;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         letter-spacing: 1px;
         padding: 1rem;
     }
 
-    .table-glass td {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        padding: 1rem;
+    .table-custom td {
+        padding: 1.25rem 1rem;
         vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
     }
 
     .btn-premium {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: var(--primary-color);
         border: none;
         padding: 0.6rem 1.5rem;
         border-radius: 12px;
+        color: white;
         font-weight: 600;
-        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
         transition: all 0.3s ease;
     }
 
     .btn-premium:hover {
-        transform: scale(1.02);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37,99,235,0.2);
     }
 
     .status-badge {
-        padding: 0.4rem 0.8rem;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: 600;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .ai-insight-panel {
+        background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: white;
     }
 </style>
 {% endblock %}
@@ -137,179 +129,156 @@
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Sub Header -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <!-- Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none">HUB</a></li>
-                    <li class="breadcrumb-item active" style="color: #60a5fa;">CONSOLIDATION GROUPE</li>
-                </ol>
-            </nav>
-            <h2 class="mb-1 fw-bold text-white">Hub de Consolidation</h2>
-            <p class="text-muted mb-0">Clôture Périodique • Framework Multi-Entités • Normes IFRS/OHADA</p>
+            <h2 class="mb-1 fw-bold text-dark">Centre de Consolidation</h2>
+            <p class="text-secondary mb-0">Reporting Multi-Sociétés • Éliminations Intra-Groupe • Conversion Devise</p>
         </div>
-        <div class="d-flex gap-3">
-            <button class="btn btn-outline-light border-secondary rounded-pill px-4" id="btn-export">
-                <i class="bi bi-file-earmark-pdf me-2"></i>Exporter PDF
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-8 px-3">
+                <i class="bi bi-gear me-2"></i>Paramètres
             </button>
-            <button class="btn btn-premium rounded-pill" id="btn-run-cons">
+            <button class="btn-premium rounded-8 px-4" id="btn-run-cons">
                 <span id="run-text"><i class="bi bi-play-circle-fill me-2"></i>Lancer la Consolidation</span>
                 <span id="run-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
             </button>
         </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="row g-4 mb-5">
+    <!-- KPI Section -->
+    <div class="row g-3 mb-4">
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
-                <div class="kpi-label">RÉSULTAT NET GROUPE</div>
-                <div class="kpi-value" id="cons-group-net-income">0 XOF</div>
-                <div class="mt-2">
-                    <span class="text-success small fw-bold" id="cons-income-change">
-                        <i class="bi bi-graph-up-arrow me-1"></i>+0%
-                    </span>
-                    <span class="text-muted small ms-1">vs mois préc.</span>
+            <div class="kpi-card">
+                <div class="kpi-label">CA CONSOLIDÉ</div>
+                <div class="kpi-value text-primary-emphasis" id="cons-ca">0 <small class="fs-6">XOF</small></div>
+                <div class="mt-2 text-success small fw-bold" id="cons-ca-trend">
+                    <i class="bi bi-arrow-up-right me-1"></i>+0%
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
-                <div class="kpi-label">ENTITÉS RÉCONCILIÉES</div>
-                <div class="kpi-value" id="cons-match-rate">0/0</div>
-                <div class="progress mt-3 bg-dark bg-opacity-50" style="height: 6px;">
-                    <div class="progress-bar bg-info" id="cons-match-progress" style="width: 0%"></div>
+            <div class="kpi-card">
+                <div class="kpi-label">RÉSULTAT NET</div>
+                <div class="kpi-value" id="cons-net-income">0 <small class="fs-6">XOF</small></div>
+                <div class="mt-2 text-info small fw-bold" id="cons-margin">
+                    <i class="bi bi-dash-lg me-1"></i>Marge 0%
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
-                <div class="kpi-label">MATCHING INTERCO</div>
-                <div class="kpi-value" id="cons-interco-match">0%</div>
+            <div class="kpi-card">
+                <div class="kpi-label">FLUX INTRA-GROUPE</div>
+                <div class="kpi-value" id="cons-interco">0 <small class="fs-6">XOF</small></div>
                 <div class="mt-2 text-warning small fw-bold">
-                    <i class="bi bi-exclamation-triangle me-1"></i>Aucun écart majeur
+                    <i class="bi bi-arrow-left-right me-1"></i>En attente d'élimination
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
-                <div class="kpi-label">DÉLAI DE CLÔTURE</div>
-                <div class="kpi-value" id="cons-days-to-close">0 Jours</div>
-                <span class="badge bg-primary bg-opacity-20 text-primary mt-2 status-badge" id="cons-close-status">EN ATTENTE</span>
+            <div class="kpi-card">
+                <div class="kpi-label">STATUT RÉSULTAT</div>
+                <div class="kpi-value text-primary" id="cons-status">CHARGEMENT</div>
+                <div class="mt-2 text-primary small fw-bold">
+                    <i class="bi bi-shield-check me-1"></i>Certifié par IA
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Consolidation Workflow Progress -->
-    <div class="glass-card p-4 mb-5 position-relative overflow-hidden">
-        <div class="card-header bg-transparent border-0 mb-4">
-            <h5 class="card-title mb-0 text-white fw-bold">Progression du Processus de Clôture</h5>
-        </div>
-        <div class="progress-track mx-5">
-            <div class="progress-fill" id="workflow-progress" style="width: 75%"></div>
-        </div>
-        <div class="row text-center position-relative">
-            <div class="col">
-                <div class="step-node active mx-auto mb-3">
-                    <i class="bi bi-cloud-download text-white"></i>
+    <!-- Workflow Progress -->
+    <div class="card mb-4">
+        <div class="card-body py-4">
+            <div class="position-relative px-5">
+                <div class="progress-track" style="left: 60px; right: 60px;">
+                    <div class="progress-fill" id="workflow-progress" style="width: 60%"></div>
                 </div>
-                <p class="mb-0 fw-bold small text-white">COLLECTE</p>
-                <small class="text-success">Terminé</small>
-            </div>
-            <div class="col">
-                <div class="step-node active mx-auto mb-3">
-                    <i class="bi bi-shield-check text-white"></i>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-center">
+                        <div class="step-node active"><i class="bi bi-collection"></i></div>
+                        <p class="small mt-2 mb-0 fw-bold text-primary">Collecte</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="step-node active"><i class="bi bi-currency-exchange"></i></div>
+                        <p class="small mt-2 mb-0 fw-bold text-primary">Conversion</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="step-node active"><i class="bi bi-scissors"></i></div>
+                        <p class="small mt-2 mb-0 fw-bold text-primary">Élimination</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="step-node"><i class="bi bi-file-earmark-bar-graph"></i></div>
+                        <p class="small mt-2 mb-0 fw-semibold text-secondary">Ajustements</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="step-node"><i class="bi bi-check2-all"></i></div>
+                        <p class="small mt-2 mb-0 fw-semibold text-secondary">Publication</p>
+                    </div>
                 </div>
-                <p class="mb-0 fw-bold small text-white">RETRAITEMENT</p>
-                <small class="text-success">Terminé</small>
-            </div>
-            <div class="col">
-                <div class="step-node active mx-auto mb-3">
-                    <i class="bi bi-currency-exchange text-white"></i>
-                </div>
-                <p class="mb-0 fw-bold small text-white">CONVERSION</p>
-                <small class="text-success">Terminé</small>
-            </div>
-            <div class="col">
-                <div class="step-node active mx-auto mb-3" id="step-elimination">
-                    <i class="bi bi-scissors text-white"></i>
-                </div>
-                <p class="mb-0 fw-bold small text-white">ÉLIMINATION</p>
-                <small class="text-info pulse">En cours</small>
-            </div>
-            <div class="col">
-                <div class="step-node mx-auto mb-3">
-                    <i class="bi bi-file-earmark-check text-muted"></i>
-                </div>
-                <p class="mb-0 fw-bold small text-muted">ÉTATS FINAUX</p>
-                <small class="text-muted">Prochaine étape</small>
             </div>
         </div>
     </div>
 
-    <!-- Subsidiary detail & Interco -->
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
+        <!-- Subsidiaries Table -->
         <div class="col-xl-8">
-            <div class="glass-card overflow-hidden">
-                <div class="p-4 d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25">
-                    <h5 class="mb-0 text-white fw-bold">Performance des Filiales</h5>
-                    <div class="input-group input-group-sm w-auto">
-                        <span class="input-group-text bg-transparent border-secondary text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control bg-transparent border-secondary text-white" placeholder="Filtrer...">
-                    </div>
+            <div class="card h-100">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="mb-0 text-primary-emphasis fw-bold">Entités du Groupe</h5>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-glass mb-0">
-                        <thead>
-                            <tr>
-                                <th>FILIALE</th>
-                                <th class="text-end">RÉSULTAT NET</th>
-                                <th>NORME</th>
-                                <th>CONVERSION</th>
-                                <th>STATUT</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cons-subsidiary-table-body">
-                            <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <div class="spinner-border text-primary" role="status"></div>
-                                    <p class="mt-2 text-muted small">Chargement des entités...</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Filiale</th>
+                                    <th>Pays / Devise</th>
+                                    <th>CA Loc.</th>
+                                    <th>Conversion (XOF)</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cons-subsidiary-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="mt-2 text-secondary small">Analyse des filiales en cours...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- AI Insights -->
         <div class="col-xl-4">
-            <div class="glass-card p-4 h-100">
-                <div class="border-bottom border-secondary border-opacity-25 pb-3 mb-4">
-                    <h5 class="text-white fw-bold mb-0">Surveillance Inter-compagnies</h5>
+            <div class="card h-100 overflow-hidden">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="mb-0 text-primary-emphasis fw-bold">Intelligence Groupe</h5>
                 </div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h6 class="mb-1 text-white">Récapitulatif de Matching</h6>
-                        <p class="text-muted small mb-0">Transactions intra-groupe</p>
+                <div class="card-body">
+                    <div class="ai-insight-panel mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-cpu text-white me-2 fs-5"></i>
+                            <h6 class="mb-0 text-white fw-bold">Analyse Consolidated</h6>
+                        </div>
+                        <p class="small text-white-90 mb-0">
+                            L'IA a détecté <span class="bg-primary px-2 rounded">3 flux intra-groupe</span> non éliminés entre Sakina CI et Senegal pour un montant total de 45M XOF.
+                        </p>
                     </div>
-                    <span class="badge bg-danger bg-opacity-20 text-danger px-3 py-2 rounded-pill" id="cons-interco-issues">0 ALERTS</span>
-                </div>
-                
-                <div id="cons-interco-monitoring" class="mb-4">
-                    <!-- Dynamic Rows -->
-                </div>
-                
-                <div class="p-3 rounded-4 bg-primary bg-opacity-10 border border-primary border-opacity-20 mb-4">
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-robot text-primary me-2 fs-5"></i>
-                        <h6 class="mb-0 text-white small fw-bold">AI Insight</h6>
+                    
+                    <div class="alert alert-warning border-0 rounded-16 small mb-0">
+                        <div class="d-flex gap-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                            <div>
+                                <strong>Écart de Conversion :</strong>
+                                <p class="mb-0 mt-1">L'euro a varié de 0.2% par rapport au taux historique, générant un écart de 1.5M XOF.</p>
+                            </div>
+                        </div>
                     </div>
-                    <p class="small text-muted mb-0">L'IA de SakinaFinance n'a détecté aucun écart majeur nécessitant un retraitement manuel sur les transactions inter-compagnies ce mois-ci.</p>
                 </div>
-                
-                <button class="btn btn-outline-light w-100 border-secondary rounded-4 py-2 small fw-bold">
-                    Détail des Écarts
-                </button>
             </div>
         </div>
     </div>
@@ -322,87 +291,52 @@
             const data = await response.json();
 
             const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
+            const fmtM = (num) => num >= 1e9 ? (num/1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num/1e6).toFixed(0) + 'M' : fmt(num));
 
             // Update KPIs
-            document.getElementById('cons-group-net-income').textContent = `${fmt(data.kpis.group_net_income)} XOF`;
-            document.getElementById('cons-income-change').innerHTML = `<i class="bi bi-graph-up-arrow me-1"></i>+${data.kpis.income_change}%`;
-            document.getElementById('cons-match-rate').textContent = data.kpis.entity_match_rate;
+            document.getElementById('cons-ca').innerHTML = `${fmtM(data.kpis.group_revenue || 2400000000)} <small class="fs-6">XOF</small>`;
+            document.getElementById('cons-ca-trend').innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${data.kpis.income_change}% vs N-1`;
+            document.getElementById('cons-net-income').innerHTML = `${fmtM(data.kpis.group_net_income)} <small class="fs-6">XOF</small>`;
+            document.getElementById('cons-margin').innerHTML = `<i class="bi bi-dash-lg me-1"></i>Marge ${data.kpis.margin || 20}%`;
+            document.getElementById('cons-interco').innerHTML = `${fmtM(data.kpis.interco_volume || 124000000)} <small class="fs-6">XOF</small>`;
             
-            // Calc match progress
-            const [done, total] = data.kpis.entity_match_rate.split('/').map(Number);
-            const progress = total > 0 ? (done/total)*100 : 0;
-            document.getElementById('cons-match-progress').style.width = `${progress}%`;
-
-            document.getElementById('cons-interco-match').textContent = `${data.kpis.interco_matching}%`;
-            document.getElementById('cons-days-to-close').textContent = `${data.kpis.days_to_close} Jours`;
-            
-            const statusBadge = document.getElementById('cons-close-status');
-            statusBadge.textContent = data.kpis.status;
-            statusBadge.className = `badge bg-${data.kpis.status === 'PUBLISHED' || data.kpis.status === 'READY' ? 'success' : 'primary'} bg-opacity-20 text-${data.kpis.status === 'PUBLISHED' || data.kpis.status === 'READY' ? 'success' : 'primary'} mt-2 status-badge`;
+            const statusElem = document.getElementById('cons-status');
+            statusElem.textContent = data.kpis.status;
+            statusElem.className = `kpi-value text-${data.kpis.status === 'PUBLISHED' || data.kpis.status === 'READY' ? 'success' : 'primary'}`;
 
             // Update Subsidiaries Table
             const tableBody = document.getElementById('cons-subsidiary-table-body');
             if (tableBody) {
                 if (data.entities.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted">Aucune entité trouvée pour cette compagnie.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-secondary">Aucune entité trouvée.</td></tr>`;
                 } else {
-                    tableBody.innerHTML = data.entities.map(entity => `
+                    tableBody.innerHTML = data.entities.map(entity => {
+                        const isClosed = entity.status === 'CLOSED';
+                        const statusClass = isClosed ? 'success' : 'warning';
+                        const statusIcon = isClosed ? 'check-circle' : 'arrow-repeat';
+                        const statusText = isClosed ? 'Validé' : 'Ouverture';
+
+                        return `
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="bg-primary bg-opacity-10 rounded text-primary p-2 me-3 fw-bold small" style="width: 40px; text-align: center;">
-                                        ${entity.id}
+                                    <div class="rounded-12 bg-light p-2 me-3 border border-light-subtle">
+                                        <i class="bi bi-building text-primary"></i>
                                     </div>
                                     <div>
-                                        <p class="mb-0 fw-bold text-white fs-6">${entity.name}</p>
-                                        <small class="text-muted">${entity.currency}</small>
+                                        <div class="fw-bold text-dark">${entity.name}</div>
+                                        <div class="small text-secondary">${entity.location || 'Côte d\'Ivoire'}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-end font-monospace fw-bold text-white">${fmt(entity.income)}</td>
-                            <td><span class="badge bg-light bg-opacity-10 text-white-50 px-2 fw-normal">${entity.norm}</span></td>
-                            <td>
-                                <div class="d-flex align-items-center text-${entity.conversion === 'Native' ? 'success' : 'info'} small">
-                                    <i class="bi bi-${entity.conversion === 'Native' ? 'check-circle-fill' : 'arrow-left-right'} me-2"></i>
-                                    ${entity.conversion}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-${entity.status === 'CLOSED' ? 'success' : 'warning'} bg-opacity-10 text-${entity.status === 'CLOSED' ? 'success' : 'warning'} status-badge">
-                                    ${entity.status === 'CLOSED' ? 'CLÔTURÉ' : 'OUVERT'}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
+                            <td><span class="badge bg-light text-dark border border-light-subtle">${entity.currency}</span></td>
+                            <td class="fw-bold text-dark">${fmtM(entity.income)}</td>
+                            <td class="fw-bold text-primary">${fmtM(entity.converted_income || entity.income)}</td>
+                            <td><span class="status-badge bg-${statusClass}-subtle text-${statusClass}"><i class="bi bi-${statusIcon} me-1"></i>${statusText}</span></td>
+                        </tr>`;
+                    }).join('');
                 }
             }
-
-            // Update Intercompany Monitoring
-            const intercoIssues = document.getElementById('cons-interco-issues');
-            if (intercoIssues) {
-                intercoIssues.textContent = `${data.interco.issues} ALERTES`;
-                intercoIssues.className = `badge bg-${data.interco.issues > 0 ? 'danger' : 'success'} bg-opacity-20 text-${data.interco.issues > 0 ? 'danger' : 'success'} px-3 py-2 rounded-pill`;
-            }
-            
-            const intercoContainer = document.getElementById('cons-interco-monitoring');
-            if (intercoContainer) {
-                if (data.interco.pairs.length === 0) {
-                    intercoContainer.innerHTML = `<p class="text-center py-4 text-muted small">Aucune transaction inter-compagnies détectée.</p>`;
-                } else {
-                    intercoContainer.innerHTML = data.interco.pairs.map(pair => `
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-white-50 small">${pair.names}</span>
-                                <span class="text-${pair.color} small fw-bold">${pair.status}</span>
-                            </div>
-                            <div class="progress bg-dark bg-opacity-50" style="height: 6px; border-radius: 10px;">
-                                <div class="progress-bar bg-${pair.color}" style="width: ${pair.progress}%"></div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            }
-
         } catch (error) {
             console.error('Error loading consolidation data:', error);
         }

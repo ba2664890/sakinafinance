@@ -7,54 +7,39 @@
 {% block extra_css %}
 <style>
     :root {
-        --glass-bg: rgba(255, 255, 255, 0.03);
-        --glass-border: rgba(255, 255, 255, 0.08);
-        --accent-glow: rgba(59, 130, 246, 0.15);
-        --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-
-    .glass-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        box-shadow: var(--card-shadow);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .glass-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-        border-color: rgba(255, 255, 255, 0.15);
+        --kpi-blue: #2563eb;
+        --kpi-green: #10b981;
+        --kpi-purple: #8b5cf6;
+        --kpi-orange: #f59e0b;
     }
 
     .kpi-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
         padding: 1.5rem;
-        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     }
 
     .kpi-label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        font-weight: 600;
         margin-bottom: 0.5rem;
     }
 
     .kpi-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        background: linear-gradient(to right, #fff, #94a3b8);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .trend-badge {
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 0.2rem 0.6rem;
-        border-radius: 8px;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
     }
 
     .chart-container {
@@ -68,50 +53,63 @@
         align-items: center;
         justify-content: space-between;
         padding: 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--border-color);
         transition: background 0.2s;
     }
 
     .bank-item:last-child { border-bottom: none; }
-    .bank-item:hover { background: rgba(255, 255, 255, 0.02); }
+    .bank-item:hover { background: var(--bg-color); }
 
     .bank-info h6 {
         font-size: 0.9rem;
         font-weight: 700;
         margin-bottom: 0.1rem;
-        color: #fff;
+        color: var(--text-primary);
     }
 
     .bank-info p {
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-secondary);
         margin: 0;
     }
 
     .bank-balance { text-align: right; }
-    .bank-balance .amount { font-weight: 700; color: #fff; }
-    .bank-balance .currency { font-size: 0.7rem; color: rgba(255, 255, 255, 0.3); }
+    .bank-balance .amount { font-weight: 700; color: var(--text-primary); }
+    .bank-balance .currency { font-size: 0.7rem; color: var(--text-secondary); }
 
     .ai-insight-panel {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 100%);
         border-radius: 16px;
-        padding: 1.25rem;
+        padding: 1.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ai-insight-panel::before {
+        content: '';
+        position: absolute;
+        right: -20px;
+        top: -20px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(59, 130, 246, 0.15);
     }
 
     .premium-btn {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: var(--primary-color);
         border: none;
         border-radius: 12px;
         color: white;
-        padding: 0.5rem 1rem;
+        padding: 0.6rem 1.25rem;
         font-weight: 600;
         transition: all 0.3s;
     }
 
     .premium-btn:hover {
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-        transform: scale(1.02);
+        background: var(--primary-dark);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
 </style>
 {% endblock %}
@@ -123,27 +121,27 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none">FINANCE</a></li>
-                    <li class="breadcrumb-item active" style="color: #60a5fa;">TRÉSORERIE</li>
+                    <li class="breadcrumb-item"><a href="#" class="text-secondary text-decoration-none small fw-semibold">FINANCE</a></li>
+                    <li class="breadcrumb-item active small fw-semibold text-primary">TRÉSORERIE</li>
                 </ol>
             </nav>
-            <h2 class="mb-1 fw-bold text-white">Pilotage de la Trésorerie</h2>
-            <p class="text-muted mb-0">Disponibilités Immédiates • Cash Flow Prévisionnel • BFR</p>
+            <h2 class="mb-1 fw-bold text-dark">Pilotage de la Trésorerie</h2>
+            <p class="text-secondary mb-0">Disponibilités Immédiates • Cash Flow Prévisionnel • BFR</p>
         </div>
-        <div class="d-flex gap-3">
-            <button class="btn btn-outline-light border-secondary rounded-pill px-4">
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-8 px-3">
                 <i class="bi bi-clock-history me-2"></i>Historique
             </button>
-            <button class="premium-btn rounded-pill px-4">
+            <button class="premium-btn rounded-8 px-3">
                 <i class="bi bi-plus-circle me-2"></i>Nouveau Mouvement
             </button>
         </div>
     </div>
 
     <!-- KPI Section -->
-    <div class="row g-4 mb-5">
+    <div class="row g-3 mb-4">
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
+            <div class="kpi-card">
                 <div class="kpi-label">LIQUIDITÉ TOTALE</div>
                 <div class="kpi-value" id="tres-total-liquidity">0 XOF</div>
                 <div class="mt-2 text-success small fw-bold">
@@ -152,7 +150,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
+            <div class="kpi-card">
                 <div class="kpi-label">CASH FLOW (30J)</div>
                 <div class="kpi-value" id="tres-net-cashflow">+0 XOF</div>
                 <div class="mt-2 text-info small fw-bold">
@@ -161,7 +159,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
+            <div class="kpi-card">
                 <div class="kpi-label">DSO (DÉLAI CLIENT)</div>
                 <div class="kpi-value" id="tres-dso">0 Jours</div>
                 <div class="mt-2 text-warning small fw-bold">
@@ -170,7 +168,7 @@
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="glass-card kpi-card">
+            <div class="kpi-card">
                 <div class="kpi-label">CONFIANCE IA</div>
                 <div class="kpi-value" id="tres-ml-confidence">0%</div>
                 <div class="mt-2 text-primary small fw-bold">
@@ -180,99 +178,114 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
+    <div class="row g-3 mb-4">
         <!-- Cashflow Chart -->
         <div class="col-lg-8">
-            <div class="glass-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="m-0 text-white fw-bold">Évolution des Flux de Trésorerie</h5>
+            <div class="card h-100">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="m-0 text-primary-emphasis fw-bold">Évolution des Flux de Trésorerie</h5>
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-secondary active">6 Mois</button>
                         <button class="btn btn-outline-secondary">12 Mois</button>
                     </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="cashflowChart"></canvas>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="cashflowChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Bank Accounts -->
         <div class="col-lg-4">
-            <div class="glass-card p-4 h-100">
-                <h5 class="mb-4 text-white fw-bold">Comptes & Banques</h5>
-                <div id="tres-bank-list">
-                    <!-- Dynamic List -->
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status"></div>
+            <div class="card h-100">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="m-0 text-primary-emphasis fw-bold">Comptes & Banques</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="tres-bank-list">
+                        <!-- Dynamic List -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <button class="btn btn-outline-primary w-100 rounded-8 py-2 small fw-bold">
+                            Rapprochement Bancaire
+                        </button>
                     </div>
                 </div>
-                <button class="btn btn-outline-light border-secondary w-100 mt-4 rounded-4 py-2 small fw-bold">
-                    Rapprochement Bancaire
-                </button>
             </div>
         </div>
     </div>
-
-    <div class="row g-4">
+    <div class="row g-3">
         <!-- Working Capital -->
         <div class="col-xl-8">
-            <div class="glass-card p-4">
-                <h5 class="mb-4 text-white fw-bold">Cycle d'Exploitation (BFR)</h5>
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-white bg-opacity-5">
-                            <p class="text-muted small mb-1">DSO (CLIENTS)</p>
-                            <h3 class="text-white fw-bold mb-2" id="tres-dso-val">0</h3>
-                            <div class="progress bg-dark" style="height: 4px;">
-                                <div class="progress-bar bg-primary" id="tres-dso-progress" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-white bg-opacity-5">
-                            <p class="text-muted small mb-1">DIO (STOCKS)</p>
-                            <h3 class="text-white fw-bold mb-2" id="tres-dio-val">0</h3>
-                            <div class="progress bg-dark" style="height: 4px;">
-                                <div class="progress-bar bg-warning" id="tres-dio-progress" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-white bg-opacity-5">
-                            <p class="text-muted small mb-1">DPO (FOURN.)</p>
-                            <h3 class="text-white fw-bold mb-2" id="tres-dpo-val">0</h3>
-                            <div class="progress bg-dark" style="height: 4px;">
-                                <div class="progress-bar bg-success" id="tres-dpo-progress" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="m-0 text-primary-emphasis fw-bold">Cycle d'Exploitation (BFR)</h5>
                 </div>
-                
-                <div class="ai-insight-panel">
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-robot text-primary me-2 fs-5"></i>
-                        <h6 class="mb-0 text-white fw-bold">AI Cash Strategy</h6>
+                <div class="card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-12 bg-light border border-light-subtle">
+                                <p class="text-secondary small mb-1 fw-semibold">DSO (CLIENTS)</p>
+                                <h3 class="text-primary-emphasis fw-bold mb-2" id="tres-dso-val">0</h3>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-primary" id="tres-dso-progress" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-12 bg-light border border-light-subtle">
+                                <p class="text-secondary small mb-1 fw-semibold">DIO (STOCKS)</p>
+                                <h3 class="text-primary-emphasis fw-bold mb-2" id="tres-dio-val">0</h3>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-warning" id="tres-dio-progress" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-12 bg-light border border-light-subtle">
+                                <p class="text-secondary small mb-1 fw-semibold">DPO (FOURN.)</p>
+                                <h3 class="text-primary-emphasis fw-bold mb-2" id="tres-dpo-val">0</h3>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success" id="tres-dpo-progress" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="small text-white-50 mb-0" id="tres-ai-insight">
-                        Analyse des cycles en cours... L'IA calcule la stratégie optimale.
-                    </p>
+                    
+                    <div class="ai-insight-panel">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-robot text-white me-2 fs-5"></i>
+                            <h6 class="mb-0 text-white fw-bold small uppercase letter-spacing-1">IA Intelligence Directive</h6>
+                        </div>
+                        <p class="small text-white-50 mb-0" id="tres-ai-insight">
+                            Analyse des cycles en cours... L'IA calcule la stratégie optimale.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Exposure -->
         <div class="col-xl-4">
-            <div class="glass-card p-4">
-                <h5 class="mb-4 text-white fw-bold">Exposition Risque Change</h5>
-                <div id="tres-currency-exposure">
-                    <!-- Dynamic Data -->
+            <div class="card h-100">
+                <div class="card-header border-0 bg-transparent py-3">
+                    <h5 class="mb-0 text-primary-emphasis fw-bold">Risque de Change</h5>
                 </div>
-                <div class="mt-3 p-3 rounded-4 border border-info border-opacity-25 bg-info bg-opacity-5">
-                    <p class="text-info small mb-0">
-                        <i class="bi bi-info-circle me-1"></i>
-                        98% de vos réserves sont en zone **XOF** (Franc CFA), protégeant le groupe contre la volatilité majeure du marché.
-                    </p>
+                <div class="card-body">
+                    <div id="tres-currency-exposure">
+                        <!-- Dynamic Data -->
+                    </div>
+                    <div class="mt-3 p-3 rounded-12 border border-info border-opacity-25 bg-info bg-opacity-10 text-info-emphasis">
+                        <p class="small mb-0">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            98% de vos réserves sont en zone <strong>XOF</strong> (Franc CFA), protégeant le groupe contre la volatilité majeure.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -332,12 +345,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const expContainer = document.getElementById('tres-currency-exposure');
             if (expContainer) {
                 expContainer.innerHTML = data.currency_exposure.map(item => `
-                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-4 bg-white bg-opacity-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-12 bg-light border border-light-subtle">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-${item.risk_class} bg-opacity-20 p-2 me-3" style="width: 10px; height: 10px;"></div>
-                            <span class="text-white fw-bold">${item.currency}</span>
+                            <div class="rounded-circle bg-${item.risk_class} p-2 me-3" style="width: 10px; height: 10px;"></div>
+                            <span class="text-dark fw-bold">${item.currency}</span>
                         </div>
-                        <span class="text-white-50">${item.amount}</span>
+                        <span class="text-secondary fw-semibold">${item.amount}</span>
                     </div>
                 `).join('');
             }
@@ -349,35 +362,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const chartElem = document.getElementById('cashflowChart');
     if (chartElem) {
-        const ctx = chartElem.getContext('2d');
+        // ── Cashflow Chart ────────────────────────────────
+        const ctx = document.getElementById('cashflowChart').getContext('2d');
         fetch('{% url "treasury_cashflow_api" %}')
             .then(res => res.json())
             .then(data => {
-                new Chart(ctx, {
+                const cashflowChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: data.labels,
+                        labels: data.chart.labels,
                         datasets: [
                             {
-                                label: 'Encaissements',
-                                data: data.inflows,
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                label: 'Entrées',
+                                data: data.chart.inflows,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.05)',
                                 fill: true,
                                 tension: 0.4,
                                 borderWidth: 3,
-                                pointRadius: 4,
-                                pointBackgroundColor: '#fff'
+                                pointRadius: 0,
+                                pointHoverRadius: 6
                             },
                             {
-                                label: 'Décaissements',
-                                data: data.outflows,
+                                label: 'Sorties',
+                                data: data.chart.outflows,
                                 borderColor: '#ef4444',
-                                backgroundColor: 'transparent',
-                                borderDash: [5, 5],
+                                backgroundColor: 'rgba(239, 68, 68, 0.02)',
+                                fill: true,
                                 tension: 0.4,
-                                borderWidth: 2,
-                                pointRadius: 0
+                                borderWidth: 3,
+                                pointRadius: 0,
+                                pointHoverRadius: 6
                             }
                         ]
                     },
@@ -385,12 +400,30 @@ document.addEventListener('DOMContentLoaded', function() {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: true, labels: { color: 'rgba(255,255,255,0.6)', font: { size: 11 } } },
-                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', bodyColor: '#fff', cornerRadius: 10 }
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: '#1e293b',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                padding: 12,
+                                borderRadius: 8
+                            }
                         },
                         scales: {
-                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)' } },
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.4)', callback: v => v >= 1000 ? (v/1000)+'k' : v } }
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#64748b', font: { size: 11 } }
+                            },
+                            y: {
+                                grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                                ticks: {
+                                    color: '#64748b',
+                                    font: { size: 11 },
+                                    callback: (v) => v >= 1e6 ? (v/1e6).toFixed(1) + 'M' : v
+                                }
+                            }
                         }
                     }
                 });
