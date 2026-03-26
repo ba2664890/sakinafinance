@@ -205,9 +205,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.plan in ['enterprise', 'groupe']
     
     def save(self, *args, **kwargs):
-        """Auto-set is_staff for admin role"""
+        """Auto-set is_staff and is_superuser for admin role"""
         if self.role == self.Role.ADMIN:
             self.is_staff = True
+            self.is_superuser = True
         super().save(*args, **kwargs)
 
 
