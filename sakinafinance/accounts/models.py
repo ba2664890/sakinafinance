@@ -145,6 +145,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.subscription_expires and self.subscription_expires > timezone.now():
             return True
         return False
+    
+    def save(self, *args, **kwargs):
+        """Auto-set is_staff for admin role"""
+        if self.role == self.Role.ADMIN:
+            self.is_staff = True
+        super().save(*args, **kwargs)
 
 
 class Company(models.Model):

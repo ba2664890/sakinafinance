@@ -403,29 +403,59 @@ JAZZMIN_SETTINGS = {
     "user_avatar": "avatar",
     "topmenu_links": [
         {"name": "Accueil", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"model": "accounts.User"},
+        {"model": "accounts.User", "label": "Utilisateurs"},
+        {"model": "accounts.Company", "label": "Entreprises"},
     ],
     "show_sidebar": True,
     "navigation_expanded": True,
-    "order_with_respect_to": ["accounts", "accounting", "payments", "core"],
+    "order_with_respect_to": [
+        "accounts", "accounting", "payments", "hr", 
+        "procurement", "projects", "compliance", "ai_engine", "core"
+    ],
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "accounts.User": "fas fa-user",
         "accounts.Company": "fas fa-building",
         "accounts.Entity": "fas fa-sitemap",
+        "accounts.UserActivity": "fas fa-history",
+        "accounts.Notification": "fas fa-bell",
+        
         "accounting.Account": "fas fa-list",
         "accounting.Journal": "fas fa-book",
         "accounting.Transaction": "fas fa-exchange-alt",
         "accounting.Invoice": "fas fa-file-invoice-dollar",
+        "accounting.FixedAsset": "fas fa-chair",
+        
         "payments.Subscription": "fas fa-crown",
         "payments.Plan": "fas fa-tags",
         "payments.Invoice": "fas fa-receipt",
+        
+        "hr.Employee": "fas fa-user-tie",
+        "hr.Department": "fas fa-users",
+        "hr.PayrollPeriod": "fas fa-money-check-alt",
+        "hr.LeaveRequest": "fas fa-calendar-alt",
+        
+        "procurement.Supplier": "fas fa-truck",
+        "procurement.PurchaseOrder": "fas fa-shopping-cart",
+        "procurement.InventoryItem": "fas fa-boxes",
+        
+        "projects.Project": "fas fa-project-diagram",
+        "projects.Task": "fas fa-tasks",
+        
+        "compliance.TaxFiling": "fas fa-file-contract",
+        "compliance.ComplianceRisk": "fas fa-exclamation-triangle",
+        
+        "ai_engine.AIAnalysis": "fas fa-brain",
+        "ai_engine.CashFlowForecast": "fas fa-chart-line",
+        "ai_engine.AIInsight": "fas fa-lightbulb",
+        "ai_engine.DocumentOCR": "fas fa-file-alt",
+        
         "core.SystemSetting": "fas fa-cog",
         "core.AuditLog": "fas fa-clipboard-list",
         "core.Integration": "fas fa-plug",
     },
-    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_parents": "fas fa-folder",
     "default_icon_children": "fas fa-circle",
     "related_modal_active": True,
     "changeform_format": "horizontal_tabs",
