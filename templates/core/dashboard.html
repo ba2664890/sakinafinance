@@ -125,8 +125,17 @@ width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify
 var(--primary-color); border-radius:50%; animation: spin .8s linear infinite; }
 
 /* ── AI Banner ── */
-.ai-banner { background: linear-gradient(135deg,#1e293b 0%,#1e3a8a 100%); border-radius:16px; padding:1.5rem;
-color:white; position:relative; overflow:hidden; }
+.ai-banner { 
+    background: linear-gradient(rgba(30, 41, 59, 0.7), rgba(30, 41, 59, 0.7)), url("{% static 'img/finance_bg.png' %}");
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px; 
+    padding: 1.5rem;
+    color: white; 
+    position: relative; 
+    overflow: hidden; 
+    border: 1px solid rgba(255,255,255,0.1);
+}
 .ai-banner::before {
 content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(59,130,246,.15);
 }
@@ -366,41 +375,48 @@ content:'';position:absolute;right:30px;bottom:-20px;width:80px;height:80px;bord
     let currentPeriod = 'month';
 
     // ── Charts ────────────────────────────────────────
-    const perfChart = new Chart(document.getElementById('performanceChart').getContext('2d'), {
-        type: 'line',
-        data: { labels: [], datasets: [] },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}M XOF`
+    let perfChart, cashChart;
+    const perfCanvas = document.getElementById('performanceChart');
+    if (perfCanvas) {
+        perfChart = new Chart(perfCanvas.getContext('2d'), {
+            type: 'line',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}M XOF`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                    y: {
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { callback: v => v + 'M', font: { size: 11 } }
                     }
                 }
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-                y: {
-                    grid: { color: 'rgba(0,0,0,0.04)' },
-                    ticks: { callback: v => v + 'M', font: { size: 11 } }
+            }
+        });
+    }
+
+    const cashCanvas = document.getElementById('cashFlowChart');
+    if (cashCanvas) {
+        cashChart = new Chart(cashCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '72%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmtM(ctx.raw)} XOF` } }
                 }
             }
-        }
-    });
-
-    const cashChart = new Chart(document.getElementById('cashFlowChart').getContext('2d'), {
-        type: 'doughnut',
-        data: { labels: [], datasets: [] },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '72%',
-            plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmtM(ctx.raw)} XOF` } }
-            }
-        }
-    });
+        });
+    }
 
     // ── Load Data ──────────────────────────────────────
     async function loadDashboard(period = 'month') {
@@ -437,23 +453,27 @@ content:'';position:absolute;right:30px;bottom:-20px;width:80px;height:80px;bord
             document.getElementById('kpi-period-label').textContent = labels[period] || 'Cette période';
 
             // ── Performance Chart ──
-            perfChart.data = {
-                labels: d.chart_data.labels,
-                datasets: [
-                    { label: 'CA', data: d.chart_data.revenue, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', fill: true, tension: .4, pointRadius: 3 },
-                    { label: 'Charges', data: d.chart_data.expenses, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.04)', fill: true, tension: .4, pointRadius: 3 },
-                    { label: 'EBITDA', data: d.chart_data.ebitda, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.06)', fill: true, tension: .4, pointRadius: 3 },
-                ]
-            };
-            perfChart.update();
+            if (perfChart) {
+                perfChart.data = {
+                    labels: d.chart_data.labels,
+                    datasets: [
+                        { label: 'CA', data: d.chart_data.revenue, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.08)', fill: true, tension: .4, pointRadius: 3 },
+                        { label: 'Charges', data: d.chart_data.expenses, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.04)', fill: true, tension: .4, pointRadius: 3 },
+                        { label: 'EBITDA', data: d.chart_data.ebitda, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.06)', fill: true, tension: .4, pointRadius: 3 },
+                    ]
+                };
+                perfChart.update();
+            }
 
             // ── Cash Flow Donut ──
             const cf = d.cash_flow;
-            cashChart.data = {
-                labels: ['Entrées', 'Sorties', 'Réserve'],
-                datasets: [{ data: [cf.inflows, cf.outflows, Math.max(cf.reserve, 0)], backgroundColor: ['#10b981', '#ef4444', '#2563eb'], borderWidth: 0 }]
-            };
-            cashChart.update();
+            if (cashChart) {
+                cashChart.data = {
+                    labels: ['Entrées', 'Sorties', 'Réserve'],
+                    datasets: [{ data: [cf.inflows, cf.outflows, Math.max(cf.reserve, 0)], backgroundColor: ['#10b981', '#ef4444', '#2563eb'], borderWidth: 0 }]
+                };
+                cashChart.update();
+            }
             document.getElementById('cash-legend').innerHTML = [
                 { label: 'Entrées', color: '#10b981', val: cf.inflows },
                 { label: 'Sorties', color: '#ef4444', val: cf.outflows },

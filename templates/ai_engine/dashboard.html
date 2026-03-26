@@ -7,13 +7,16 @@
 {% block extra_css %}
 <style>
     .ai-hero {
-        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
-        border-radius: 20px;
-        padding: 2rem;
+        background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url("{% static 'img/ai_advisor_bg.png' %}");
+        background-size: cover;
+        background-position: center;
+        border-radius: 24px;
+        padding: 4rem 2rem;
         color: white;
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
     .ai-hero::before {
@@ -275,72 +278,74 @@
         const yhat = data.map(d => d.yhat);
         const lower = data.map(d => d.yhat_lower);
         const upper = data.map(d => d.yhat_upper);
-        const ctx = document.getElementById('forecastChart').getContext('2d');
+        const forecastCanvas = document.getElementById('forecastChart');
+        if (forecastCanvas) {
+            const ctx = forecastCanvas.getContext('2d');
+            if (forecastChart) forecastChart.destroy();
 
-        if (forecastChart) forecastChart.destroy();
-
-        forecastChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Intervalle confiance',
-                        data: upper,
-                        fill: '+1',
-                        backgroundColor: 'rgba(37,99,235,.10)',
-                        borderWidth: 0,
-                        pointRadius: 0,
-                        tension: 0.4,
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Intervalle confiance',
+                            data: upper,
+                            fill: '+1',
+                            backgroundColor: 'rgba(37,99,235,.10)',
+                            borderWidth: 0,
+                            pointRadius: 0,
+                            tension: 0.4,
+                        },
+                        {
+                            label: 'Prévision',
+                            data: yhat,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2.5,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#2563eb',
+                            tension: 0.4,
+                        },
+                        {
+                            label: 'Borne basse',
+                            data: lower,
+                            fill: false,
+                            backgroundColor: 'rgba(37,99,235,.10)',
+                            borderWidth: 0,
+                            pointRadius: 0,
+                            tension: 0.4,
+                        },
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    if (ctx.datasetIndex !== 1) return null;
+                                    return `Prévision: ${ctx.parsed.y.toLocaleString('fr-FR')} FCFA`;
+                                }
+                            }
+                        }
                     },
-                    {
-                        label: 'Prévision',
-                        data: yhat,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#2563eb',
-                        tension: 0.4,
-                    },
-                    {
-                        label: 'Borne basse',
-                        data: lower,
-                        fill: false,
-                        backgroundColor: 'rgba(37,99,235,.10)',
-                        borderWidth: 0,
-                        pointRadius: 0,
-                        tension: 0.4,
-                    },
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => {
-                                if (ctx.datasetIndex !== 1) return null;
-                                return `Prévision: ${ctx.parsed.y.toLocaleString('fr-FR')} FCFA`;
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            ticks: {
+                                callback: v => v >= 1000000
+                                    ? (v / 1000000).toFixed(1) + 'M'
+                                    : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v
                             }
                         }
                     }
-                },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: {
-                        ticks: {
-                            callback: v => v >= 1000000
-                                ? (v / 1000000).toFixed(1) + 'M'
-                                : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v
-                        }
-                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     function changeForecastHorizon(months) {
