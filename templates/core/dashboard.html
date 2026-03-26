@@ -125,17 +125,8 @@ width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify
 var(--primary-color); border-radius:50%; animation: spin .8s linear infinite; }
 
 /* ── AI Banner ── */
-.ai-banner { 
-    background: linear-gradient(rgba(30, 41, 59, 0.7), rgba(30, 41, 59, 0.7)), url("{% static 'img/finance_bg.png' %}");
-    background-size: cover;
-    background-position: center;
-    border-radius: 16px; 
-    padding: 1.5rem;
-    color: white; 
-    position: relative; 
-    overflow: hidden; 
-    border: 1px solid rgba(255,255,255,0.1);
-}
+.ai-banner { background: linear-gradient(135deg,#1e293b 0%,#1e3a8a 100%); border-radius:16px; padding:1.5rem;
+color:white; position:relative; overflow:hidden; }
 .ai-banner::before {
 content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(59,130,246,.15);
 }
