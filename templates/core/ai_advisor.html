@@ -3,7 +3,9 @@
 {% block title %}IA Advisor Premium — SakinaFinance{% endblock %}
 
 {% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
 <style>
     :root {
         --ai-primary: #2563eb;
@@ -20,7 +22,9 @@
     }
 
     /* Override body background for this page specifically */
-    body { background: var(--ai-bg) !important; }
+    body {
+        background: var(--ai-bg) !important;
+    }
 
     .ai-wrapper {
         color: var(--ai-text);
@@ -34,34 +38,63 @@
     }
 
     @media (max-width: 1200px) {
-        .ai-wrapper { grid-template-columns: 1fr 320px; }
+        .ai-wrapper {
+            grid-template-columns: 1fr 320px;
+        }
     }
 
     @media (max-width: 991px) {
-        .ai-wrapper { 
+        .ai-wrapper {
             grid-template-columns: 1fr;
             height: auto;
             display: flex;
             flex-direction: column;
         }
-        .chat-section { height: 600px; order: 1; }
-        .sidebar-panel { order: 2; }
+
+        .chat-section {
+            height: 600px;
+            order: 1;
+        }
+
+        .sidebar-panel {
+            order: 2;
+        }
     }
 
     /* Soft Glows for Light Mode - Slightly more subtle */
     .bg-glow-1 {
-        position: absolute; width: 600px; height: 600px;
+        position: absolute;
+        width: 600px;
+        height: 600px;
         background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
-        top: -200px; left: -100px; z-index: 0; filter: blur(100px);
+        top: -200px;
+        left: -100px;
+        z-index: 0;
+        filter: blur(100px);
         animation: float-glow 20s infinite alternate ease-in-out;
     }
+
     .bg-glow-2 {
-        position: absolute; width: 500px; height: 500px;
+        position: absolute;
+        width: 500px;
+        height: 500px;
         background: radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
-        bottom: -100px; right: 300px; z-index: 0; filter: blur(80px);
+        bottom: -100px;
+        right: 300px;
+        z-index: 0;
+        filter: blur(80px);
         animation: float-glow 25s infinite alternate-reverse ease-in-out;
     }
-    @keyframes float-glow { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px, 30px) scale(1.05); } }
+
+    @keyframes float-glow {
+        0% {
+            transform: translate(0, 0) scale(1);
+        }
+
+        100% {
+            transform: translate(60px, 30px) scale(1.05);
+        }
+    }
 
     /* Central Chat Section */
     .chat-section {
@@ -77,13 +110,15 @@
     }
 
     @media (max-width: 991px) {
-        .chat-section { height: 600px; }
+        .chat-section {
+            height: 600px;
+        }
     }
 
     .chat-header {
         padding: 1.5rem 2rem;
         border-bottom: 2px solid var(--ai-bg);
-        background: rgba(255,255,255,0.95);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         display: flex;
         justify-content: space-between;
@@ -91,134 +126,300 @@
     }
 
     .neural-dot {
-        width: 12px; height: 12px;
+        width: 12px;
+        height: 12px;
         background: var(--ai-accent);
         border-radius: 50%;
         box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
         position: relative;
     }
+
     .neural-dot::after {
-        content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%;
-        background: var(--ai-accent); animation: ripple 2.5s infinite;
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--ai-accent);
+        animation: ripple 2.5s infinite;
     }
-    @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3.5); opacity: 0; } }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(1);
+            opacity: 0.6;
+        }
+
+        100% {
+            transform: scale(3.5);
+            opacity: 0;
+        }
+    }
 
     .chat-messages {
-        flex: 1; overflow-y: auto; padding: 2.5rem;
-        display: flex; flex-direction: column; gap: 2rem;
+        flex: 1;
+        overflow-y: auto;
+        padding: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
         scroll-behavior: smooth;
         background: #ffffff;
     }
 
     /* Message Bubbles */
     .msg {
-        max-width: 85%; padding: 1.5rem 2rem; border-radius: 24px;
-        font-size: 1rem; line-height: 1.6;
+        max-width: 85%;
+        padding: 1.5rem 2rem;
+        border-radius: 24px;
+        font-size: 1rem;
+        line-height: 1.6;
         animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        opacity: 0; transform: translateY(15px);
+        opacity: 0;
+        transform: translateY(15px);
     }
-    @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
+
+    @keyframes slide-up {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
     .msg-ai {
-        background: #f8fafc;
+        background: #0c131a;
         border: 1px solid var(--ai-border);
-        color: var(--ai-text); border-bottom-left-radius: 4px;
+        color: var(--ai-text);
+        border-bottom-left-radius: 4px;
         align-self: flex-start;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
+
     .msg-user {
         background: linear-gradient(135deg, var(--ai-primary) 0%, var(--ai-secondary) 100%);
-        color: white; align-self: flex-end; border-bottom-right-radius: 4px;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
         box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
     }
 
     .ai-avatar {
-        width: 40px; height: 40px;
+        width: 40px;
+        height: 40px;
         background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
-        border-radius: 12px; display: flex; align-items: center;
-        justify-content: center; margin-bottom: 1rem; font-size: 1.25rem;
-        color: white; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        color: white;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
     }
 
     /* Thinking State */
     #thinking-indicator {
-        display: none; align-self: flex-start; padding: 1rem 1.5rem;
-        background: #f8fafc; border: 1px solid var(--ai-border);
-        border-radius: 20px; border-bottom-left-radius: 4px;
+        display: none;
+        align-self: flex-start;
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border: 1px solid var(--ai-border);
+        border-radius: 20px;
+        border-bottom-left-radius: 4px;
     }
-    .dots { display: flex; gap: 8px; }
-    .dot { width: 8px; height: 8px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.2s infinite; }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    .dots {
+        display: flex;
+        gap: 8px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--ai-primary);
+        border-radius: 50%;
+        animation: bounce 1.2s infinite;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
 
     /* Input Area */
-    .input-area { padding: 1.5rem 2.5rem; background: white; border-top: 2px solid var(--ai-bg); }
+    .input-area {
+        padding: 1.5rem 2.5rem;
+        background: white;
+        border-top: 2px solid var(--ai-bg);
+    }
+
     .command-box {
         background: #f1f5f9;
         border: 2px solid transparent;
-        border-radius: 16px; padding: 0.75rem 1.25rem;
-        display: flex; align-items: center; gap: 1rem;
+        border-radius: 16px;
+        padding: 0.75rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         transition: all 0.2s ease;
     }
+
     .command-box:focus-within {
-        border-color: var(--ai-primary); background: white;
+        border-color: var(--ai-primary);
+        background: white;
         box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
     }
+
     .command-box input {
-        flex: 1; background: transparent; border: none; color: var(--ai-text);
-        font-size: 1.05rem; outline: none; font-weight: 500;
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--ai-text);
+        font-size: 1.05rem;
+        outline: none;
+        font-weight: 500;
     }
 
     .btn-submit {
         background: var(--ai-primary);
-        border: none; width: 48px; height: 48px; border-radius: 12px;
-        color: white; transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+        border: none;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        color: white;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    }
 
     /* Sidebar Panels */
-    .sidebar-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+    .sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
     .premium-card {
         background: white;
-        border: 1px solid var(--ai-border); border-radius: 24px; padding: 2rem;
+        border: 1px solid var(--ai-border);
+        border-radius: 24px;
+        padding: 2rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
-    .score-percentage .h1 { font-family: var(--font-mono); color: var(--ai-text); }
+
+    .score-percentage .h1 {
+        font-family: var(--font-mono);
+        color: var(--ai-text);
+    }
 
     .nav-suggestion {
-        background: #f8fafc; border: 1px solid var(--ai-border);
-        border-radius: 16px; padding: 1.25rem; display: flex; align-items: center;
-        gap: 1.25rem; cursor: pointer; transition: all 0.2s ease;
+        background: #f8fafc;
+        border: 1px solid var(--ai-border);
+        border-radius: 16px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
+
     .nav-suggestion:hover {
-        background: white; border-color: var(--ai-primary);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transform: translateY(-3px);
+        background: white;
+        border-color: var(--ai-primary);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
     }
-    .nav-suggestion i { font-size: 1.5rem; color: var(--ai-primary); }
+
+    .nav-suggestion i {
+        font-size: 1.5rem;
+        color: var(--ai-primary);
+    }
 
     /* Markdown styling - Higher Contrast */
-    .msg-ai p { margin-bottom: 1rem; color: var(--ai-text); }
-    .msg-ai ul { padding-left: 1.5rem; margin-bottom: 1rem; }
-    .msg-ai li { margin-bottom: 0.5rem; }
-    .msg-ai strong { color: var(--ai-primary); font-weight: 800; }
-    .msg-ai blockquote { border-left: 4px solid var(--ai-primary); padding-left: 1.25rem; color: var(--ai-text-muted); font-style: italic; background: rgba(37,99,235,0.03); padding-top: 0.5rem; padding-bottom: 0.5rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+    .msg-ai p {
+        margin-bottom: 1rem;
+        color: var(--ai-text);
+    }
+
+    .msg-ai ul {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .msg-ai li {
+        margin-bottom: 0.5rem;
+    }
+
+    .msg-ai strong {
+        color: var(--ai-primary);
+        font-weight: 800;
+    }
+
+    .msg-ai blockquote {
+        border-left: 4px solid var(--ai-primary);
+        padding-left: 1.25rem;
+        color: var(--ai-text-muted);
+        font-style: italic;
+        background: rgba(37, 99, 235, 0.03);
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin: 1rem 0;
+        border-radius: 0 8px 8px 0;
+    }
 
     /* Knowledge Base Section */
     .kb-item {
-        padding: 0.75rem; border-radius: 12px; border: 1px solid var(--ai-border);
-        background: #f8fafc; margin-bottom: 0.5rem; transition: all 0.2s;
-        display: flex; align-items: center; gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        border: 1px solid var(--ai-border);
+        background: #f8fafc;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
-    .kb-item:hover { background: white; border-color: var(--ai-primary); }
-    .kb-item i { font-size: 1.25rem; color: var(--ai-primary); }
-    
+
+    .kb-item:hover {
+        background: white;
+        border-color: var(--ai-primary);
+    }
+
+    .kb-item i {
+        font-size: 1.25rem;
+        color: var(--ai-primary);
+    }
+
     .upload-zone {
-        border: 2px dashed var(--ai-border); border-radius: 16px;
-        padding: 1.5rem; text-align: center; cursor: pointer;
-        transition: all 0.2s; background: #fafafa;
+        border: 2px dashed var(--ai-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fafafa;
     }
-    .upload-zone:hover { border-color: var(--ai-primary); background: white; }
-    .upload-zone i { font-size: 2rem; color: var(--ai-primary); opacity: 0.5; }
+
+    .upload-zone:hover {
+        border-color: var(--ai-primary);
+        background: white;
+    }
+
+    .upload-zone i {
+        font-size: 2rem;
+        color: var(--ai-primary);
+        opacity: 0.5;
+    }
 </style>
 {% endblock %}
 
@@ -226,19 +427,22 @@
 <div class="ai-wrapper">
     <div class="bg-glow-1"></div>
     <div class="bg-glow-2"></div>
-    
+
     <div class="chat-section">
         <header class="chat-header">
             <div class="ai-status-indicator d-flex align-items-center gap-3">
                 <div class="neural-dot"></div>
                 <div>
-                    <div class="fw-800 text-dark tracking-tight fs-5">NeuralAdvisor <span class="badge bg-primary bg-opacity-10 text-primary ms-2" style="font-size: 0.65rem; vertical-align: middle;">PRO v4.0</span></div>
+                    <div class="fw-800 text-dark tracking-tight fs-5">NeuralAdvisor <span
+                            class="badge bg-primary bg-opacity-10 text-primary ms-2"
+                            style="font-size: 0.65rem; vertical-align: middle;">PRO v4.0</span></div>
                     <small class="text-muted fw-600">Moteur d'intelligence financière • Temps Réel</small>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-md-block">
-                    <div class="small text-muted opacity-50" style="font-size: 0.6rem; letter-spacing: 1px">SYNC STATUS</div>
+                    <div class="small text-muted opacity-50" style="font-size: 0.6rem; letter-spacing: 1px">SYNC STATUS
+                    </div>
                     <div class="small fw-800 text-success"><i class="bi bi-link-45deg"></i> CONNECTÉ</div>
                 </div>
             </div>
@@ -247,14 +451,20 @@
         <div class="chat-messages" id="messageFlow">
             <div class="msg msg-ai">
                 <div class="ai-avatar"><i class="bi bi-robot"></i></div>
-                <h4 class="fw-800 text-dark mb-3">Prêt pour l'audit, {{ request.user.first_name|default:"Partner" }}.</h4>
-                <p>J'ai synchronisé les données de **{{ request.user.company.name|default:"votre entreprise" }}**. Comment puis-je vous assister aujourd'hui ?</p>
-                
+                <h4 class="fw-800 text-dark mb-3">Prêt pour l'audit, {{ request.user.first_name|default:"Partner" }}.
+                </h4>
+                <p>J'ai synchronisé les données de **{{ request.user.company.name|default:"votre entreprise" }}**.
+                    Comment puis-je vous assister aujourd'hui ?</p>
+
                 <div class="ai-actions mt-4 d-flex flex-wrap gap-2">
-                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Prévision de trésorerie')">📈 Prévision Trésorerie</button>
-                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
-                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
-                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600"
+                        onclick="triggerAsk('Prévision de trésorerie')">📈 Prévision Trésorerie</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600"
+                        onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600"
+                        onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600"
+                        onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
                 </div>
             </div>
         </div>
@@ -271,14 +481,17 @@
             <form id="aiInteractForm">
                 <div class="command-box">
                     <i class="bi bi-cpu-fill text-primary fs-4"></i>
-                    <input type="text" id="userInputField" placeholder="Commandez une analyse profonde..." autocomplete="off">
+                    <input type="text" id="userInputField" placeholder="Commandez une analyse profonde..."
+                        autocomplete="off">
                     <button type="submit" class="btn-submit">
                         <i class="bi bi-send-fill"></i>
                     </button>
                 </div>
             </form>
             <div class="mt-3 text-center">
-                <span class="text-muted opacity-30 small fw-bold" style="font-size: 0.55rem; letter-spacing: 2px">SAKINAFINANCE NEURAL ENGINE • CORE INFRASTRUCTURE</span>
+                <span class="text-muted opacity-30 small fw-bold"
+                    style="font-size: 0.55rem; letter-spacing: 2px">SAKINAFINANCE NEURAL ENGINE • CORE
+                    INFRASTRUCTURE</span>
             </div>
         </footer>
     </div>
@@ -290,7 +503,9 @@
             <div class="score-circle mx-auto position-relative" style="width: 140px; height: 140px;">
                 <svg viewBox="0 0 100 100" class="w-100 h-100">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8"></circle>
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#scoreGrad)" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="56" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#scoreGrad)" stroke-width="8"
+                        stroke-dasharray="283" stroke-dashoffset="56" stroke-linecap="round"
+                        transform="rotate(-90 50 50)"></circle>
                     <defs>
                         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stop-color="#2563eb"></stop>
@@ -303,7 +518,8 @@
                     <div class="small fw-900 text-success" style="font-size: 0.7rem">STABLE</div>
                 </div>
             </div>
-            <p class="small text-muted mt-3 mb-0 px-2">Indice basé sur l'analyse de tous vos flux financiers en cours.</p>
+            <p class="small text-muted mt-3 mb-0 px-2">Indice basé sur l'analyse de tous vos flux financiers en cours.
+            </p>
         </div>
 
         <!-- Quick Access -->
@@ -340,10 +556,12 @@
             {% for item in insights %}
             <div class="p-3 rounded-4 mb-3 border border-light bg-white shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2" style="font-size: 0.55rem">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2"
+                        style="font-size: 0.55rem">
                         {{ item.get_insight_type_display|upper }}
                     </span>
-                    <small class="text-muted opacity-50 fw-bold" style="font-size: 0.6rem">{{ item.created_at|timesince }}</small>
+                    <small class="text-muted opacity-50 fw-bold" style="font-size: 0.6rem">{{ item.created_at|timesince
+                        }}</small>
                 </div>
                 <div class="small fw-800 text-dark mb-1">{{ item.title }}</div>
                 <div class="small text-muted" style="font-size: 0.75rem">{{ item.message|truncatechars:80 }}</div>
@@ -360,21 +578,25 @@
         <div class="premium-card">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="text-muted small fw-800 tracking-widest uppercase mb-0">Cerveau IA (RAG)</h6>
-                <button class="btn btn-sm btn-primary rounded-circle" style="width: 28px; height: 28px; padding: 0" onclick="document.getElementById('kbFile').click()">
+                <button class="btn btn-sm btn-primary rounded-circle" style="width: 28px; height: 28px; padding: 0"
+                    onclick="document.getElementById('kbFile').click()">
                     <i class="bi bi-plus"></i>
                 </button>
                 <input type="file" id="kbFile" hidden accept=".pdf,.docx,.txt" onchange="uploadKnowledge(this)">
             </div>
-            
+
             <div id="kbList" class="flex-column gap-1">
                 {% for doc in knowledge_documents %}
                 <div class="kb-item">
                     <i class="bi bi-file-earmark-text"></i>
                     <div class="overflow-hidden">
-                        <div class="small fw-800 text-truncate text-dark" style="max-width: 200px">{{ doc.filename }}</div>
+                        <div class="small fw-800 text-truncate text-dark" style="max-width: 200px">{{ doc.filename }}
+                        </div>
                         <div class="text-muted" style="font-size: 0.6rem">
-                            {% if doc.status == 'indexed' %}<i class="bi bi-check-circle-fill text-success"></i> INDEXÉ • {{ doc.chunk_count }} segments
-                            {% elif doc.status == 'processing' %}<i class="spinner-border spinner-border-sm"></i> ANALYSE...
+                            {% if doc.status == 'indexed' %}<i class="bi bi-check-circle-fill text-success"></i> INDEXÉ
+                            • {{ doc.chunk_count }} segments
+                            {% elif doc.status == 'processing' %}<i class="spinner-border spinner-border-sm"></i>
+                            ANALYSE...
                             {% else %}<i class="bi bi-exclamation-circle-fill text-danger"></i> ÉCHEC{% endif %}
                         </div>
                     </div>
@@ -405,14 +627,14 @@
     function addMessage(text, role = 'ai', chartData = null, items = null) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg msg-${role}`;
-        
+
         if (role === 'ai') {
             let content = '';
             if (role === 'ai') {
                 content += `<div class="ai-avatar"><i class="bi bi-stars"></i></div>`;
             }
             content += marked.parse(text);
-            
+
             if (items && items.length) {
                 content += '<div class="mt-3 d-flex flex-column gap-2">';
                 items.forEach(item => {
@@ -423,7 +645,7 @@
                 });
                 content += '</div>';
             }
-            
+
             msgDiv.innerHTML = content;
 
             if (chartData) {
@@ -512,7 +734,7 @@
     function renderChart(id, payload) {
         const ctx = document.getElementById(id).getContext('2d');
         const isLine = payload.chart_type === 'line';
-        
+
         let chartLabels, chartValues;
         if (isLine) {
             chartLabels = payload.data.map(d => d.ds);
@@ -542,13 +764,13 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { 
-                        grid: { display: false }, 
-                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' } 
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
                     },
-                    y: { 
-                        grid: { color: '#f1f5f9', drawBorder: false }, 
-                        ticks: { font: { size: 10 }, color: '#94a3b8' } 
+                    y: {
+                        grid: { color: '#f1f5f9', drawBorder: false },
+                        ticks: { font: { size: 10 }, color: '#94a3b8' }
                     }
                 }
             }
