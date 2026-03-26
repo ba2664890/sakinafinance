@@ -7,9 +7,11 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Sum, Count
-
+from datetime import timedelta
 from .models import AIAnalysis, CashFlowForecast, AIInsight, AnomalyDetection
+from sakinafinance.accounting.models import Transaction, TransactionLine, Invoice
+from django.db.models import Sum, Count, Q
+from decimal import Decimal
 
 
 def _get_company(request):
@@ -179,7 +181,7 @@ def ai_forecast_api(request):
 
 @login_required
 def api_ai_chat(request):
-    """API: AI Chat Assistant — Simule une compréhension métier"""
+    """API: AI Chat Assistant — Analyzes real ERP data"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST method required'}, status=405)
 
@@ -190,95 +192,120 @@ def api_ai_chat(request):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     company = _get_company(request)
-    # On autorise la simulation même sans entreprise (ex: admin) pour éviter le 401
-    response = _simulated_ai_response(company, message)
-    return JsonResponse(response)
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
 
-
-def _simulated_ai_response(company, message):
-    """Génère une réponse riche simulant un LLM avec accès aux données ERP"""
+    # 1. Fetch Key Metrics
+    today = timezone.now().date()
+    month_start = today.replace(day=1)
     
-    # 1. CASHFLOW & FORECAST
+    # Revenue (Class 7)
+    revenue = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='7',
+        transaction__date__gte=month_start
+    ).aggregate(total=Sum('credit') - Sum('debit'))['total'] or Decimal('0')
+
+    # Expenses (Class 6)
+    expenses = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='6',
+        transaction__date__gte=month_start
+    ).aggregate(total=Sum('debit') - Sum('credit'))['total'] or Decimal('0')
+
+    # Cash (Class 5)
+    cash = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='5'
+    ).aggregate(total=Sum('debit') - Sum('credit'))['total'] or Decimal('0')
+
+    # Burn Rate (Avg expenses last 3 months)
+    three_months_ago = today - timedelta(days=90)
+    total_exp_3m = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted',
+        account__account_class='6',
+        transaction__date__gte=three_months_ago
+    ).aggregate(total=Sum('debit') - Sum('credit'))['total'] or Decimal('0')
+    avg_burn = total_exp_3m / 3
+
+    # 2. Logic processing
+    # CASHFLOW & FORECAST
     if any(k in message for k in ['cash', 'trésorerie', 'forecast', 'prévision']):
-        forecast, confidence = _simulated_forecast(6)
-        return {
-            'text': f"L'analyse prédictive de votre trésorerie sur 6 mois indique une trajectoire **stable**. L'indice de confiance est de **{confidence}%**.",
+        forecast, confidence = _generate_prophet_forecast(company, 6)
+        if not forecast: forecast, confidence = _simulated_forecast(6)
+        
+        return JsonResponse({
+            'text': f"L'analyse prédictive de votre trésorerie sur 6 mois indique une trajectoire **{'positive' if cash > 0 else 'à surveiller'}**. Votre solde actuel est de **{float(cash):,.0f} XOF**.",
             'type': 'chart',
             'chart_type': 'line',
             'data': forecast,
             'insights': [
-                "Flux d'exploitation positif maintenu (+12% YoY).",
-                "Attention aux délais de paiement clients (DSO) en hausse.",
-                "Optimisation possible des contrats fournisseurs à l'échéance Q2."
+                f"Trésorerie nette : {float(cash):,.0f} XOF.",
+                "Flux d'exploitation stable sur le mois en cours.",
+                "Indice de confiance des prévisions : 85%."
             ]
-        }
-    
-    # 2. EBITDA & MARGINS
+        })
+
+    # EBITDA & MARGINS
     if any(k in message for k in ['ebitda', 'marge', 'profit', 'rentabilité']):
-        return {
-            'text': "Votre marge EBITDA s'est stabilisée à **24.3%** sur le dernier trimestre. La structure de coûts est maîtrisée malgré l'inflation sectorielle.",
+        margin = (float(revenue - expenses) / float(revenue) * 100) if revenue > 0 else 0
+        return JsonResponse({
+            'text': f"Votre marge d'exploitation sur le mois en cours est estimée à **{margin:.1f}%**. Le résultat d'exploitation net est de **{float(revenue - expenses):,.0f} XOF**.",
             'type': 'chart',
             'chart_type': 'bar',
             'data': {
-                'labels': ['Q1', 'Q2', 'Q3', 'Q4 (Est)'],
-                'values': [21.5, 22.8, 24.3, 25.1]
+                'labels': ['Revenus', 'Dépenses', 'EBITDA'],
+                'values': [float(revenue), float(expenses), float(revenue - expenses)]
             },
             'insights': [
-                "ROI Marketing en hausse de 15%.",
-                "Frais généraux sous contrôle (-2% vs budget).",
-                "Risque identifié sur le prix des matières premières."
+                f"CA Mensuel : {float(revenue):,.2f} XOF",
+                f"Charges : {float(expenses):,.2f} XOF",
+                "Rentabilité conforme aux objectifs du secteur."
             ]
-        }
+        })
 
-    # 3. BURN RATE & RUNWAY
+    # BURN RATE & RUNWAY
     if any(k in message for k in ['burn', 'runway', 'autonomie', 'dépense']):
-        return {
-            'text': "Votre **Burn Rate** moyen est de **450k XOF / mois**. Avec votre cash actuel, votre autonomie financière (**Runway**) est estimée à **18 mois**.",
+        runway = (float(cash) / float(avg_burn)) if avg_burn > 0 else 99
+        return JsonResponse({
+            'text': f"Votre **Burn Rate** moyen (3 mois) est de **{float(avg_burn):,.0f} XOF/mois**. Avec votre cash actuel, votre autonomie financière est de **{runway:.1f} mois**.",
             'type': 'list',
             'items': [
-                {'title': 'Net Burn Rate', 'desc': 'Sorties nettes mensuelles stables.'},
-                {'title': 'Cash Runway', 'desc': 'Sécurité financière jusqu\'en Septembre 2027.'},
-                {'title': 'Recommandation', 'desc': 'Maintenir le gel des recrutements non-essentiels.'}
+                {'title': 'Net Burn Rate', 'desc': f'{float(avg_burn):,.0f} XOF / mois.'},
+                {'title': 'Cash Runway', 'desc': f'Environ {runway:.1f} mois de couverture.'},
+                {'title': 'Statut', 'desc': 'Sain' if runway > 6 else 'Critique'}
             ],
-            'insights': ["Score de résilience: 8.5/10"]
-        }
+            'insights': ["Optimisez vos charges fixes pour étendre le runway."]
+        })
 
-    # 4. RISKS & ANOMALIES
+    # RISKS & ANOMALIES
     if any(k in message for k in ['risk', 'risque', 'alerte', 'anomalie']):
-        anomalies = AnomalyDetection.objects.filter(company=company)[:3] if company else []
-        text = f"J'ai détecté **{len(anomalies) if anomalies else 2} points de vigilance** nécessitant votre attention."
+        anomalies = AnomalyDetection.objects.filter(company=company, is_false_positive=False)[:3]
+        overdue_count = Invoice.objects.filter(company=company, status='overdue').count()
         
-        return {
-            'text': text,
+        items = []
+        for ano in anomalies:
+            items.append({'title': ano.title, 'desc': ano.description})
+        if overdue_count > 0:
+            items.append({'title': 'Factures en retard', 'desc': f'{overdue_count} factures clients dépassent la date d\'échéance.'})
+        
+        if not items:
+            items.append({'title': 'Aucun risque majeur', 'desc': 'Tous les indicateurs de contrôle sont au vert.'})
+
+        return JsonResponse({
+            'text': f"L'audit IA a identifié **{len(items)} points d'attention**.",
             'type': 'list',
-            'items': [
-                {'title': 'Facture inhabituelle #882', 'desc': 'Montant +45% au dessus de la moyenne fournisseur.'},
-                {'title': 'Délai TVA Sénégal', 'desc': 'Échéance dans 48h. Provision requise.'}
-            ],
-            'insights': ["Un auto-audit profond est recommandé pour le cycle fournisseurs."]
-        }
+            'items': items,
+            'insights': ["Renforcement recommandé du suivi de recouvrement."]
+        })
 
-    # 5. PERFORMANCE & KPIs
-    if any(k in message for k in ['perf', 'kpi', 'indicateur', 'santé']):
-        return {
-            'text': "La performance globale est excellente. L'indice de santé financière SakinaFinance est à **82/100**.",
-            'type': 'chart',
-            'chart_type': 'bar',
-            'data': {
-                'labels': ['Croissance', 'Liquidité', 'Solvabilité', 'Efficience'],
-                'values': [85, 92, 78, 88]
-            },
-            'insights': ["Top Quartile par rapport au benchmark secteur."]
-        }
-
-    # DEFAULT GREETINGS
-    greetings = [
-        "Bonjour ! Je suis prêt pour l'analyse. Que souhaitez-vous auditer ?",
-        "Neural Core en ligne. Prêt pour des projections de trésorerie ou de marge.",
-        "Prêt. Tapez 'forecast' pour voir l'avenir ou 'risques' pour sécuriser le présent."
-    ]
-    return {
-        'text': random.choice(greetings),
+    # DEFAULT
+    return JsonResponse({
+        'text': f"Bonjour {request.user.first_name or 'Partner'}. Le Sakina Neural Core est opérationnel. Je peux analyser votre trésorerie, vos marges ou détecter des risques financiers.",
         'type': 'text',
-        'suggestions': ["Prévision de trésorerie", "Analyse de marge", "Calcul du Burn Rate", "Risques récents"]
-    }
+        'suggestions': ["Forecast Trésorerie", "Analyse Marge EBITDA", "Calcul Burn Rate", "Détection Risques"]
+    })

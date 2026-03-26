@@ -3,19 +3,20 @@
 {% block title %}IA Advisor Premium — SakinaFinance{% endblock %}
 
 {% block extra_css %}
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
     :root {
         --ai-primary: #8b5cf6;
         --ai-secondary: #d946ef;
         --ai-accent: #10b981;
         --ai-bg-deep: #020617;
-        --ai-glass: rgba(15, 23, 42, 0.6);
-        --ai-border: rgba(255, 255, 255, 0.1);
+        --ai-glass: rgba(15, 23, 42, 0.7);
+        --ai-border: rgba(255, 255, 255, 0.08);
         --font-main: 'Outfit', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
     }
 
-    body { font-family: var(--font-main); background: #000; }
+    body { font-family: var(--font-main); background: #000; overflow-x: hidden; }
 
     .ai-wrapper {
         background: var(--ai-bg-deep);
@@ -32,383 +33,288 @@
         box-shadow: 0 50px 100px -20px rgba(0,0,0,0.9);
     }
 
-    /* Animated Background */
-    .bg-glow {
-        position: absolute;
-        width: 800px;
-        height: 800px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
-        top: -300px;
-        left: -200px;
-        z-index: 0;
-        filter: blur(80px);
-        animation: drift 20s infinite alternate ease-in-out;
+    /* Pulse Glows */
+    .bg-glow-1 {
+        position: absolute; width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+        top: -200px; left: -100px; z-index: 0; filter: blur(100px);
+        animation: float-glow 20s infinite alternate ease-in-out;
     }
-
-    @keyframes drift { from { transform: translate(0,0); } to { transform: translate(100px, 50px); } }
+    .bg-glow-2 {
+        position: absolute; width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(217, 70, 239, 0.12) 0%, transparent 70%);
+        bottom: -100px; right: 300px; z-index: 0; filter: blur(80px);
+        animation: float-glow 25s infinite alternate-reverse ease-in-out;
+    }
+    @keyframes float-glow { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(100px, 50px) scale(1.1); } }
 
     /* Central Chat Section */
     .chat-section {
         background: var(--ai-glass);
-        backdrop-filter: blur(30px);
+        backdrop-filter: blur(40px);
         border: 1px solid var(--ai-border);
         border-radius: 28px;
         display: flex;
         flex-direction: column;
         z-index: 1;
         overflow: hidden;
-        box-shadow: inset 0 0 40px rgba(255,255,255,0.02);
+        box-shadow: inset 0 0 80px rgba(255,255,255,0.02);
     }
 
     .chat-header {
-        padding: 1.75rem 2rem;
+        padding: 1.5rem 2rem;
         border-bottom: 1px solid var(--ai-border);
-        background: rgba(0,0,0,0.4);
+        background: rgba(0,0,0,0.3);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
-    .ai-status-indicator {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
     .neural-dot {
-        width: 10px;
-        height: 10px;
+        width: 10px; height: 10px;
         background: var(--ai-accent);
         border-radius: 50%;
-        box-shadow: 0 0 15px var(--ai-accent);
+        box-shadow: 0 0 20px var(--ai-accent);
         position: relative;
     }
-
     .neural-dot::after {
-        content: '';
-        position: absolute;
-        width: 100%; height: 100%;
-        border-radius: 50%;
-        background: var(--ai-accent);
-        animation: ripple 2s infinite;
+        content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%;
+        background: var(--ai-accent); animation: ripple 2.5s infinite;
     }
-
-    @keyframes ripple { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3); opacity: 0; } }
+    @keyframes ripple { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3.5); opacity: 0; } }
 
     .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 2.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
+        flex: 1; overflow-y: auto; padding: 2.5rem;
+        display: flex; flex-direction: column; gap: 1.75rem;
         scroll-behavior: smooth;
     }
 
     /* Message Bubbles */
     .msg {
-        max-width: 85%;
-        padding: 1.25rem 1.75rem;
-        border-radius: 24px;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        animation: appear 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
-        opacity: 0;
-        transform: translateY(20px);
+        max-width: 85%; padding: 1.5rem 2rem; border-radius: 26px;
+        font-size: 1rem; line-height: 1.6;
+        animation: slide-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        opacity: 0; transform: translateY(30px);
     }
-
-    @keyframes appear { to { opacity: 1; transform: translateY(0); } }
+    @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
 
     .msg-ai {
-        background: rgba(255,255,255,0.03);
+        background: rgba(255,255,255,0.04);
         border: 1px solid var(--ai-border);
-        color: #e2e8f0;
-        border-bottom-left-radius: 4px;
+        color: #f1f5f9; border-bottom-left-radius: 4px;
+        align-self: flex-start;
     }
-
     .msg-user {
         background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
-        color: white;
-        align-self: flex-end;
-        border-bottom-right-radius: 4px;
-        box-shadow: 0 15px 30px -10px rgba(139, 92, 246, 0.5);
+        color: white; align-self: flex-end; border-bottom-right-radius: 4px;
+        box-shadow: 0 20px 40px -15px rgba(139, 92, 246, 0.4);
     }
 
     .ai-avatar {
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #4f46e5, #9333ea);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 0.75rem;
-        font-size: 0.8rem;
+        width: 36px; height: 36px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; margin-bottom: 1rem; font-size: 1.1rem;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
     }
+
+    /* Thinking State */
+    #thinking-indicator {
+        display: none; align-self: flex-start; padding: 1rem 1.5rem;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--ai-border);
+        border-radius: 20px; border-bottom-left-radius: 4px;
+    }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 8px; height: 8px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.2s infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-10px); opacity: 1; } }
 
     /* Input Area */
-    .input-area {
-        padding: 2rem;
-        background: rgba(0,0,0,0.5);
-    }
-
+    .input-area { padding: 2rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--ai-border); }
     .command-box {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.07);
         border: 1px solid var(--ai-border);
-        border-radius: 20px;
-        padding: 0.6rem 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: all 0.3s;
+        border-radius: 24px; padding: 0.75rem 1.25rem;
+        display: flex; align-items: center; gap: 1rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
     .command-box:focus-within {
-        border-color: var(--ai-primary);
-        background: rgba(255,255,255,0.08);
-        box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
+        border-color: var(--ai-primary); background: rgba(255,255,255,0.1);
+        box-shadow: 0 0 40px rgba(139, 92, 246, 0.2); transform: translateY(-2px);
     }
-
     .command-box input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        color: white;
-        font-size: 1rem;
-        padding: 0.5rem;
+        flex: 1; background: transparent; border: none; color: white;
+        font-size: 1.1rem; padding: 0.5rem; outline: none;
     }
-
-    .command-box input:focus { outline: none; }
 
     .btn-submit {
         background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
-        border: none;
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        color: white;
-        transition: transform 0.2s;
+        border: none; width: 48px; height: 48px; border-radius: 14px;
+        color: white; transition: all 0.3s; display: flex; align-items: center; justify-content: center;
     }
+    .btn-submit:hover { transform: scale(1.1) rotate(-8deg); box-shadow: 0 0 25px var(--ai-primary); }
 
-    .btn-submit:hover { transform: scale(1.1) rotate(-5deg); }
-
-    /* Action Buttons in AI response */
-    .ai-actions {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-action {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--ai-border);
-        color: #cbd5e1;
-        font-size: 0.75rem;
-        padding: 0.4rem 0.8rem;
-        border-radius: 8px;
-        transition: all 0.2s;
-    }
-
-    .btn-action:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: white; }
-
-    /* Sidebar Cards */
+    /* Sidebar Panels */
     .sidebar-panel { display: flex; flex-direction: column; gap: 1.5rem; }
-
     .premium-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
-        border: 1px solid var(--ai-border);
-        border-radius: 28px;
-        padding: 2rem;
-        position: relative;
-        overflow: hidden;
+        background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+        border: 1px solid var(--ai-border); border-radius: 30px; padding: 1.75rem;
+        position: relative; overflow: hidden;
     }
-
-    .score-circle {
-        width: 140px;
-        height: 140px;
-        margin: 0 auto 1.5rem;
-        position: relative;
-    }
-
-    .score-percentage {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-    }
-
-    .trend-indicator {
-        font-size: 0.7rem;
-        font-weight: 800;
-        letter-spacing: 1px;
-    }
+    .score-percentage .h1 { font-family: var(--font-mono); letter-spacing: -2px; }
 
     .nav-suggestion {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid var(--ai-border);
-        border-radius: 16px;
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        cursor: pointer;
-        transition: all 0.3s;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--ai-border);
+        border-radius: 18px; padding: 1.1rem; display: flex; align-items: center;
+        gap: 1.25rem; cursor: pointer; transition: all 0.3s ease;
     }
-
     .nav-suggestion:hover {
-        background: rgba(139, 92, 246, 0.1);
-        border-color: var(--ai-primary);
-        transform: scale(1.02);
+        background: rgba(139, 92, 246, 0.12); border-color: var(--ai-primary);
+        transform: scale(1.03) translateX(5px);
     }
+    .nav-suggestion i { font-size: 1.4rem; color: var(--ai-primary); }
 
-    .nav-suggestion i {
-        font-size: 1.25rem;
-        color: var(--ai-primary);
-    }
+    /* Chart Overrides */
+    canvas { filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.1)); }
+
+    /* Markdown styling */
+    .msg-ai p { margin-bottom: 1rem; }
+    .msg-ai ul { padding-left: 1.2rem; }
+    .msg-ai strong { color: var(--ai-secondary); }
 </style>
 {% endblock %}
 
-{% block page_title %}IA Advisor Premium{% endblock %}
-
 {% block content %}
 <div class="ai-wrapper">
-    <div class="bg-glow"></div>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
     
-    <!-- Large Neural Core Animation -->
-    <div style="position: absolute; top: 10%; right: 450px; width: 300px; height: 300px; z-index: 0; opacity: 0.4">
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <filter id="glow">
-                    <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
-                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-            </defs>
-            <path fill="var(--ai-primary)" d="M40,-61.6C53.3,-53.4,66.5,-44.2,74.1,-31.6C81.8,-19.1,83.8,-3.2,80.7,11.3C77.6,25.8,69.5,39,58.8,50.1C48.2,61.2,35.1,70.2,20.5,73.8C6,77.4,-10,75.4,-24.1,69.5C-38.2,63.6,-50.3,53.8,-60.1,41.9C-69.9,30,-77.3,16,-79,1.1C-80.6,-13.8,-76.4,-29.6,-66.9,-42.2C-57.3,-54.7,-42.3,-64.1,-28,-67.9C-13.7,-71.8,-0.1,-70,13.8,-70.2C27.8,-70.3,40,-61.6Z" transform="translate(100 100)" filter="url(#glow)">
-                <animate attributeName="d" dur="10s" repeatCount="indefinite" values="M40,-61.6C53.3,-53.4,66.5,-44.2,74.1,-31.6C81.8,-19.1,83.8,-3.2,80.7,11.3C77.6,25.8,69.5,39,58.8,50.1C48.2,61.2,35.1,70.2,20.5,73.8C6,77.4,-10,75.4,-24.1,69.5C-38.2,63.6,-50.3,53.8,-60.1,41.9C-69.9,30,-77.3,16,-79,1.1C-80.6,-13.8,-76.4,-29.6,-66.9,-42.2C-57.3,-54.7,-42.3,-64.1,-28,-67.9C-13.7,-71.8,-0.1,-70,13.8,-70.2C27.8,-70.3,40,-61.6Z; M40,-65.4C53.6,-62.7,67.6,-56.3,77.8,-45.3C88,-34.3,94.3,-18.7,93.5,-3.1C92.7,12.5,84.7,28.2,74.3,41.1C64,54,51.3,64,37.3,69.9C23.3,75.8,8,77.6,-6.5,75.5C-21,73.4,-34.7,67.4,-46.3,58.3C-57.9,49.2,-67.5,37,-73.2,23.3C-78.9,9.6,-80.7,-5.5,-77.1,-19.7C-73.6,-33.9,-64.6,-47.1,-52.4,-56C-40.2,-64.9,-24.8,-69.5,-10.1,-69.8C4.5,-70.1,19.1,-66.1,33.1,-65.4C47.1,-64.7,60.5,-67.3,40,-65.4Z; M40,-61.6C53.3,-53.4,66.5,-44.2,74.1,-31.6C81.8,-19.1,83.8,-3.2,80.7,11.3C77.6,25.8,69.5,39,58.8,50.1C48.2,61.2,35.1,70.2,20.5,73.8C6,77.4,-10,75.4,-24.1,69.5C-38.2,63.6,-50.3,53.8,-60.1,41.9C-69.9,30,-77.3,16,-79,1.1C-80.6,-13.8,-76.4,-29.6,-66.9,-42.2C-57.3,-54.7,-42.3,-64.1,-28,-67.9C-13.7,-71.8,-0.1,-70,13.8,-70.2C27.8,-70.3,40,-61.6Z" />
-            </path>
-        </svg>
-    </div>
-
-    <!-- Main Chat Interace -->
     <div class="chat-section">
         <header class="chat-header">
             <div class="ai-status-indicator">
                 <div class="neural-dot"></div>
                 <div>
-                    <div class="fw-bold text-white tracking-tight">Financial Neural Hub <span class="badge bg-primary bg-opacity-20 text-primary ms-2" style="font-size: 0.6rem">v3.5 PRO</span></div>
-                    <small class="text-white-50 opacity-40">Moteur prédictif en temps réel • Connecté ERP</small>
+                    <div class="fw-800 text-white tracking-tight fs-5">NeuralAdvisor <span class="badge bg-primary bg-opacity-20 text-primary ms-2" style="font-size: 0.65rem; vertical-align: middle;">PRO v4.0</span></div>
+                    <small class="text-white-50 opacity-50 fw-600">Moteur d'intelligence financière • Temps Réel</small>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-md-block">
-                    <div class="small text-white-50 opacity-50" style="font-size: 0.65rem">LAST SYNC</div>
-                    <div class="small fw-bold">Maintenant</div>
+                    <div class="small text-white-50 opacity-40" style="font-size: 0.6rem; letter-spacing: 1px">SYNC STATUS</div>
+                    <div class="small fw-800 text-accent"><i class="bi bi-link-45deg"></i> CONNECTÉ</div>
                 </div>
-                <button class="btn btn-sm btn-outline-light border-light border-opacity-10 rounded-pill px-3">
-                    <i class="bi bi-clock-history me-1"></i> Historique
-                </button>
             </div>
         </header>
 
         <div class="chat-messages" id="messageFlow">
-            <!-- Initial AI Greeting -->
             <div class="msg msg-ai">
                 <div class="ai-avatar"><i class="bi bi-robot"></i></div>
-                <h5 class="fw-bold text-white mb-3">Bonjour {{ request.user.first_name|default:"Partner" }}.</h5>
-                L'analyse des flux financiers de **{{ request.user.company.name|default:"votre entreprise" }}** est terminée. 
-                Mes algorithmes ont identifié 3 zones d'optimisation prioritaires.
-
-                <div class="ai-actions mt-4">
-                    <button class="btn-action" onclick="triggerAsk('Quelles sont les anomalies ce mois-ci ?')">🔍 Check Anomalies</button>
-                    <button class="btn-action" onclick="triggerAsk('Prévoir ma trésorerie sur 6 mois')">📊 Cashflow Forecast</button>
-                    <button class="btn-action" onclick="triggerAsk('Calculer mon Burn Rate actuel')">🔥 Burn Rate</button>
-                    <button class="btn-action" onclick="triggerAsk('Analyse de performance')">📈 Performance</button>
+                <h4 class="fw-800 text-white mb-3">Prêt pour l'audit, {{ request.user.first_name|default:"Partner" }}.</h4>
+                <p>J'ai synchronisé les données de **{{ request.user.company.name|default:"votre entreprise" }}**. Comment puis-je vous assister aujourd'hui ?</p>
+                
+                <div class="ai-actions mt-4 d-flex flex-wrap gap-2">
+                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Prévision de trésorerie')">📈 Cashflow Forecast</button>
+                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
+                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
+                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="thinking-indicator" class="ms-4 mb-4">
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
             </div>
         </div>
 
         <footer class="input-area">
             <form id="aiInteractForm">
                 <div class="command-box">
-                    <i class="bi bi-lightning-charge-fill text-primary"></i>
-                    <input type="text" id="userInputField" placeholder="Commandez l'analyse (ex: 'Prévoir ma fiscalité')..." autocomplete="off">
-                    <button type="button" class="bg-transparent border-0 text-white-50 px-2"><i class="bi bi-mic-fill"></i></button>
+                    <i class="bi bi-cpu-fill text-primary fs-4"></i>
+                    <input type="text" id="userInputField" placeholder="Commandez une analyse profonde..." autocomplete="off">
                     <button type="submit" class="btn-submit">
-                        <i class="bi bi-arrow-right-short fs-3"></i>
+                        <i class="bi bi-send-fill"></i>
                     </button>
                 </div>
             </form>
             <div class="mt-3 text-center">
-                <span class="text-white-50 opacity-30 small" style="font-size: 0.6rem; letter-spacing: 1px">POWERED BY SAKINAFINANCE NEURAL ENGINE • 2026</span>
+                <span class="text-white-50 opacity-20 small fw-bold" style="font-size: 0.55rem; letter-spacing: 2px">SAKINAFINANCE NEURAL ENGINE • CORE INFRASTRUCTURE</span>
             </div>
         </footer>
     </div>
 
-    <!-- Lateral Intelligence Panel -->
     <div class="sidebar-panel">
         <!-- Health Score -->
         <div class="premium-card text-center">
-            <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10" style="background: radial-gradient(circle at 50% 50%, var(--ai-primary), transparent 70%)"></div>
-            <h6 class="text-white-50 small fw-bold tracking-widest uppercase mb-4">Indice de Santé IA</h6>
-            
-            <div class="score-circle">
+            <h6 class="text-white-50 small fw-800 tracking-widest uppercase mb-4 opacity-50">Score de Santé IA</h6>
+            <div class="score-circle mx-auto position-relative" style="width: 150px; height: 150px;">
                 <svg viewBox="0 0 100 100" class="w-100 h-100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="5"></circle>
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#scoreGrad)" stroke-width="5" stroke-dasharray="283" stroke-dashoffset="56" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#scoreGrad)" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="56" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
                     <defs>
                         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="var(--ai-primary)"></stop>
-                            <stop offset="100%" stop-color="var(--ai-secondary)"></stop>
+                            <stop offset="0%" stop-color="#8b5cf6"></stop>
+                            <stop offset="100%" stop-color="#ec4899"></stop>
                         </linearGradient>
                     </defs>
                 </svg>
-                <div class="score-percentage">
-                    <div class="h1 fw-bold mb-0">{{ confidence|default:"82" }}</div>
-                    <div class="trend-indicator text-success">POSITIVE</div>
+                <div class="position-absolute top-50 start-50 translate-middle text-center score-percentage">
+                    <div class="h1 fw-800 mb-0">{{ confidence|default:"82" }}</div>
+                    <div class="small fw-900 text-accent" style="font-size: 0.6rem">STABLE</div>
                 </div>
             </div>
-            
-            <p class="small text-white-50 px-2">Basé sur 1,248 points de données récents. Tout est stable.</p>
+            <p class="small text-white-50 mt-3 mb-0 px-3 opacity-60">Indice basé sur l'analyse de tous vos flux financiers en cours.</p>
         </div>
 
-        <!-- Quick Dimensions -->
+        <!-- Quick Access -->
         <div class="premium-card">
-            <h6 class="text-white-50 small fw-bold tracking-widest uppercase mb-4">Dimensions d'Analyse</h6>
+            <h6 class="text-white-50 small fw-800 tracking-widest uppercase mb-4 opacity-50">Dimensions d'Audit</h6>
             <div class="d-flex flex-column gap-3">
-                <div class="nav-suggestion" onclick="triggerAsk('Top indicateurs financiers')">
-                    <i class="bi bi-grid-1x2-fill"></i>
-                    <div class="small fw-bold">KPIs Financiers</div>
+                <div class="nav-suggestion" onclick="triggerAsk('Indicateurs financiers')">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <div>
+                        <div class="small fw-800 text-white">KPIs Stratégiques</div>
+                        <div class="text-white-50" style="font-size: 0.65rem">CA, EBITDA, Cashflow</div>
+                    </div>
                 </div>
-                <div class="nav-suggestion" onclick="triggerAsk('Risques et menaces')">
-                    <i class="bi bi-shield-lock-fill"></i>
-                    <div class="small fw-bold">Menaces & Risques</div>
+                <div class="nav-suggestion" onclick="triggerAsk('Détection de risques')">
+                    <i class="bi bi-shield-exclamation"></i>
+                    <div>
+                        <div class="small fw-800 text-white">Contrôle de Risques</div>
+                        <div class="text-white-50" style="font-size: 0.65rem">Alertes & Anomalies</div>
+                    </div>
                 </div>
-                <div class="nav-suggestion" onclick="triggerAsk('Projets en cours')">
-                    <i class="bi bi-stack"></i>
-                    <div class="small fw-bold">Suivi Projets</div>
+                <div class="nav-suggestion" onclick="triggerAsk('Projets & Performance')">
+                    <i class="bi bi-boxes"></i>
+                    <div>
+                        <div class="small fw-800 text-white">Performance Opérationnelle</div>
+                        <div class="text-white-50" style="font-size: 0.65rem">Projets & Productivité</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Insights -->
+        <!-- Latest Insights from Context -->
         <div class="premium-card flex-grow-1 overflow-auto">
-            <h6 class="text-white-50 small fw-bold tracking-widest uppercase mb-3">Dernières Alertes</h6>
+            <h6 class="text-white-50 small fw-800 tracking-widest uppercase mb-4 opacity-50">Insights Prioritaires</h6>
             {% for item in insights %}
-            <div class="p-3 rounded-4 mb-3 border border-white border-opacity-10 bg-white bg-opacity-1">
+            <div class="p-3 rounded-4 mb-3 border border-white border-opacity-5 bg-white bg-opacity-1">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-{% if item.priority == 'critical' %}danger{% else %}primary{% endif %} bg-opacity-20 text-{% if item.priority == 'critical' %}danger{% else %}primary{% endif %} rounded-pill" style="font-size: 0.6rem">
-                        {{ item.get_priority_display|upper }}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 rounded-pill" style="font-size: 0.55rem">
+                        {{ item.get_insight_type_display|upper }}
                     </span>
-                    <small class="text-white-50 opacity-40">{{ item.created_at|timesince }}</small>
+                    <small class="text-white-50 opacity-30 fw-bold" style="font-size: 0.6rem">{{ item.created_at|timesince }}</small>
                 </div>
-                <div class="small fw-bold text-white mb-1">{{ item.title }}</div>
-                <div class="small text-white-50" style="font-size: 0.75rem">{{ item.message|truncatechars:100 }}</div>
+                <div class="small fw-800 text-white mb-1">{{ item.title }}</div>
+                <div class="small text-white-50 opacity-70" style="font-size: 0.75rem">{{ item.message|truncatechars:80 }}</div>
             </div>
             {% empty %}
             <div class="text-center py-5 opacity-20">
                 <i class="bi bi-stars fs-1 mb-2"></i>
-                <div class="small">Aucune alerte stable.</div>
+                <div class="small fw-bold">Analyse en cours...</div>
             </div>
             {% endfor %}
         </div>
@@ -421,21 +327,39 @@
     const messageFlow = document.getElementById('messageFlow');
     const inputField = document.getElementById('userInputField');
     const interactForm = document.getElementById('aiInteractForm');
+    const thinking = document.getElementById('thinking-indicator');
 
-    // Chart.js Default Styling
     Chart.defaults.color = 'rgba(255,255,255,0.4)';
     Chart.defaults.font.family = 'Outfit';
 
-    function addMessage(text, role = 'ai', chartData = null) {
+    function addMessage(text, role = 'ai', chartData = null, items = null) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg msg-${role}`;
         
         if (role === 'ai') {
-            msgDiv.innerHTML = `<div class="ai-avatar"><i class="bi bi-stars"></i></div>` + marked.parse(text);
+            let content = '';
+            if (role === 'ai') {
+                content += `<div class="ai-avatar"><i class="bi bi-stars"></i></div>`;
+            }
+            content += marked.parse(text);
+            
+            if (items && items.length) {
+                content += '<div class="mt-3 d-flex flex-column gap-2">';
+                items.forEach(item => {
+                    content += `<div class="p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5">
+                        <div class="fw-800 small text-white">${item.title}</div>
+                        <div class="small text-white-50 opacity-70">${item.desc}</div>
+                    </div>`;
+                });
+                content += '</div>';
+            }
+            
+            msgDiv.innerHTML = content;
+
             if (chartData) {
                 const chartId = 'c-' + Math.random().toString(36).substr(2, 9);
                 const chartContainer = document.createElement('div');
-                chartContainer.style.height = '240px';
+                chartContainer.style.height = '280px';
                 chartContainer.style.marginTop = '1.5rem';
                 chartContainer.innerHTML = `<canvas id="${chartId}"></canvas>`;
                 msgDiv.appendChild(chartContainer);
@@ -449,22 +373,12 @@
         messageFlow.scrollTop = messageFlow.scrollHeight;
     }
 
-    function showTyping() {
-        const id = 'typing-indicator';
-        const typing = document.createElement('div');
-        typing.id = id;
-        typing.className = 'msg msg-ai';
-        typing.innerHTML = `<div class="typing-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
-        messageFlow.appendChild(typing);
-        messageFlow.scrollTop = messageFlow.scrollHeight;
-        return id;
-    }
-
     async function triggerAsk(text) {
         if (!text) return;
         addMessage(text, 'user');
         inputField.value = '';
-        const typingId = showTyping();
+        thinking.style.display = 'block';
+        messageFlow.scrollTop = messageFlow.scrollHeight;
 
         try {
             const resp = await fetch('{% url "api_ai_chat" %}', {
@@ -473,16 +387,15 @@
                 body: JSON.stringify({ message: text })
             });
             const data = await resp.json();
-            document.getElementById(typingId)?.remove();
+            thinking.style.display = 'none';
 
             let responseText = data.text;
-            if (data.items) responseText += "\n\n" + data.items.map(i => `* **${i.title}** : ${i.desc}`).join('\n');
-            if (data.insights) responseText += "\n\n> **Insight IA :** " + data.insights.join(' • ');
+            if (data.insights) responseText += "\n\n> **Insight :** " + data.insights.join(' • ');
 
-            addMessage(responseText, 'ai', data.type === 'chart' ? data : null);
+            addMessage(responseText, 'ai', data.type === 'chart' ? data : null, data.items);
         } catch (e) {
-            document.getElementById(typingId)?.remove();
-            addMessage("Error communicating with Neural Core.", 'ai');
+            thinking.style.display = 'none';
+            addMessage("Le Neural Core a rencontré une erreur matérielle. Veuillez réessayer.", 'ai');
         }
     }
 
@@ -492,40 +405,46 @@
         const ctx = document.getElementById(id).getContext('2d');
         const isLine = payload.chart_type === 'line';
         
-        const data = {
-            labels: isLine ? payload.data.map(d => d.ds) : payload.data.labels,
-            datasets: [{
-                data: isLine ? payload.data.map(d => d.yhat) : payload.data.values,
-                borderColor: '#8b5cf6',
-                backgroundColor: isLine ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.6)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                borderRadius: isLine ? 0 : 8
-            }]
-        };
+        let chartLabels, chartValues;
+        if (isLine) {
+            chartLabels = payload.data.map(d => d.ds);
+            chartValues = payload.data.map(d => d.yhat);
+        } else {
+            chartLabels = payload.data.labels;
+            chartValues = payload.data.values;
+        }
 
         new Chart(ctx, {
             type: isLine ? 'line' : 'bar',
-            data: data,
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartValues,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: isLine ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.7)',
+                    fill: isLine,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    borderRadius: isLine ? 0 : 12,
+                    barThickness: isLine ? 'flex' : 24
+                }]
+            },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { font: { size: 10 } } }
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { font: { size: 10, weight: 'bold' }, color: 'rgba(255,255,255,0.3)' } 
+                    },
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, 
+                        ticks: { font: { size: 10 }, color: 'rgba(255,255,255,0.3)' } 
+                    }
                 }
             }
         });
     }
 </script>
-
-<style>
-    .typing-dots { display: flex; gap: 4px; padding: 5px 0; }
-    .dot { width: 6px; height: 6px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.4s infinite; }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
-</style>
 {% endblock %}
