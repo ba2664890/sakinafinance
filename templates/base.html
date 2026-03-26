@@ -193,8 +193,10 @@
 
         .page-title {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: -0.02em;
         }
 
         .header-right {
@@ -575,13 +577,7 @@
             font-size: 1.5rem;
         }
 
-            {
-            % block extra_css %
-        }
-
-            {
-            % endblock %
-        }
+        {% block extra_css %}{% endblock %}
     </style>
 </head>
 
