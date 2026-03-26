@@ -143,3 +143,5 @@ YubiOTP==1.0.0
 django-anymail[resend]==12.0
 pypdf
 docx2txt
+chromadb>=0.4.22
+huggingface_hub>=0.20.3

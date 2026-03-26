@@ -308,52 +308,74 @@ def api_ai_chat(request):
             'insights': ["Renforcement recommandé du suivi de recouvrement."]
         })
 
-    # 3. RAG Context Retrieval
+    # 3. RAG Context Retrieval via ChromaDB + HuggingFace
     rag = RAGService()
-    context_items = rag.retrieve_context(message, company)
-    relevant_context = rag.rerank_context(message, context_items)
-    
-    if relevant_context:
-        context_text = "\n\n".join([f"[Source: {c['filename']}] {c['content']}" for c in relevant_context])
-        prompt = f"""
-        Utilise les extraits de documents suivants pour répondre à la question de l'utilisateur.
-        Si la réponse n'est pas dans le contexte, utilise tes connaissances générales mais précise-le.
-        
-        Contexte :
-        {context_text}
-        
-        Question : {message}
-        
-        Réponds en français de manière professionnelle. Utilise le format Markdown.
-        """
-        
-        try:
-            from .services import AIService
-            ai_service = AIService()
-            if ai_service.client:
-                response = ai_service.client.chat.completions.create(
-                    model="gpt-4o", # Better for RAG
-                    messages=[
-                        {"role": "system", "content": "Tu es l'IA Advisor de SakinaFinance, expert en gestion d'entreprise."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=800,
-                    temperature=0.3
-                )
-                return JsonResponse({
-                    'text': response.choices[0].message.content.strip(),
-                    'type': 'text',
-                    'sources': [c['filename'] for c in relevant_context]
-                })
-        except Exception as e:
-            logger.error(f"RAG Chat error: {str(e)}")
+    context_items = rag.retrieve_context(message, company, top_k=5)
 
-    # 4. Fallback to existing logic if no RAG context or AI error
+    # Generate answer with HuggingFace Mistral
+    user_name = request.user.first_name or 'Partenaire'
+    hf_answer = rag.generate_rag_answer(message, context_items, user_name=user_name)
+
+    if hf_answer:
+        sources = list({c['filename'] for c in context_items}) if context_items else []
+        return JsonResponse({
+            'text': hf_answer,
+            'type': 'text',
+            'sources': sources,
+        })
+
+    # 4. Fallback si HF indisponible
+    if context_items:
+        # Réponse basique avec le contexte sans LLM
+        best = context_items[0]
+        return JsonResponse({
+            'text': f"**[Source: {best['filename']}]**\n\n{best['content'][:600]}...",
+            'type': 'text',
+            'sources': [c['filename'] for c in context_items],
+        })
+
     return JsonResponse({
-        'text': f"Bonjour {request.user.first_name or 'Partner'}. Le Sakina Neural Core est opérationnel. Je peux analyser votre trésorerie, vos marges ou détecter des risques financiers.",
+        'text': f"Bonjour {user_name}. Le Sakina Neural Core est opérationnel. Je peux analyser votre trésorerie, vos marges ou détecter des risques financiers.",
         'type': 'text',
-        'suggestions': ["Forecast Trésorerie", "Analyse Marge EBITDA", "Calcul Burn Rate", "Détection Risques"]
+        'suggestions': ["Forecast Trésorerie", "Analyse Marge EBITDA", "Calcul Burn Rate", "Détection Risques"],
     })
+
+@login_required
+def api_test_rag_service(request):
+    """API: Diagnostics complets du service RAG — HF token, embeddings, ChromaDB"""
+    from .services_rag import RAGService
+    rag = RAGService()
+
+    results = {
+        'hf_token': rag.test_hf_connection(),
+        'embedding': rag.test_embedding(),
+        'chromadb': _test_chromadb(),
+    }
+    overall_ok = all(r['status'] == 'ok' for r in results.values())
+    return JsonResponse({'status': 'ok' if overall_ok else 'degraded', 'tests': results})
+
+
+def _test_chromadb():
+    """Vérifie que ChromaDB est accessible et opérationnel."""
+    try:
+        import chromadb
+        from django.conf import settings
+        from pathlib import Path
+        db_path = getattr(settings, 'CHROMA_DB_PATH', '/tmp/chroma_db')
+        Path(db_path).mkdir(parents=True, exist_ok=True)
+        client = chromadb.PersistentClient(path=db_path)
+        # Test get_or_create
+        col = client.get_or_create_collection('healthcheck-ping')
+        col.upsert(ids=['ping'], documents=['pong'], embeddings=[[0.0] * 384])
+        res = col.get(ids=['ping'])
+        client.delete_collection('healthcheck-ping')
+        if res and res['ids'] == ['ping']:
+            return {'status': 'ok', 'message': f'ChromaDB opérationnel à {db_path}'}
+        return {'status': 'error', 'message': 'ChromaDB: données non retrouvées après upsert'}
+    except Exception as e:
+        return {'status': 'error', 'message': str(e)}
+
+
 @login_required
 def api_upload_knowledge(request):
     """API: Upload a file to the knowledge base and index it"""

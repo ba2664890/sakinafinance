@@ -6,15 +6,45 @@ logger = logging.getLogger('sakinafinance')
 
 class AIService:
     """
-    Service to interact with AI Models (OpenAI/Gemini) for SakinaFinance.
+    Service to interact with AI Models for SakinaFinance.
+    Priority: OpenAI → HuggingFace Mistral-7B → Simulation
     """
+    HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2"
+
     def __init__(self):
         self.api_key = getattr(settings, 'OPENAI_API_KEY', None)
+        self.hf_token = getattr(settings, 'HUGGINGFACE_API_TOKEN', '')
+
         if self.api_key:
             self.client = openai.OpenAI(api_key=self.api_key)
         else:
             self.client = None
-            logger.warning("OPENAI_API_KEY not found in settings. AI features will be simulated.")
+            if self.hf_token:
+                logger.info("OpenAI indisponible — utilisation HuggingFace Mistral-7B.")
+            else:
+                logger.warning("Aucune clé AI configurée. Mode simulation activé.")
+
+    def _call_hf_llm(self, system_prompt: str, user_prompt: str, max_tokens: int = 250) -> str | None:
+        """Appelle HuggingFace Inference API (Mistral-7B) si le token est disponible."""
+        if not self.hf_token:
+            return None
+        try:
+            from huggingface_hub import InferenceClient
+            client = InferenceClient(model=self.HF_MODEL, token=self.hf_token)
+            response = client.chat_completion(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                max_tokens=max_tokens,
+                temperature=0.7,
+                stream=False,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            logger.error(f"HuggingFace LLM error: {e}")
+            return None
+
 
     def generate_treasury_insights(self, data):
         """
