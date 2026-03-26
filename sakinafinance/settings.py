@@ -211,7 +211,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 # 2FA Settings
-LOGIN_URL = 'two_factor:login'
+LOGIN_URL = 'two_factor:login' if DEBUG else 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 TWO_FACTOR_REMEMBER_COOKIE_PREFIX = 'tf_cookie'
 

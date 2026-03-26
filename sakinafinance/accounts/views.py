@@ -56,12 +56,12 @@ def register_view(request):
                 # Send Email Confirmation (Allauth)
                 send_email_confirmation(request, user)
 
-                # Create Welcome Notification
+                # Created Welcome Notification
                 Notification.objects.create(
                     user=user,
                     title="Bienvenue sur SakinaFinance !",
-                    message=f"Bonjour {user.first_name}. Votre compte a été créé. Veuillez vérifier votre email pour l'activer.",
-                    notification_type='info',
+                    message=f"Bonjour {user.first_name}. Votre compte a été créé. Bienvenue abord !",
+                    notification_type='success',
                     module='accounts'
                 )
 
@@ -69,14 +69,26 @@ def register_view(request):
                 UserActivity.objects.create(
                     user=user,
                     activity_type='create',
-                    description=f"Création de compte (en attente de vérification) et entreprise {company.name}",
+                    description=f"Création de compte et entreprise {company.name}",
                     module='accounts',
                     ip_address=request.META.get('REMOTE_ADDR')
                 )
 
-                messages.info(request, "Un email de confirmation a été envoyé à votre adresse. Veuillez le consulter pour activer votre compte.")
-                return redirect('account_email_verification_sent')
+                if not settings.DEBUG:
+                    # Auto-login in production for simplicity as requested
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    messages.success(request, f"Bienvenue {user.first_name} ! Votre compte a été créé avec succès.")
+                    return redirect('dashboard')
+                else:
+                    # Send Email Confirmation in Dev (if desired) or follow standard flow
+                    # send_email_confirmation(request, user)
+                    messages.info(request, "Compte créé avec succès en mode Développement.")
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend') # Auto login in dev too for convenience? 
+                    return redirect('dashboard')
+
             except Exception as e:
+                import traceback
+                print(traceback.format_exc())
                 messages.error(request, f"Une erreur est survenue lors de la création du compte : {str(e)}")
     else:
         form = ComprehensiveRegistrationForm()

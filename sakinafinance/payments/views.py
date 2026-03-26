@@ -40,14 +40,16 @@ def pricing_view(request):
 
 @login_required
 def subscribe_view(request, plan_slug):
-    """Subscribe to a Plan"""
+    """Subscribe to a Plan with improved Demo Mode support"""
     plan = get_object_or_404(Plan, slug=plan_slug, is_active=True)
     user = request.user
-
-    # Check for placeholder Stripe keys (Demo Mode)
-    # Improved demo mode detection
-    if settings.DEBUG and is_stripe_demo_mode():
-        # Mock Stripe flow for demo purposes
+    
+    # 1. Determine if we should use Demo Mode
+    # Use demo if DEBUG is True OR if Stripe keys are missing/placeholder on Render
+    is_demo = is_stripe_demo_mode()
+    
+    if is_demo:
+        # Check if user has a company first
         if not user.company:
             messages.warning(request, "Veuillez configurer votre entreprise avant de vous abonner (Mode Demo).")
             return redirect('company_setup')
@@ -64,36 +66,35 @@ def subscribe_view(request, plan_slug):
         )
         user.subscription_plan = plan.slug
         user.save()
-        messages.success(request, f'DEMO MODE: Votre abonnement au plan {plan.name} a été activé sans transaction réelle.')
+        messages.success(request, f'MODE DEMO: Votre abonnement au plan {plan.name} a été activé sans frais réels.')
         return redirect('dashboard')
-     # Ensure user has a company
+
+    # 2. Real Stripe Mode
     if not user.company:
         messages.warning(request, "Veuillez configurer votre entreprise avant de vous abonner.")
         return redirect('company_setup')
 
-    # Get or create Stripe customer
     try:
-        # Re-verify API key just before call
+        # Re-verify API key
         stripe.api_key = get_stripe_key()
         if not stripe.api_key:
-            raise stripe.error.AuthenticationError("Clé Secrète Stripe non configurée dans .env")
+            # Fallback to demo even if not technically in demo mode (safety for Render)
+            messages.info(request, "Configuration Stripe manquante. Passage automatique en mode Démo.")
+            return redirect('subscribe', plan_slug=plan_slug) # This will trigger the is_demo block above
             
-        subscription = Subscription.objects.get(user=user)
-        customer_id = subscription.stripe_customer_id
+        subscription_obj = Subscription.objects.get(user=user) # renamed to avoid confusion with module
+        customer_id = subscription_obj.stripe_customer_id
     except Subscription.DoesNotExist:
         # Create new Stripe customer
         try:
             customer = stripe.Customer.create(
                 email=user.email,
                 name=user.get_full_name(),
-                metadata={
-                    'user_id': str(user.id),
-                    'company_id': str(user.company.id),
-                }
+                metadata={'user_id': str(user.id), 'company_id': str(user.company.id)}
             )
             customer_id = customer.id
         except Exception as e:
-            messages.error(request, f"Erreur lors de la création du client Stripe: {str(e)}")
+            messages.error(request, f"Erreur client Stripe: {str(e)}")
             return redirect('pricing')
     
     # Create Stripe Checkout Session
@@ -101,21 +102,15 @@ def subscribe_view(request, plan_slug):
         session = stripe.checkout.Session.create(
             customer=customer_id,
             payment_method_types=['card'],
-            line_items=[{
-                'price': plan.stripe_price_id_monthly,
-                'quantity': 1,
-            }],
+            line_items=[{'price': plan.stripe_price_id_monthly, 'quantity': 1}],
             mode='subscription',
             success_url=request.build_absolute_uri('/payments/success/') + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.build_absolute_uri('/payments/cancel/'),
-            metadata={
-                'user_id': str(user.id),
-                'plan': plan.slug,
-            }
+            metadata={'user_id': str(user.id), 'plan': plan.slug}
         )
         return redirect(session.url)
     except Exception as e:
-        messages.error(request, f"Erreur Stripe: {str(e)}. Veuillez vérifier vos IDs de prix dans settings.py ou utiliser le mode Demo.")
+        messages.error(request, f"Erreur Stripe: {str(e)}. Utilisation du mode Démo suggérée.")
         return redirect('pricing')
 
 
@@ -190,7 +185,7 @@ def cancel_subscription_view(request):
             subscription = Subscription.objects.get(user=request.user)
             
             # Check for placeholder Stripe keys (Demo Mode)
-            if settings.DEBUG and is_stripe_demo_mode():
+            if is_stripe_demo_mode():
                 # Mock cancellation
                 pass
             else:
@@ -224,7 +219,7 @@ def add_payment_method_view(request):
             payment_method_id = data.get('payment_method_id')
             
             # Get or create customer
-            if settings.DEBUG and is_stripe_demo_mode():
+            if is_stripe_demo_mode():
                 customer_id = 'cus_mock_123'
                 pm_brand = 'Visa'
                 pm_last4 = '4242'
@@ -259,7 +254,7 @@ def add_payment_method_view(request):
             # Save to database
             PaymentMethod.objects.create(
                 user=request.user,
-                stripe_payment_method_id=payment_method_id if not is_demo else 'pm_mock_123',
+                stripe_payment_method_id=payment_method_id if not is_stripe_demo_mode() else 'pm_mock_123',
                 stripe_customer_id=customer_id,
                 card_brand=pm_brand,
                 card_last4=pm_last4,
@@ -288,10 +283,9 @@ def remove_payment_method_view(request, method_id):
             
             # Check for placeholder Stripe keys (Demo Mode)
             # Improved demo mode detection
-            stripe_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
-            is_demo = not stripe_key or stripe_key == 'sk_test_...' or stripe_key.startswith('sk_test_placeholder')
+            is_demo = is_stripe_demo_mode()
                     
-            if not (settings.DEBUG and is_demo):
+            if not is_demo:
                 # Detach from Stripe
                 stripe.PaymentMethod.detach(payment_method.stripe_payment_method_id)
             
