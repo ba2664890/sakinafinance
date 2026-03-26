@@ -6,43 +6,44 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
     :root {
-        --ai-primary: #8b5cf6;
-        --ai-secondary: #d946ef;
+        --ai-primary: #2563eb;
+        --ai-secondary: #8b5cf6;
         --ai-accent: #10b981;
-        --ai-bg-deep: #020617;
-        --ai-glass: rgba(15, 23, 42, 0.7);
-        --ai-border: rgba(255, 255, 255, 0.08);
+        --ai-bg: #f8fafc;
+        --ai-card: #ffffff;
+        --ai-glass: rgba(255, 255, 255, 0.8);
+        --ai-border: #e2e8f0;
+        --ai-text: #1e293b;
+        --ai-text-muted: #64748b;
         --font-main: 'Outfit', sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
     }
 
-    body { font-family: var(--font-main); background: #000; overflow-x: hidden; }
+    /* Override body background for this page specifically */
+    body { background: var(--ai-bg) !important; }
 
     .ai-wrapper {
-        background: var(--ai-bg-deep);
-        color: #f8fafc;
-        border-radius: 32px;
-        padding: 1.5rem;
+        color: var(--ai-text);
+        border-radius: 24px;
+        padding: 1.25rem;
         height: calc(100vh - 120px);
         display: grid;
-        grid-template-columns: 1fr 400px;
-        gap: 1.5rem;
+        grid-template-columns: 1fr 380px;
+        gap: 1.25rem;
         position: relative;
         overflow: hidden;
-        border: 1px solid var(--ai-border);
-        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.9);
     }
 
-    /* Pulse Glows */
+    /* Soft Glows for Light Mode */
     .bg-glow-1 {
         position: absolute; width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
         top: -200px; left: -100px; z-index: 0; filter: blur(100px);
         animation: float-glow 20s infinite alternate ease-in-out;
     }
     .bg-glow-2 {
         position: absolute; width: 500px; height: 500px;
-        background: radial-gradient(circle, rgba(217, 70, 239, 0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
         bottom: -100px; right: 300px; z-index: 0; filter: blur(80px);
         animation: float-glow 25s infinite alternate-reverse ease-in-out;
     }
@@ -50,21 +51,21 @@
 
     /* Central Chat Section */
     .chat-section {
-        background: var(--ai-glass);
-        backdrop-filter: blur(40px);
+        background: var(--ai-card);
         border: 1px solid var(--ai-border);
-        border-radius: 28px;
+        border-radius: 24px;
         display: flex;
         flex-direction: column;
         z-index: 1;
         overflow: hidden;
-        box-shadow: inset 0 0 80px rgba(255,255,255,0.02);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.04);
     }
 
     .chat-header {
-        padding: 1.5rem 2rem;
+        padding: 1.25rem 2rem;
         border-bottom: 1px solid var(--ai-border);
-        background: rgba(0,0,0,0.3);
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -74,114 +75,116 @@
         width: 10px; height: 10px;
         background: var(--ai-accent);
         border-radius: 50%;
-        box-shadow: 0 0 20px var(--ai-accent);
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
         position: relative;
     }
     .neural-dot::after {
         content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%;
         background: var(--ai-accent); animation: ripple 2.5s infinite;
     }
-    @keyframes ripple { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3.5); opacity: 0; } }
+    @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
 
     .chat-messages {
-        flex: 1; overflow-y: auto; padding: 2.5rem;
-        display: flex; flex-direction: column; gap: 1.75rem;
+        flex: 1; overflow-y: auto; padding: 2rem;
+        display: flex; flex-direction: column; gap: 1.5rem;
         scroll-behavior: smooth;
+        background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(248,250,252,0.5) 100%);
     }
 
     /* Message Bubbles */
     .msg {
-        max-width: 85%; padding: 1.5rem 2rem; border-radius: 26px;
-        font-size: 1rem; line-height: 1.6;
-        animation: slide-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        opacity: 0; transform: translateY(30px);
+        max-width: 85%; padding: 1.25rem 1.75rem; border-radius: 22px;
+        font-size: 0.95rem; line-height: 1.6;
+        animation: slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        opacity: 0; transform: translateY(20px);
     }
     @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
 
     .msg-ai {
-        background: rgba(255,255,255,0.04);
+        background: white;
         border: 1px solid var(--ai-border);
-        color: #f1f5f9; border-bottom-left-radius: 4px;
+        color: var(--ai-text); border-bottom-left-radius: 4px;
         align-self: flex-start;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
     .msg-user {
-        background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
+        background: var(--ai-primary);
         color: white; align-self: flex-end; border-bottom-right-radius: 4px;
-        box-shadow: 0 20px 40px -15px rgba(139, 92, 246, 0.4);
+        box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
     }
 
     .ai-avatar {
-        width: 36px; height: 36px;
-        background: linear-gradient(135deg, #6366f1, #a855f7);
-        border-radius: 10px; display: flex; align-items: center;
-        justify-content: center; margin-bottom: 1rem; font-size: 1.1rem;
-        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        width: 32px; height: 32px;
+        background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
+        border-radius: 8px; display: flex; align-items: center;
+        justify-content: center; margin-bottom: 0.75rem; font-size: 1rem;
+        color: white;
     }
 
     /* Thinking State */
     #thinking-indicator {
-        display: none; align-self: flex-start; padding: 1rem 1.5rem;
-        background: rgba(255,255,255,0.03); border: 1px solid var(--ai-border);
-        border-radius: 20px; border-bottom-left-radius: 4px;
+        display: none; align-self: flex-start; padding: 0.75rem 1.25rem;
+        background: white; border: 1px solid var(--ai-border);
+        border-radius: 18px; border-bottom-left-radius: 4px;
     }
     .dots { display: flex; gap: 6px; }
-    .dot { width: 8px; height: 8px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.2s infinite; }
+    .dot { width: 6px; height: 6px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.2s infinite; }
     .dot:nth-child(2) { animation-delay: 0.2s; }
     .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-10px); opacity: 1; } }
 
     /* Input Area */
-    .input-area { padding: 2rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--ai-border); }
+    .input-area { padding: 1.5rem 2rem; background: white; border-top: 1px solid var(--ai-border); }
     .command-box {
-        background: rgba(255,255,255,0.07);
+        background: #f1f5f9;
         border: 1px solid var(--ai-border);
-        border-radius: 24px; padding: 0.75rem 1.25rem;
-        display: flex; align-items: center; gap: 1rem;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 20px; padding: 0.5rem 1rem;
+        display: flex; align-items: center; gap: 0.75rem;
+        transition: all 0.3s;
     }
     .command-box:focus-within {
-        border-color: var(--ai-primary); background: rgba(255,255,255,0.1);
-        box-shadow: 0 0 40px rgba(139, 92, 246, 0.2); transform: translateY(-2px);
+        border-color: var(--ai-primary); background: white;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
     }
     .command-box input {
-        flex: 1; background: transparent; border: none; color: white;
-        font-size: 1.1rem; padding: 0.5rem; outline: none;
+        flex: 1; background: transparent; border: none; color: var(--ai-text);
+        font-size: 1.05rem; padding: 0.5rem; outline: none;
     }
 
     .btn-submit {
-        background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
-        border: none; width: 48px; height: 48px; border-radius: 14px;
+        background: var(--ai-primary);
+        border: none; width: 42px; height: 42px; border-radius: 12px;
         color: white; transition: all 0.3s; display: flex; align-items: center; justify-content: center;
     }
-    .btn-submit:hover { transform: scale(1.1) rotate(-8deg); box-shadow: 0 0 25px var(--ai-primary); }
+    .btn-submit:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3); }
 
     /* Sidebar Panels */
-    .sidebar-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+    .sidebar-panel { display: flex; flex-direction: column; gap: 1.25rem; }
     .premium-card {
-        background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-        border: 1px solid var(--ai-border); border-radius: 30px; padding: 1.75rem;
-        position: relative; overflow: hidden;
+        background: white;
+        border: 1px solid var(--ai-border); border-radius: 24px; padding: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.03);
     }
-    .score-percentage .h1 { font-family: var(--font-mono); letter-spacing: -2px; }
+    .score-percentage .h1 { font-family: var(--font-mono); color: var(--ai-text); }
 
     .nav-suggestion {
-        background: rgba(255,255,255,0.03); border: 1px solid var(--ai-border);
-        border-radius: 18px; padding: 1.1rem; display: flex; align-items: center;
-        gap: 1.25rem; cursor: pointer; transition: all 0.3s ease;
+        background: #f8fafc; border: 1px solid var(--ai-border);
+        border-radius: 16px; padding: 1rem; display: flex; align-items: center;
+        gap: 1rem; cursor: pointer; transition: all 0.2s ease;
     }
     .nav-suggestion:hover {
-        background: rgba(139, 92, 246, 0.12); border-color: var(--ai-primary);
-        transform: scale(1.03) translateX(5px);
+        background: white; border-color: var(--ai-primary);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-2px);
     }
-    .nav-suggestion i { font-size: 1.4rem; color: var(--ai-primary); }
+    .nav-suggestion i { font-size: 1.25rem; color: var(--ai-primary); }
 
     /* Chart Overrides */
-    canvas { filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.1)); }
+    canvas { filter: none; }
 
     /* Markdown styling */
-    .msg-ai p { margin-bottom: 1rem; }
-    .msg-ai ul { padding-left: 1.2rem; }
-    .msg-ai strong { color: var(--ai-secondary); }
+    .msg-ai p { margin-bottom: 0.75rem; }
+    .msg-ai ul { padding-left: 1.2rem; margin-bottom: 0.75rem; }
+    .msg-ai strong { color: var(--ai-primary); font-weight: 700; }
+    .msg-ai blockquote { border-left: 3px solid var(--ai-primary); padding-left: 1rem; color: var(--ai-text-muted); font-style: italic; }
 </style>
 {% endblock %}
 
@@ -192,17 +195,17 @@
     
     <div class="chat-section">
         <header class="chat-header">
-            <div class="ai-status-indicator">
+            <div class="ai-status-indicator d-flex align-items-center gap-3">
                 <div class="neural-dot"></div>
                 <div>
-                    <div class="fw-800 text-white tracking-tight fs-5">NeuralAdvisor <span class="badge bg-primary bg-opacity-20 text-primary ms-2" style="font-size: 0.65rem; vertical-align: middle;">PRO v4.0</span></div>
-                    <small class="text-white-50 opacity-50 fw-600">Moteur d'intelligence financière • Temps Réel</small>
+                    <div class="fw-800 text-dark tracking-tight fs-5">NeuralAdvisor <span class="badge bg-primary bg-opacity-10 text-primary ms-2" style="font-size: 0.65rem; vertical-align: middle;">PRO v4.0</span></div>
+                    <small class="text-muted fw-600">Moteur d'intelligence financière • Temps Réel</small>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-md-block">
-                    <div class="small text-white-50 opacity-40" style="font-size: 0.6rem; letter-spacing: 1px">SYNC STATUS</div>
-                    <div class="small fw-800 text-accent"><i class="bi bi-link-45deg"></i> CONNECTÉ</div>
+                    <div class="small text-muted opacity-50" style="font-size: 0.6rem; letter-spacing: 1px">SYNC STATUS</div>
+                    <div class="small fw-800 text-success"><i class="bi bi-link-45deg"></i> CONNECTÉ</div>
                 </div>
             </div>
         </header>
@@ -210,14 +213,14 @@
         <div class="chat-messages" id="messageFlow">
             <div class="msg msg-ai">
                 <div class="ai-avatar"><i class="bi bi-robot"></i></div>
-                <h4 class="fw-800 text-white mb-3">Prêt pour l'audit, {{ request.user.first_name|default:"Partner" }}.</h4>
+                <h4 class="fw-800 text-dark mb-3">Prêt pour l'audit, {{ request.user.first_name|default:"Partner" }}.</h4>
                 <p>J'ai synchronisé les données de **{{ request.user.company.name|default:"votre entreprise" }}**. Comment puis-je vous assister aujourd'hui ?</p>
                 
                 <div class="ai-actions mt-4 d-flex flex-wrap gap-2">
-                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Prévision de trésorerie')">📈 Cashflow Forecast</button>
-                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
-                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
-                    <button class="btn btn-sm btn-outline-light border-opacity-10 rounded-pill px-3 py-2" onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Prévision de trésorerie')">📈 Prévision Trésorerie</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
                 </div>
             </div>
         </div>
@@ -241,7 +244,7 @@
                 </div>
             </form>
             <div class="mt-3 text-center">
-                <span class="text-white-50 opacity-20 small fw-bold" style="font-size: 0.55rem; letter-spacing: 2px">SAKINAFINANCE NEURAL ENGINE • CORE INFRASTRUCTURE</span>
+                <span class="text-muted opacity-30 small fw-bold" style="font-size: 0.55rem; letter-spacing: 2px">SAKINAFINANCE NEURAL ENGINE • CORE INFRASTRUCTURE</span>
             </div>
         </footer>
     </div>
@@ -249,49 +252,49 @@
     <div class="sidebar-panel">
         <!-- Health Score -->
         <div class="premium-card text-center">
-            <h6 class="text-white-50 small fw-800 tracking-widest uppercase mb-4 opacity-50">Score de Santé IA</h6>
-            <div class="score-circle mx-auto position-relative" style="width: 150px; height: 150px;">
+            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4 opacity-70">Score de Santé IA</h6>
+            <div class="score-circle mx-auto position-relative" style="width: 140px; height: 140px;">
                 <svg viewBox="0 0 100 100" class="w-100 h-100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="6"></circle>
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#scoreGrad)" stroke-width="6" stroke-dasharray="283" stroke-dashoffset="56" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#scoreGrad)" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="56" stroke-linecap="round" transform="rotate(-90 50 50)"></circle>
                     <defs>
                         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#8b5cf6"></stop>
-                            <stop offset="100%" stop-color="#ec4899"></stop>
+                            <stop offset="0%" stop-color="#2563eb"></stop>
+                            <stop offset="100%" stop-color="#8b5cf6"></stop>
                         </linearGradient>
                     </defs>
                 </svg>
                 <div class="position-absolute top-50 start-50 translate-middle text-center score-percentage">
-                    <div class="h1 fw-800 mb-0">{{ confidence|default:"82" }}</div>
-                    <div class="small fw-900 text-accent" style="font-size: 0.6rem">STABLE</div>
+                    <div class="h2 fw-800 mb-0">{{ confidence|default:"82" }}</div>
+                    <div class="small fw-900 text-success" style="font-size: 0.6rem">STABLE</div>
                 </div>
             </div>
-            <p class="small text-white-50 mt-3 mb-0 px-3 opacity-60">Indice basé sur l'analyse de tous vos flux financiers en cours.</p>
+            <p class="small text-muted mt-3 mb-0 px-2">Indice basé sur l'analyse de tous vos flux financiers en cours.</p>
         </div>
 
         <!-- Quick Access -->
         <div class="premium-card">
-            <h6 class="text-white-50 small fw-800 tracking-widest uppercase mb-4 opacity-50">Dimensions d'Audit</h6>
-            <div class="d-flex flex-column gap-3">
+            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4 opacity-70">Dimensions d'Audit</h6>
+            <div class="d-flex flex-column gap-2">
                 <div class="nav-suggestion" onclick="triggerAsk('Indicateurs financiers')">
                     <i class="bi bi-graph-up-arrow"></i>
                     <div>
-                        <div class="small fw-800 text-white">KPIs Stratégiques</div>
-                        <div class="text-white-50" style="font-size: 0.65rem">CA, EBITDA, Cashflow</div>
+                        <div class="small fw-800 text-dark">KPIs Stratégiques</div>
+                        <div class="text-muted" style="font-size: 0.65rem">CA, EBITDA, Cashflow</div>
                     </div>
                 </div>
                 <div class="nav-suggestion" onclick="triggerAsk('Détection de risques')">
                     <i class="bi bi-shield-exclamation"></i>
                     <div>
-                        <div class="small fw-800 text-white">Contrôle de Risques</div>
-                        <div class="text-white-50" style="font-size: 0.65rem">Alertes & Anomalies</div>
+                        <div class="small fw-800 text-dark">Contrôle de Risques</div>
+                        <div class="text-muted" style="font-size: 0.65rem">Alertes & Anomalies</div>
                     </div>
                 </div>
                 <div class="nav-suggestion" onclick="triggerAsk('Projets & Performance')">
                     <i class="bi bi-boxes"></i>
                     <div>
-                        <div class="small fw-800 text-white">Performance Opérationnelle</div>
-                        <div class="text-white-50" style="font-size: 0.65rem">Projets & Productivité</div>
+                        <div class="small fw-800 text-dark">Performance Opérationnelle</div>
+                        <div class="text-muted" style="font-size: 0.65rem">Projets & Productivité</div>
                     </div>
                 </div>
             </div>
@@ -299,21 +302,21 @@
 
         <!-- Latest Insights from Context -->
         <div class="premium-card flex-grow-1 overflow-auto">
-            <h6 class="text-white-50 small fw-800 tracking-widest uppercase mb-4 opacity-50">Insights Prioritaires</h6>
+            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4 opacity-70">Insights Prioritaires</h6>
             {% for item in insights %}
-            <div class="p-3 rounded-4 mb-3 border border-white border-opacity-5 bg-white bg-opacity-1">
+            <div class="p-3 rounded-4 mb-3 border border-light bg-light">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 rounded-pill" style="font-size: 0.55rem">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2" style="font-size: 0.55rem">
                         {{ item.get_insight_type_display|upper }}
                     </span>
-                    <small class="text-white-50 opacity-30 fw-bold" style="font-size: 0.6rem">{{ item.created_at|timesince }}</small>
+                    <small class="text-muted opacity-50 fw-bold" style="font-size: 0.6rem">{{ item.created_at|timesince }}</small>
                 </div>
-                <div class="small fw-800 text-white mb-1">{{ item.title }}</div>
-                <div class="small text-white-50 opacity-70" style="font-size: 0.75rem">{{ item.message|truncatechars:80 }}</div>
+                <div class="small fw-800 text-dark mb-1">{{ item.title }}</div>
+                <div class="small text-muted" style="font-size: 0.75rem">{{ item.message|truncatechars:80 }}</div>
             </div>
             {% empty %}
             <div class="text-center py-5 opacity-20">
-                <i class="bi bi-stars fs-1 mb-2"></i>
+                <i class="bi bi-stars fs-1 mb-2 text-primary"></i>
                 <div class="small fw-bold">Analyse en cours...</div>
             </div>
             {% endfor %}
@@ -329,7 +332,7 @@
     const interactForm = document.getElementById('aiInteractForm');
     const thinking = document.getElementById('thinking-indicator');
 
-    Chart.defaults.color = 'rgba(255,255,255,0.4)';
+    Chart.defaults.color = '#64748b';
     Chart.defaults.font.family = 'Outfit';
 
     function addMessage(text, role = 'ai', chartData = null, items = null) {
@@ -346,9 +349,9 @@
             if (items && items.length) {
                 content += '<div class="mt-3 d-flex flex-column gap-2">';
                 items.forEach(item => {
-                    content += `<div class="p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5">
-                        <div class="fw-800 small text-white">${item.title}</div>
-                        <div class="small text-white-50 opacity-70">${item.desc}</div>
+                    content += `<div class="p-3 rounded-4 bg-light border border-light">
+                        <div class="fw-800 small text-dark">${item.title}</div>
+                        <div class="small text-muted">${item.desc}</div>
                     </div>`;
                 });
                 content += '</div>';
@@ -420,13 +423,13 @@
                 labels: chartLabels,
                 datasets: [{
                     data: chartValues,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: isLine ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.7)',
+                    borderColor: '#2563eb',
+                    backgroundColor: isLine ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.8)',
                     fill: isLine,
                     tension: 0.4,
-                    borderWidth: 3,
-                    borderRadius: isLine ? 0 : 12,
-                    barThickness: isLine ? 'flex' : 24
+                    borderWidth: 2,
+                    borderRadius: isLine ? 0 : 8,
+                    barThickness: isLine ? 'flex' : 20
                 }]
             },
             options: {
@@ -436,11 +439,11 @@
                 scales: {
                     x: { 
                         grid: { display: false }, 
-                        ticks: { font: { size: 10, weight: 'bold' }, color: 'rgba(255,255,255,0.3)' } 
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' } 
                     },
                     y: { 
-                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, 
-                        ticks: { font: { size: 10 }, color: 'rgba(255,255,255,0.3)' } 
+                        grid: { color: '#f1f5f9', drawBorder: false }, 
+                        ticks: { font: { size: 10 }, color: '#94a3b8' } 
                     }
                 }
             }
