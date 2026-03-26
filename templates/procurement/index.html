@@ -138,7 +138,7 @@
             <div class="procurement-panel">
                 <div class="p-panel-header">
                     <h6>Commandes d'Achats en Cours (PO)</h6>
-                    <button class="btn btn-sm btn-primary">Créer une DA</button>
+                    <a href="{% url 'purchase_order_create' %}" class="btn btn-sm btn-primary">Créer un Bon de Commande</a>
                 </div>
                 <div class="p-panel-content p-0">
                     <table class="po-table">
@@ -164,7 +164,10 @@
         <!-- Supplier list -->
         <div class="col-lg-4">
             <div class="procurement-panel">
-                <div class="p-panel-header"><h6>Top Fournisseurs</h6></div>
+                <div class="p-panel-header">
+                    <h6>Top Fournisseurs</h6>
+                    <a href="{% url 'supplier_create' %}" class="text-primary fw-bold small text-decoration-none">+ Nouveau</a>
+                </div>
                 <div class="p-panel-content" id="proc-suppliers-body">
                     <div class="text-center py-3 text-muted small">Chargement des fournisseurs...</div>
                 </div>

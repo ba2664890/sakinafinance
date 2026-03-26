@@ -1,9 +1,11 @@
 """
 Procurement Views — SakinaFinance (DB-connected)
 """
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.db.models import Sum, Avg, Count, Q
+from .forms import SupplierForm, PurchaseOrderForm, InventoryItemForm
 from django.utils import timezone
 from django.http import JsonResponse
 from decimal import Decimal
@@ -203,3 +205,67 @@ def api_inventory_data(request):
         'transactions': transaction_data,
     }
     return JsonResponse(data)
+
+
+@login_required
+def supplier_create(request):
+    """Créer un nouveau fournisseur"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = SupplierForm(request.POST, company=company)
+        if form.is_valid():
+            supplier = form.save(commit=False)
+            supplier.company = company
+            supplier.save()
+            return redirect('procurement')
+    else:
+        form = SupplierForm(company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouveau Fournisseur',
+        'action': 'Créer'
+    })
+
+
+@login_required
+def purchase_order_create(request):
+    """Créer un bon de commande"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = PurchaseOrderForm(request.POST, company=company)
+        if form.is_valid():
+            po = form.save(commit=False)
+            po.company = company
+            po.created_by = request.user
+            po.save()
+            return redirect('procurement')
+    else:
+        form = PurchaseOrderForm(company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouveau Bon de Commande',
+        'action': 'Créer'
+    })
+
+
+@login_required
+def inventory_item_create(request):
+    """Créer un article d'inventaire"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.company = company
+            item.save()
+            return redirect('procurement')
+    else:
+        form = InventoryItemForm()
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouvel Article',
+        'action': 'Ajouter'
+    })

@@ -157,7 +157,7 @@
             <div class="hr-panel">
                 <div class="hr-panel-header">
                     <h6>Historique des Paies (Payroll)</h6>
-                    <button class="btn btn-sm btn-primary">Lancer la Paie</button>
+                    <a href="{% url 'employee_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i> Recruter</a>
                 </div>
                 <div class="hr-panel-content p-0">
                     <table class="payroll-table">
@@ -198,7 +198,10 @@
         <!-- Leave Summary -->
         <div class="col-lg-6">
             <div class="hr-panel">
-                <div class="hr-panel-header"><h6>Congés &amp; Absences</h6></div>
+                <div class="hr-panel-header">
+                    <h6>Demandes de Congés</h6>
+                    <a href="{% url 'leave_request_create' %}" class="text-primary fw-bold small text-decoration-none">+ Nouvelle</a>
+                </div>
                 <div class="hr-panel-content">
                     <div class="row text-center mb-4">
                         <div class="col-4 border-end">

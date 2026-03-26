@@ -6,8 +6,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
+from .forms import EmployeeForm, LeaveRequestForm
 
 from .models import (
     Employee, Department, PayrollPeriod, Payslip,
@@ -174,3 +175,43 @@ def payslip_detail(request, pk):
         'payslip': payslip,
     }
     return render(request, 'hr/payslip_detail.html', context)
+
+
+@login_required
+def employee_create(request):
+    """Créer un employé"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST, request.FILES, company=company)
+        if form.is_valid():
+            emp = form.save(commit=False)
+            emp.company = company
+            emp.save()
+            return redirect('hr_dashboard')
+    else:
+        form = EmployeeForm(company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouvel Employé',
+        'action': 'Créer'
+    })
+
+
+@login_required
+def leave_request_create(request):
+    """Créer une demande de congé"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = LeaveRequestForm(request.POST, company=company)
+        if form.is_valid():
+            form.save()
+            return redirect('hr_dashboard')
+    else:
+        form = LeaveRequestForm(company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Demande de Congé',
+        'action': 'Soumettre'
+    })

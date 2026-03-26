@@ -1,9 +1,10 @@
 """
 Projects Views — SakinaFinance (DB-connected)
 """
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q
+from .forms import ProjectForm, TaskForm, MilestoneForm
 
 from django.http import JsonResponse
 from django.utils import timezone
@@ -113,3 +114,67 @@ def project_detail(request, pk):
         'members': members,
     }
     return render(request, 'projects/project_detail.html', context)
+@login_required
+def project_create(request):
+    """Créer un nouveau projet"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, company=company)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.company = company
+            project.created_by = request.user
+            project.save()
+            return redirect('projects')
+    else:
+        form = ProjectForm(company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouveau Projet',
+        'action': 'Créer'
+    })
+
+
+@login_required
+def task_create(request, project_pk=None):
+    """Créer une tâche"""
+    company = _get_company(request)
+    project = None
+    if project_pk:
+        project = get_object_or_404(Project, pk=project_pk, company=company)
+    
+    if request.method == 'POST':
+        form = TaskForm(request.POST, project=project, company=company)
+        if form.is_valid():
+            task = form.save()
+            return redirect('project_detail', pk=task.project.pk)
+    else:
+        form = TaskForm(project=project, company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouvelle Tâche',
+        'action': 'Ajouter'
+    })
+
+
+@login_required
+def milestone_create(request, project_pk):
+    """Créer un jalon"""
+    company = _get_company(request)
+    project = get_object_or_404(Project, pk=project_pk, company=company)
+    
+    if request.method == 'POST':
+        form = MilestoneForm(request.POST, project=project)
+        if form.is_valid():
+            form.save()
+            return redirect('project_detail', pk=project.pk)
+    else:
+        form = MilestoneForm(project=project)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouveau Jalon',
+        'action': 'Ajouter'
+    })

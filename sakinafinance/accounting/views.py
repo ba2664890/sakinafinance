@@ -109,6 +109,14 @@ def api_accounting_data(request):
     }
     return JsonResponse(data)
 
+def _get_company(request):
+    """Helper to get the user's company"""
+    if hasattr(request.user, 'company') and request.user.company:
+        return request.user.company
+    if hasattr(request.user, 'profile') and request.user.profile.company:
+        return request.user.profile.company
+    return None
+
 @login_required
 @require_POST
 @csrf_exempt
@@ -116,7 +124,9 @@ def api_create_transaction(request):
     """Create a manual journal entry."""
     try:
         payload = json.loads(request.body)
-        company = request.user.profile.company
+        company = _get_company(request)
+        if not company:
+            return JsonResponse({'status': 'error', 'message': 'Company non spécifiée'}, status=400)
         
         journal_id = payload.get('journal')
         if not journal_id:
@@ -146,13 +156,18 @@ def api_create_transaction(request):
             credit = Decimal(str(line.get('credit', 0)))
             
             if acc_id:
-                account = Account.objects.get(id=acc_id, company=company)
+                # Try to find by ID then by Code if it's a string code
+                try:
+                    account = Account.objects.get(id=acc_id, company=company)
+                except (Account.DoesNotExist, ValueError):
+                    account = Account.objects.get(code=acc_id, company=company)
+
                 TransactionLine.objects.create(
                     transaction=tx,
                     account=account,
                     debit=debit,
                     credit=credit,
-                    description=tx.description
+                    description=line.get('description', tx.description)
                 )
                 total_debit += debit
                 total_credit += credit
@@ -161,12 +176,6 @@ def api_create_transaction(request):
         tx.total_credit = total_credit
         tx.save()
         
-        if total_debit != total_credit:
-            # We still save it as pending/draft even if unbalanced? 
-            # Usually accounting systems require balance for 'posted' but allow 'draft' to be unbalanced.
-            # But here let's warn.
-            pass
-
         return JsonResponse({
             'status': 'success',
             'message': 'Transaction créée avec succès',

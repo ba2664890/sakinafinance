@@ -1,23 +1,67 @@
 """
 Fiscalité & Conformité (Compliance) Views — SakinaFinance
 """
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-
-
-from django.http import JsonResponse
-
-
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from .models import TaxFiling, RegulatoryRequirement, ComplianceRisk, TaxType
 from sakinafinance.accounts.models import Entity
+from .forms import TaxFilingForm, ComplianceRiskForm
+
+def _get_company(request):
+    """Helper to get the user's company"""
+    if hasattr(request.user, 'company') and request.user.company:
+        return request.user.company
+    if hasattr(request.user, 'profile') and request.user.profile.company:
+        return request.user.profile.company
+    return None
 
 @login_required
 def compliance_view(request):
     """Module Fiscalité & Réglementaire — vue principale"""
     return render(request, 'compliance/index.html', {'page_title': 'Fiscalité & Réglementaire'})
+
+@login_required
+def tax_filing_create(request):
+    """Déclarer un impôt"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = TaxFilingForm(request.POST, company=company)
+        if form.is_valid():
+            filing = form.save(commit=False)
+            filing.company = company
+            filing.save()
+            return redirect('compliance_dashboard')
+    else:
+        form = TaxFilingForm(company=company)
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Nouvelle Déclaration Fiscale',
+        'action': 'Enregistrer'
+    })
+
+@login_required
+def compliance_risk_create(request):
+    """Signaler un risque"""
+    company = _get_company(request)
+    if request.method == 'POST':
+        form = ComplianceRiskForm(request.POST)
+        if form.is_valid():
+            risk = form.save(commit=False)
+            risk.company = company
+            risk.save()
+            return redirect('compliance_dashboard')
+    else:
+        form = ComplianceRiskForm()
+    
+    return render(request, 'projects/project_form.html', {
+        'form': form,
+        'page_title': 'Signaler un Risque de Conformité',
+        'action': 'Signaler'
+    })
 
 
 @login_required
