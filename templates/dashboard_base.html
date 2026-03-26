@@ -20,10 +20,12 @@
                 <i class="bi bi-grid"></i>
                 <span>Tableau de Bord</span>
             </a>
+            {% if request.user.can_access_executive %}
             <a href="{% url 'executive' %}" class="nav-link {% if request.resolver_match.url_name == 'executive' %}active{% endif %}">
                 <i class="bi bi-graph-up-arrow"></i>
                 <span>Executive View</span>
             </a>
+            {% endif %}
             <a href="{% url 'ai_advisor' %}" class="nav-link {% if request.resolver_match.url_name == 'ai_advisor' %}active{% endif %}">
                 <i class="bi bi-robot"></i>
                 <span>IA Advisor</span>
@@ -34,10 +36,13 @@
         <!-- Finance -->
         <div class="nav-section">
             <div class="nav-section-title">Finance</div>
+            {% if request.user.can_access_consolidation %}
             <a href="{% url 'consolidation' %}" class="nav-link {% if request.resolver_match.url_name == 'consolidation' %}active{% endif %}">
                 <i class="bi bi-building"></i>
                 <span>Consolidation</span>
             </a>
+            {% endif %}
+            {% if request.user.can_access_finance %}
             <a href="{% url 'treasury' %}" class="nav-link {% if request.resolver_match.url_name == 'treasury' %}active{% endif %}">
                 <i class="bi bi-bank"></i>
                 <span>Trésorerie</span>
@@ -46,13 +51,17 @@
                 <i class="bi bi-calculator"></i>
                 <span>Comptabilité</span>
             </a>
+            {% endif %}
+            {% if request.user.can_access_hr %}
             <a href="{% url 'financial_statements' %}" class="nav-link {% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}">
                 <i class="bi bi-file-text"></i>
                 <span>États Financiers</span>
             </a>
+            {% endif %}
         </div>
         
         <!-- Operations -->
+        {% if request.user.can_access_operations %}
         <div class="nav-section">
             <div class="nav-section-title">Opérations</div>
             <a href="{% url 'purchases' %}" class="nav-link {% if request.resolver_match.url_name == 'purchases' %}active{% endif %}">
@@ -63,6 +72,7 @@
                 <i class="bi bi-box-seam"></i>
                 <span>Inventaire</span>
             </a>
+            {% if request.user.can_access_hr %}
             <a href="{% url 'hr_payroll' %}" class="nav-link {% if request.resolver_match.url_name == 'hr_payroll' %}active{% endif %}">
                 <i class="bi bi-people"></i>
                 <span>RH &amp; Paie</span>
@@ -71,9 +81,12 @@
                 <i class="bi bi-folder"></i>
                 <span>Projets</span>
             </a>
+            {% endif %}
         </div>
+        {% endif %}
         
         <!-- Compliance -->
+        {% if request.user.can_access_compliance %}
         <div class="nav-section">
             <div class="nav-section-title">Conformité</div>
             <a href="{% url 'taxation' %}" class="nav-link {% if request.resolver_match.url_name == 'taxation' %}active{% endif %}">
@@ -85,6 +98,7 @@
                 <span>Réglementaire</span>
             </a>
         </div>
+        {% endif %}
         
         <!-- Settings -->
         <div class="nav-section">

@@ -146,6 +146,64 @@ class User(AbstractBaseUser, PermissionsMixin):
             return True
         return False
     
+    @property
+    def plan(self):
+        """Returns the effective plan (Company plan prioritized over User plan)"""
+        if self.company:
+            return self.company.subscription_plan
+        return self.subscription_plan
+
+    @property
+    def is_free_plan(self):
+        return self.plan == 'free'
+
+    @property
+    def is_startup_plan(self):
+        return self.plan == 'startup'
+
+    @property
+    def is_pme_plan(self):
+        return self.plan == 'pme'
+
+    @property
+    def is_enterprise_plan(self):
+        return self.plan == 'enterprise'
+
+    @property
+    def is_groupe_plan(self):
+        return self.plan == 'groupe'
+
+    # Access helpers (Cumulative based on Pricing Page)
+    @property
+    def can_access_finance(self):
+        # Startup and above
+        return self.plan in ['startup', 'pme', 'enterprise', 'groupe']
+
+    @property
+    def can_access_operations(self):
+        # Startup and above
+        return self.plan in ['startup', 'pme', 'enterprise', 'groupe']
+
+    @property
+    def can_access_hr(self):
+        # PME and above
+        return self.plan in ['pme', 'enterprise', 'groupe']
+
+    @property
+    def can_access_compliance(self):
+        # Enterprise and above
+        return self.plan in ['enterprise', 'groupe']
+
+    @property
+    def can_access_consolidation(self):
+        # PME has 5 entities, Enterprise/Groupe have unlimited/custom
+        return self.plan in ['pme', 'enterprise', 'groupe']
+
+    @property
+    def can_access_executive(self):
+        # Enterprise and above
+        return self.plan in ['enterprise', 'groupe']
+    
     def save(self, *args, **kwargs):
         """Auto-set is_staff for admin role"""
         if self.role == self.Role.ADMIN:

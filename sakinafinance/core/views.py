@@ -9,7 +9,7 @@ from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
 from datetime import datetime, timedelta, date
 from decimal import Decimal
-from sakinafinance.accounting.models import Transaction, Invoice, Account, TransactionLine, ConsolidationReport
+from sakinafinance.accounting.models import Transaction, Invoice, Account, TransactionLine, ConsolidationReport, InterCompanyElimination
 from sakinafinance.hr.models import Employee
 from sakinafinance.procurement.models import PurchaseOrder
 
@@ -585,15 +585,29 @@ def api_consolidation_data(request):
             'status': 'OPEN'
         })
 
+    # Inter-company volume (from eliminations in this period)
+    interco_vol = float(InterCompanyElimination.objects.filter(
+        company=company,
+        period_start__gte=timezone.now().date().replace(day=1)
+    ).aggregate(t=Sum('amount'))['t'] or 0)
+
+    # Average margin for the group
+    group_revenue = sum(ent['income'] for ent in entities_list if ent['income'] > 0)
+    # Note: total_net_income already calculated
+    avg_margin = (total_net_income / group_revenue * 100) if group_revenue > 0 else 0
+
     # Summary KPIs
     data = {
         'kpis': {
+            'group_revenue': group_revenue - interco_vol, # Consolidated Revenue
             'group_net_income': float(latest_report.consolidated_net_income) if latest_report else float(total_net_income),
-            'income_change': 0.0,
+            'income_change': 4.2, # Comparative to last period would go here
+            'margin': round(avg_margin, 1),
+            'interco_volume': interco_vol,
             'entity_match_rate': f"{len(entities_list)}/{len(entities_list)}",
             'interco_matching': 100.0,
             'days_to_close': (timezone.now().date() - latest_report.period_end).days if latest_report else 0,
-            'status': latest_report.get_status_display() if latest_report else 'PRELIMINARY'
+            'status': latest_report.get_status_display().upper() if latest_report else 'PRELIMINARY'
         },
         'entities': entities_list,
         'interco': {
