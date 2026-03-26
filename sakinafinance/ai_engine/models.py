@@ -1,6 +1,6 @@
 """
 AI Engine Models — SakinaFinance
-Intelligence Artificielle : Forecasting, Anomalies, OCR, Insights
+Intelligence Artificielle : Forecasting, Anomalies, OCR, Insights , 
 """
 
 import uuid
