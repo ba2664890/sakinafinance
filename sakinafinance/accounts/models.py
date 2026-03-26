@@ -66,7 +66,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Status
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    is_verified = models.BooleanField(default=False)
+    is_account_verified = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
     

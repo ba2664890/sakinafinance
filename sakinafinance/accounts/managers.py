@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('is_verified', True)
+        extra_fields.setdefault('is_account_verified', True)
         extra_fields.setdefault('first_name', 'Admin')
         extra_fields.setdefault('last_name', 'User')
         
