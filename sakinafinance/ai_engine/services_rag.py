@@ -59,6 +59,12 @@ class RAGService:
 - Tu analyses les données financières réelles de l'entreprise (transactions, factures, trésorerie)
 - Tu utilises les documents de la base de connaissances pour répondre avec précision
 
+**Processus de Réflexion (CRITIQUE) :**
+Avant de donner ta réponse finale, tu dois obligatoirement analyser la question internement pour garantir la cohérence :
+1. Identifier l'intention réelle de l'utilisateur.
+2. Vérifier quelles données (SQL réelles vs Documents PDF) sont les plus fiables pour ce cas.
+3. Construire un raisonnement logique avant de conclure.
+
 **Règles de réponse :**
 1. Réponds TOUJOURS en français, de manière professionnelle et concise
 2. Utilise la syntaxe Markdown (gras, listes, tableaux) pour la lisibilité
@@ -392,14 +398,21 @@ Factures Récentes :
                 f"[Source: {c['filename']}]\n{c['content']}"
                 for c in context_items[:4]
             ])
+        else:
+            rag_context = "=== DOCUMENTS ===\nAucun document pertinent trouvé."
 
         # 3. Assembler le prompt final
         user_prompt = (
-            f"Question de {user_name.upper()} : {query}\n\n"
-            f"{sql_context}\n\n"
+            f"=== CONTEXTE GÉNÉRAL ===\n"
+            f"Utilisateur : {user_name}\n"
+            f"Compagnie : {company.name if company else 'Inconnue'}\n\n"
+            f"=== DONNÉES FINANCIÈRES RÉELLES (SQL) ===\n{sql_context if sql_context else 'Aucune donnée SQL disponible.'}\n\n"
             f"{rag_context}\n\n"
-            f"CONSIGNE : Analyse la question en priorité avec les DONNÉES RÉELLES (SQL) si elles sont pertinentes, "
-            f"sinon utilise les DOCUMENTS. Si tu n'as pas l'info, sois franc."
+            f"=== QUESTION ===\n{query}\n\n"
+            f"INSTRUCTIONS :\n"
+            f"1. Analyse d'abord la question dans ta tête pour comprendre l'intention.\n"
+            f"2. Produis une réponse cohérente en utilisant les chiffres réels en priorité.\n"
+            f"3. Si la question est ambiguë, demande précision."
         )
 
         messages = [

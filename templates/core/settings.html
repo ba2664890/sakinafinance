@@ -6,17 +6,68 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom">
-                <h5 class="mb-0">Paramètres de l'application</h5>
-            </div>
-            <div class="card-body p-4">
-                <p class="text-muted">Configuration générale de votre compte et de l'interface SakinaFinance.</p>
-                <!-- Ajouter le formulaire de paramètres ici à l'avenir -->
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i> Les paramètres système seront bientôt disponibles dans cette section.
+        <!-- Tab Navigation -->
+        <ul class="nav nav-pills mb-4" id="settingsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="user-tab" data-bs-toggle="pill" data-bs-target="#user-prefs" type="button" role="tab">
+                    <i class="bi bi-person-gear me-2"></i>Préférences Personnelles
+                </button>
+            </li>
+            {% if company_form %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="company-tab" data-bs-toggle="pill" data-bs-target="#company-settings" type="button" role="tab">
+                    <i class="bi bi-building-gear me-2"></i>Paramètres Entreprise
+                </button>
+            </li>
+            {% endif %}
+        </ul>
+
+        <div class="tab-content" id="settingsTabsContent">
+            <!-- User Preferences Panel -->
+            <div class="tab-pane fade show active" id="user-prefs" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">Mes Préférences</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="user_preferences">
+                            {{ user_form|crispy }}
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Enregistrer les préférences
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
+
+            <!-- Company Settings Panel -->
+            {% if company_form %}
+            <div class="tab-pane fade" id="company-settings" role="tabpanel">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">Informations de l'entreprise</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="company_settings">
+                            <div class="row">
+                                {{ company_form|crispy }}
+                            </div>
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-2"></i>Mettre à jour l'entreprise
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

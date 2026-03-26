@@ -6,40 +6,58 @@
 {% block content %}
 <div class="row">
     <div class="col-md-4">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body text-center p-4">
-                <div class="user-avatar mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
-                    {{ request.user.first_name|first }}{{ request.user.last_name|first }}
+        <!-- Profile Card -->
+        <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 20px;">
+            <div class="card-body text-center p-0">
+                <div class="profile-cover" style="height: 100px; background: linear-gradient(135deg, #2563eb, #06b6d4);"></div>
+                <div class="px-4 pb-4" style="margin-top: -40px;">
+                    <div class="user-avatar mx-auto mb-3 shadow-sm border border-white border-4" style="width: 80px; height: 80px; font-size: 2rem; background: #f8fafc; color: #2563eb;">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="Avatar" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                        {% else %}
+                            {{ request.user.first_name|first }}{{ request.user.last_name|first }}
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1 fw-bold">{{ request.user.get_full_name }}</h5>
+                    <p class="text-muted small mb-3"><i class="bi bi-envelope me-1"></i>{{ request.user.email }}</p>
+                    <div class="badge bg-primary-subtle text-primary text-uppercase px-3 py-2 rounded-pill small border border-primary-subtle" style="font-weight: 700; letter-spacing: 0.05em;">
+                        {{ request.user.get_role_display|default:"Utilisateur" }}
+                    </div>
                 </div>
-                <h5 class="mb-1">{{ request.user.get_full_name }}</h5>
-                <p class="text-muted mb-3">{{ request.user.email }}</p>
-                <div class="badge bg-primary text-uppercase px-3 py-2 rounded-pill">
-                    {{ request.user.get_role_display|default:"Utilisateur" }}
+            </div>
+            <div class="card-footer bg-white border-top-0 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Plan actuel</span>
+                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1">{{ user.get_subscription_plan_display|default:user.subscription_plan|title }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Membre depuis</span>
+                    <span class="fw-medium small">{{ user.date_joined|date:"M Y" }}</span>
                 </div>
             </div>
         </div>
 
         <!-- 2FA Status Card -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white border-bottom">
-                <h6 class="mb-0 fw-bold">Sécurité & Authentification</h6>
+        <div class="card shadow-sm border-0 mb-4" style="border-radius: 20px;">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold">Sécurité</h6>
             </div>
             <div class="card-body p-4">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="p-2 rounded-circle {% if user.two_factor_enabled %}bg-success{% else %}bg-warning{% endif %} bg-opacity-10">
+                    <div class="p-2 rounded-circle {% if user.two_factor_enabled %}bg-success{% else %}bg-warning{% endif %} bg-opacity-10" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
                         <i class="bi {% if user.two_factor_enabled %}bi-shield-check text-success{% else %}bi-shield-exclamation text-warning{% endif %} fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="mb-0 fw-bold">Double Authentification</h6>
-                        <small class="text-muted">{% if user.two_factor_enabled %}Activée - Votre compte est protégé.{% else %}Désactivée - Nous vous recommandons de l'activer.{% endif %}</small>
+                        <h6 class="mb-1 fw-bold" style="font-size: 0.9rem;">Double Authentification</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.75rem;">{% if user.two_factor_enabled %}Activée{% else %}Non activée{% endif %}</p>
                     </div>
                 </div>
                 
-                <div class="d-grid mt-3">
+                <div class="d-grid">
                     {% if user.two_factor_enabled %}
-                        <a href="{% url 'two_factor:profile' %}" class="btn btn-outline-primary btn-sm">Gérer la 2FA</a>
+                        <a href="{% url 'two_factor:profile' %}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold">Gérer la 2FA</a>
                     {% else %}
-                        <a href="{% url 'two_factor:setup' %}" class="btn btn-primary btn-sm">Activer la 2FA</a>
+                        <a href="{% url 'two_factor:setup' %}" class="btn btn-primary btn-sm rounded-pill fw-bold">Activer la 2FA</a>
                     {% endif %}
                 </div>
             </div>
@@ -47,16 +65,35 @@
     </div>
     
     <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom text-bg-light">
-                <h5 class="mb-0">Informations Personnelles</h5>
+        <div class="card shadow-sm border-0" style="border-radius: 20px;">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold">Informations Personnelles</h5>
             </div>
             <div class="card-body p-4">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    {{ form|crispy }}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.phone|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.job_title|as_crispy_field }}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            {{ form.department|as_crispy_field }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form.avatar|as_crispy_field }}
+                        </div>
+                    </div>
                     <div class="mt-4">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">
                             <i class="bi bi-save me-2"></i>Enregistrer les modifications
                         </button>
                     </div>

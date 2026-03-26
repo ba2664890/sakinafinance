@@ -9,9 +9,11 @@ from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
 from datetime import datetime, timedelta, date
 from decimal import Decimal
+from django.contrib import messages
 from sakinafinance.accounting.models import Transaction, Invoice, Account, TransactionLine, ConsolidationReport, InterCompanyElimination
 from sakinafinance.hr.models import Employee
 from sakinafinance.procurement.models import PurchaseOrder
+from sakinafinance.accounts.forms import UserPreferencesForm, CompanyForm
 
 
 def _get_period_range(period='year'):
@@ -116,8 +118,36 @@ def ai_advisor_view(request):
 
 @login_required
 def settings_view(request):
-    """Settings View"""
-    return render(request, 'core/settings.html', {'page_title': 'Paramètres'})
+    """Enhanced Settings View with Multiple Forms"""
+    user = request.user
+    company = user.company
+    
+    user_form = UserPreferencesForm(instance=user)
+    company_form = CompanyForm(instance=company) if company else None
+    
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'user_preferences':
+            user_form = UserPreferencesForm(request.POST, instance=user)
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Préférences utilisateur mises à jour.')
+                return redirect('settings')
+        
+        elif form_type == 'company_settings' and company:
+            company_form = CompanyForm(request.POST, instance=company)
+            if company_form.is_valid():
+                company_form.save()
+                messages.success(request, 'Paramètres de l\'entreprise mis à jour.')
+                return redirect('settings')
+    
+    context = {
+        'page_title': 'Paramètres',
+        'user_form': user_form,
+        'company_form': company_form,
+    }
+    return render(request, 'core/settings.html', context)
 
 
 # API Views
