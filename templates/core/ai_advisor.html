@@ -164,7 +164,8 @@
         flex-direction: column;
         gap: 2rem;
         scroll-behavior: smooth;
-        background: #ffffff;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        position: relative;
     }
 
     /* Message Bubbles */
@@ -187,26 +188,31 @@
     }
 
     .msg-ai {
-        background: #0c131a;
-        border: 1px solid var(--ai-border);
-        color: var(--ai-text);
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.95);
         border-bottom-left-radius: 4px;
         align-self: flex-start;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
     }
+    
+    .msg-ai p { color: rgba(255, 255, 255, 0.9) !important; }
+    .msg-ai strong { color: #60a5fa !important; }
 
     .msg-user {
-        background: linear-gradient(135deg, var(--ai-primary) 0%, var(--ai-secondary) 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
         color: white;
         align-self: flex-end;
         border-bottom-right-radius: 4px;
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
     }
 
     .ai-avatar {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #3b82f6, #06b6d4);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -214,7 +220,8 @@
         margin-bottom: 1rem;
         font-size: 1.25rem;
         color: white;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+        border: 2px solid rgba(255, 255, 255, 0.2);
     }
 
     /* Thinking State */
@@ -252,25 +259,28 @@
     /* Input Area */
     .input-area {
         padding: 1.5rem 2.5rem;
-        background: white;
-        border-top: 2px solid var(--ai-bg);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .command-box {
-        background: #f1f5f9;
-        border: 2px solid transparent;
-        border-radius: 16px;
-        padding: 0.75rem 1.25rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 0.85rem 1.5rem;
         display: flex;
         align-items: center;
         gap: 1rem;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
     }
 
     .command-box:focus-within {
-        border-color: var(--ai-primary);
+        border-color: #2563eb;
         background: white;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1);
+        transform: translateY(-2px);
     }
 
     .command-box input {
@@ -309,11 +319,19 @@
     }
 
     .premium-card {
-        background: white;
-        border: 1px solid var(--ai-border);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         border-radius: 24px;
         padding: 2rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    .premium-card:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
     }
 
     .score-percentage .h1 {
