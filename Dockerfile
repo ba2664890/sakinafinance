@@ -30,11 +30,14 @@ RUN chmod +x /app/entrypoint.sh
 # Entrypoint setup
 ENTRYPOINT ["/app/entrypoint.sh"]
 
+# Expose Render's expected default port
+EXPOSE 10000
+
 # Run gunicorn with increased timeout and optimized worker config for RAM
 ENV DJANGO_SETTINGS_MODULE=sakinafinance.settings
 CMD gunicorn sakinafinance.wsgi:application \
-    --bind 0.0.0.0:${PORT:-8000} \
+    --bind 0.0.0.0:10000 \
     --workers 1 \
-    --threads 4 \
     --timeout 120 \
     --log-level info
+
