@@ -15,6 +15,7 @@
         position: relative;
         overflow: hidden;
     }
+
     .ai-hero::before {
         content: '';
         position: absolute;
@@ -22,14 +23,16 @@
         right: -50%;
         width: 100%;
         height: 200%;
-        background: radial-gradient(circle, rgba(139,92,246,.2) 0%, transparent 60%);
+        background: radial-gradient(circle, rgba(139, 92, 246, .2) 0%, transparent 60%);
     }
+
     .ai-kpi-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
         margin-bottom: 2rem;
     }
+
     .ai-kpi {
         background: white;
         border: 1px solid #f1f5f9;
@@ -37,8 +40,20 @@
         padding: 1.25rem;
         text-align: center;
     }
-    .ai-kpi-val { font-size: 2rem; font-weight: 900; color: #1e293b; }
-    .ai-kpi-lbl { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .ai-kpi-val {
+        font-size: 2rem;
+        font-weight: 900;
+        color: #1e293b;
+    }
+
+    .ai-kpi-lbl {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
 
     .insight-card {
         border-radius: 12px;
@@ -48,13 +63,38 @@
         background: white;
         transition: transform 0.2s;
     }
-    .insight-card:hover { transform: translateX(4px); }
-    .insight-card.priority-critical { border-left-color: #dc2626; background: #fff5f5; }
-    .insight-card.priority-high { border-left-color: #f59e0b; background: #fffbeb; }
-    .insight-card.priority-medium { border-left-color: #3b82f6; background: #eff6ff; }
-    .insight-card.priority-low { border-left-color: #94a3b8; background: #f8fafc; }
 
-    .forecast-panel { background: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 1.5rem; }
+    .insight-card:hover {
+        transform: translateX(4px);
+    }
+
+    .insight-card.priority-critical {
+        border-left-color: #dc2626;
+        background: #fff5f5;
+    }
+
+    .insight-card.priority-high {
+        border-left-color: #f59e0b;
+        background: #fffbeb;
+    }
+
+    .insight-card.priority-medium {
+        border-left-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .insight-card.priority-low {
+        border-left-color: #94a3b8;
+        background: #f8fafc;
+    }
+
+    .forecast-panel {
+        background: white;
+        border: 1px solid #f1f5f9;
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
     .confidence-badge {
         background: linear-gradient(135deg, #10b981, #059669);
         color: white;
@@ -63,8 +103,21 @@
         font-size: 0.8rem;
         font-weight: 700;
     }
-    .anomaly-row { padding: 0.75rem; border-bottom: 1px solid #f8fafc; display: flex; gap: 1rem; align-items: center; }
-    .anomaly-badge-sev { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .anomaly-row {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f8fafc;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .anomaly-badge-sev {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
 </style>
 {% endblock %}
 
@@ -75,15 +128,18 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+                    <div
+                        style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;">
                         <i class="bi bi-robot fs-4 text-white"></i>
                     </div>
                     <div>
                         <h4 class="text-white mb-0 fw-bold">SakinaFinance Advisor</h4>
-                        <div class="text-white opacity-75 small">Moteur d'Intelligence Financière — Prophet + Isolation Forest</div>
+                        <div class="text-white opacity-75 small">Moteur d'Intelligence Financière — Prophet + Isolation
+                            Forest</div>
                     </div>
                 </div>
-                <p class="text-white opacity-75 mb-0">Analyses prédictives, détection d'anomalies et recommandations IA en temps réel sur vos données financières.</p>
+                <p class="text-white opacity-75 mb-0">Analyses prédictives, détection d'anomalies et recommandations IA
+                    en temps réel sur vos données financières.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <button onclick="refreshForecast()" class="btn btn-light me-2">
@@ -126,7 +182,8 @@
                     <div class="d-flex gap-2">
                         <button class="btn btn-sm btn-outline-secondary" onclick="changeForecastHorizon(6)">6M</button>
                         <button class="btn btn-sm btn-primary" onclick="changeForecastHorizon(12)">12M</button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="changeForecastHorizon(18)">18M</button>
+                        <button class="btn btn-sm btn-outline-secondary"
+                            onclick="changeForecastHorizon(18)">18M</button>
                     </div>
                 </div>
                 <canvas id="forecastChart" style="max-height: 300px;"></canvas>
@@ -154,7 +211,9 @@
                 <div class="insight-card priority-{{ insight.priority }}">
                     <div class="d-flex justify-content-between mb-1">
                         <span class="fw-bold small">{{ insight.title }}</span>
-                        <span class="badge {% if insight.priority == 'critical' %}bg-danger{% elif insight.priority == 'high' %}bg-warning text-dark{% elif insight.priority == 'medium' %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill" style="font-size:.65rem;">
+                        <span
+                            class="badge {% if insight.priority == 'critical' %}bg-danger{% elif insight.priority == 'high' %}bg-warning text-dark{% elif insight.priority == 'medium' %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill"
+                            style="font-size:.65rem;">
                             {{ insight.get_priority_display }}
                         </span>
                     </div>
@@ -163,7 +222,8 @@
                 {% empty %}
                 <div class="text-center py-4">
                     <i class="bi bi-check-circle text-success fs-3"></i>
-                    <p class="text-muted mt-2 small">Aucun insight en attente.<br>Votre situation financière semble saine.</p>
+                    <p class="text-muted mt-2 small">Aucun insight en attente.<br>Votre situation financière semble
+                        saine.</p>
                 </div>
                 {% endfor %}
             </div>
@@ -176,15 +236,19 @@
         <div class="col-12">
             <div class="forecast-panel">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Anomalies Détectées</h6>
+                    <h6 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Anomalies
+                        Détectées</h6>
                     <span class="badge bg-warning text-dark rounded-pill">{{ anomalies_count }}</span>
                 </div>
                 {% for anomaly in anomalies %}
                 <div class="anomaly-row">
-                    <div class="anomaly-badge-sev {% if anomaly.severity == 'critical' %}bg-danger{% elif anomaly.severity == 'high' %}bg-warning{% elif anomaly.severity == 'medium' %}bg-info{% else %}bg-secondary{% endif %}"></div>
+                    <div
+                        class="anomaly-badge-sev {% if anomaly.severity == 'critical' %}bg-danger{% elif anomaly.severity == 'high' %}bg-warning{% elif anomaly.severity == 'medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                    </div>
                     <div class="flex-grow-1">
                         <div class="fw-bold small">{{ anomaly.title }}</div>
-                        <div class="text-muted" style="font-size:.75rem;">{{ anomaly.description|truncatechars:80 }}</div>
+                        <div class="text-muted" style="font-size:.75rem;">{{ anomaly.description|truncatechars:80 }}
+                        </div>
                     </div>
                     {% if anomaly.amount %}
                     <div class="text-end">
@@ -203,95 +267,95 @@
 
 {% block extra_js %}
 <script>
-const forecastData = {{ forecast_data_json|safe }};
-let forecastChart;
+    const forecastData = {{ forecast_data_json| safe }};
+    let forecastChart;
 
-function renderForecastChart(data) {
-    const labels = data.map(d => d.ds);
-    const yhat = data.map(d => d.yhat);
-    const lower = data.map(d => d.yhat_lower);
-    const upper = data.map(d => d.yhat_upper);
-    const ctx = document.getElementById('forecastChart').getContext('2d');
+    function renderForecastChart(data) {
+        const labels = data.map(d => d.ds);
+        const yhat = data.map(d => d.yhat);
+        const lower = data.map(d => d.yhat_lower);
+        const upper = data.map(d => d.yhat_upper);
+        const ctx = document.getElementById('forecastChart').getContext('2d');
 
-    if (forecastChart) forecastChart.destroy();
+        if (forecastChart) forecastChart.destroy();
 
-    forecastChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Intervalle confiance',
-                    data: upper,
-                    fill: '+1',
-                    backgroundColor: 'rgba(37,99,235,.10)',
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    tension: 0.4,
+        forecastChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Intervalle confiance',
+                        data: upper,
+                        fill: '+1',
+                        backgroundColor: 'rgba(37,99,235,.10)',
+                        borderWidth: 0,
+                        pointRadius: 0,
+                        tension: 0.4,
+                    },
+                    {
+                        label: 'Prévision',
+                        data: yhat,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#2563eb',
+                        tension: 0.4,
+                    },
+                    {
+                        label: 'Borne basse',
+                        data: lower,
+                        fill: false,
+                        backgroundColor: 'rgba(37,99,235,.10)',
+                        borderWidth: 0,
+                        pointRadius: 0,
+                        tension: 0.4,
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                if (ctx.datasetIndex !== 1) return null;
+                                return `Prévision: ${ctx.parsed.y.toLocaleString('fr-FR')} FCFA`;
+                            }
+                        }
+                    }
                 },
-                {
-                    label: 'Prévision',
-                    data: yhat,
-                    borderColor: '#2563eb',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2.5,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#2563eb',
-                    tension: 0.4,
-                },
-                {
-                    label: 'Borne basse',
-                    data: lower,
-                    fill: false,
-                    backgroundColor: 'rgba(37,99,235,.10)',
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    tension: 0.4,
-                },
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => {
-                            if(ctx.datasetIndex !== 1) return null;
-                            return `Prévision: ${ctx.parsed.y.toLocaleString('fr-FR')} FCFA`;
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        ticks: {
+                            callback: v => v >= 1000000
+                                ? (v / 1000000).toFixed(1) + 'M'
+                                : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v
                         }
                     }
                 }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: {
-                    ticks: {
-                        callback: v => v >= 1000000
-                            ? (v/1000000).toFixed(1) + 'M'
-                            : v >= 1000 ? (v/1000).toFixed(0) + 'K' : v
-                    }
-                }
             }
-        }
+        });
+    }
+
+    function changeForecastHorizon(months) {
+        fetch(`/ai/api/forecast/?horizon=${months}`)
+            .then(r => r.json())
+            .then(d => renderForecastChart(d.forecast))
+            .catch(() => renderForecastChart(forecastData.slice(0, months)));
+    }
+
+    function refreshForecast() {
+        changeForecastHorizon(12);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderForecastChart(forecastData);
     });
-}
-
-function changeForecastHorizon(months) {
-    fetch(`/ai/api/forecast/?horizon=${months}`)
-        .then(r => r.json())
-        .then(d => renderForecastChart(d.forecast))
-        .catch(() => renderForecastChart(forecastData.slice(0, months)));
-}
-
-function refreshForecast() {
-    changeForecastHorizon(12);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    renderForecastChart(forecastData);
-});
 </script>
 {% endblock %}

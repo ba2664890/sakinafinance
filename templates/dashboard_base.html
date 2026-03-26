@@ -11,111 +11,128 @@
             <span class="brand-text">Sakina<span>Finance</span></span>
         </a>
     </div>
-    
+
     <nav class="sidebar-nav">
         <!-- Main Menu -->
         <div class="nav-section">
             <div class="nav-section-title">Menu Principal</div>
-            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <a href="{% url 'dashboard' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="bi bi-grid"></i>
                 <span>Tableau de Bord</span>
             </a>
             {% if request.user.can_access_executive %}
-            <a href="{% url 'executive' %}" class="nav-link {% if request.resolver_match.url_name == 'executive' %}active{% endif %}">
+            <a href="{% url 'executive' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'executive' %}active{% endif %}">
                 <i class="bi bi-graph-up-arrow"></i>
                 <span>Executive View</span>
             </a>
             {% endif %}
-            <a href="{% url 'ai_advisor' %}" class="nav-link {% if request.resolver_match.url_name == 'ai_advisor' %}active{% endif %}">
+            <a href="{% url 'ai_advisor' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'ai_advisor' %}active{% endif %}">
                 <i class="bi bi-robot"></i>
                 <span>IA Advisor</span>
                 <span class="badge bg-primary ms-auto">NEW</span>
             </a>
         </div>
-        
+
         <!-- Finance -->
         <div class="nav-section">
             <div class="nav-section-title">Finance</div>
             {% if request.user.can_access_consolidation %}
-            <a href="{% url 'consolidation' %}" class="nav-link {% if request.resolver_match.url_name == 'consolidation' %}active{% endif %}">
+            <a href="{% url 'consolidation' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'consolidation' %}active{% endif %}">
                 <i class="bi bi-building"></i>
                 <span>Consolidation</span>
             </a>
             {% endif %}
             {% if request.user.can_access_finance %}
-            <a href="{% url 'treasury' %}" class="nav-link {% if request.resolver_match.url_name == 'treasury' %}active{% endif %}">
+            <a href="{% url 'treasury' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'treasury' %}active{% endif %}">
                 <i class="bi bi-bank"></i>
                 <span>Trésorerie</span>
             </a>
-            <a href="{% url 'accounting' %}" class="nav-link {% if request.resolver_match.url_name == 'accounting' %}active{% endif %}">
+            <a href="{% url 'accounting' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'accounting' %}active{% endif %}">
                 <i class="bi bi-calculator"></i>
                 <span>Comptabilité</span>
             </a>
             {% endif %}
             {% if request.user.can_access_hr %}
-            <a href="{% url 'financial_statements' %}" class="nav-link {% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}">
+            <a href="{% url 'financial_statements' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'financial_statements' %}active{% endif %}">
                 <i class="bi bi-file-text"></i>
                 <span>États Financiers</span>
             </a>
             {% endif %}
         </div>
-        
+
         <!-- Operations -->
         {% if request.user.can_access_operations %}
         <div class="nav-section">
             <div class="nav-section-title">Opérations</div>
-            <a href="{% url 'purchases' %}" class="nav-link {% if request.resolver_match.url_name == 'purchases' %}active{% endif %}">
+            <a href="{% url 'purchases' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'purchases' %}active{% endif %}">
                 <i class="bi bi-cart"></i>
                 <span>Achats</span>
             </a>
-            <a href="{% url 'inventory' %}" class="nav-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
+            <a href="{% url 'inventory' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
                 <i class="bi bi-box-seam"></i>
                 <span>Inventaire</span>
             </a>
             {% if request.user.can_access_hr %}
-            <a href="{% url 'hr_payroll' %}" class="nav-link {% if request.resolver_match.url_name == 'hr_payroll' %}active{% endif %}">
+            <a href="{% url 'hr_payroll' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'hr_payroll' %}active{% endif %}">
                 <i class="bi bi-people"></i>
                 <span>RH &amp; Paie</span>
             </a>
-            <a href="{% url 'projects' %}" class="nav-link {% if request.resolver_match.url_name == 'projects' %}active{% endif %}">
+            <a href="{% url 'projects' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'projects' %}active{% endif %}">
                 <i class="bi bi-folder"></i>
                 <span>Projets</span>
             </a>
             {% endif %}
         </div>
         {% endif %}
-        
+
         <!-- Compliance -->
         {% if request.user.can_access_compliance %}
         <div class="nav-section">
             <div class="nav-section-title">Conformité</div>
-            <a href="{% url 'taxation' %}" class="nav-link {% if request.resolver_match.url_name == 'taxation' %}active{% endif %}">
+            <a href="{% url 'taxation' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'taxation' %}active{% endif %}">
                 <i class="bi bi-shield-check"></i>
                 <span>Fiscalité</span>
             </a>
-            <a href="{% url 'regulatory' %}" class="nav-link {% if request.resolver_match.url_name == 'regulatory' %}active{% endif %}">
+            <a href="{% url 'regulatory' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'regulatory' %}active{% endif %}">
                 <i class="bi bi-file-earmark-check"></i>
                 <span>Réglementaire</span>
             </a>
         </div>
         {% endif %}
-        
+
         <!-- Settings -->
         <div class="nav-section">
             <div class="nav-section-title">Paramètres</div>
-            <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <a href="{% url 'profile' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
                 <i class="bi bi-person"></i>
                 <span>Profil</span>
             </a>
-            <a href="{% url 'settings' %}" class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+            <a href="{% url 'settings' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
                 <i class="bi bi-gear"></i>
                 <span>Paramètres</span>
             </a>
-            <a href="{% url 'manage_subscription' %}" class="nav-link {% if request.resolver_match.url_name == 'manage_subscription' %}active{% endif %}">
+            <a href="{% url 'manage_subscription' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'manage_subscription' %}active{% endif %}">
                 <i class="bi bi-credit-card"></i>
                 <span>Abonnement</span>
             </a>
-            <a href="{% url 'pricing' %}" class="nav-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
+            <a href="{% url 'pricing' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'pricing' %}active{% endif %}">
                 <i class="bi bi-tag"></i>
                 <span>Nos Offres</span>
             </a>
@@ -133,16 +150,17 @@
             </button>
             <h1 class="page-title">{% block page_title %}Tableau de Bord{% endblock %}</h1>
         </div>
-        
+
         <div class="header-right">
             <!-- Search -->
             <button class="header-btn" aria-label="Recherche">
                 <i class="bi bi-search"></i>
             </button>
-            
+
             <!-- Notifications -->
             <div class="dropdown">
-                <button class="header-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                <button class="header-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                    aria-label="Notifications">
                     <i class="bi bi-bell"></i>
                     <span class="badge bg-danger" id="notif-badge" style="display:none;">0</span>
                 </button>
@@ -157,10 +175,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- User Dropdown -->
             <div class="dropdown">
-                <div class="user-dropdown" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor:pointer;">
+                <div class="user-dropdown" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                    style="cursor:pointer;">
                     <div class="user-avatar">
                         {{ request.user.first_name|first }}{{ request.user.last_name|first }}
                     </div>
@@ -193,60 +212,62 @@
             </div>
         </div>
     </header>
-    
+
     <!-- Content Area -->
     <div class="content-area">
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+        {% endfor %}
         {% endif %}
-        
+
         {% block content %}{% endblock %}
     </div>
 </main>
 
 <style>
     /* Smooth sidebar/main transition */
-    #mainContent { transition: margin-left 0.3s ease; }
+    #mainContent {
+        transition: margin-left 0.3s ease;
+    }
 </style>
 
 <script>
-(function() {
-    // Sidebar Toggle
-    var sidebar = document.getElementById('sidebar');
-    var mainContent = document.getElementById('mainContent');
-    var toggleBtn = document.getElementById('sidebarToggle');
+    (function () {
+        // Sidebar Toggle
+        var sidebar = document.getElementById('sidebar');
+        var mainContent = document.getElementById('mainContent');
+        var toggleBtn = document.getElementById('sidebarToggle');
 
-    toggleBtn.addEventListener('click', function() {
-        var isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
-        mainContent.style.marginLeft = isCollapsed
-            ? 'var(--sidebar-collapsed)'
-            : 'var(--sidebar-width)';
-    });
+        toggleBtn.addEventListener('click', function () {
+            var isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
+            mainContent.style.marginLeft = isCollapsed
+                ? 'var(--sidebar-collapsed)'
+                : 'var(--sidebar-width)';
+        });
 
-    // Dynamic Notifications Badge
-    async function loadNotifications() {
-        try {
-            const res = await fetch('{% url "api_notifications" %}');
-            const data = await res.json();
-            const badge = document.getElementById('notif-badge');
-            const list = document.getElementById('notif-list');
+        // Dynamic Notifications Badge
+        async function loadNotifications() {
+            try {
+                const res = await fetch('{% url "api_notifications" %}');
+                const data = await res.json();
+                const badge = document.getElementById('notif-badge');
+                const list = document.getElementById('notif-list');
 
-            if (data.total_count > 0) {
-                badge.textContent = data.total_count;
-                badge.style.display = '';
-            } else {
-                badge.style.display = 'none';
-            }
+                if (data.total_count > 0) {
+                    badge.textContent = data.total_count;
+                    badge.style.display = '';
+                } else {
+                    badge.style.display = 'none';
+                }
 
-            if (data.notifications.length === 0) {
-                list.innerHTML = '<div class="dropdown-item text-muted small text-center py-3"><i class="bi bi-check-circle text-success me-2"></i>Aucune alerte active</div>';
-            } else {
-                list.innerHTML = data.notifications.map(n => `
+                if (data.notifications.length === 0) {
+                    list.innerHTML = '<div class="dropdown-item text-muted small text-center py-3"><i class="bi bi-check-circle text-success me-2"></i>Aucune alerte active</div>';
+                } else {
+                    list.innerHTML = data.notifications.map(n => `
                     <a class="dropdown-item py-2" href="${n.url || '#'}">
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0">
@@ -262,13 +283,13 @@
                         </div>
                     </a>
                 `).join('');
+                }
+            } catch (e) {
+                console.warn('Notifications load failed', e);
             }
-        } catch(e) {
-            console.warn('Notifications load failed', e);
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', loadNotifications);
-})();
+        document.addEventListener('DOMContentLoaded', loadNotifications);
+    })();
 </script>
 {% endblock %}
