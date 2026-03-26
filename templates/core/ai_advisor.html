@@ -7,14 +7,14 @@
 <style>
     :root {
         --ai-primary: #2563eb;
-        --ai-secondary: #8b5cf6;
+        --ai-secondary: #7c3aed;
         --ai-accent: #10b981;
-        --ai-bg: #f8fafc;
+        --ai-bg: #f1f5f9;
         --ai-card: #ffffff;
-        --ai-glass: rgba(255, 255, 255, 0.8);
-        --ai-border: #e2e8f0;
-        --ai-text: #1e293b;
-        --ai-text-muted: #64748b;
+        --ai-glass: rgba(255, 255, 255, 0.9);
+        --ai-border: #cbd5e1;
+        --ai-text: #0f172a;
+        --ai-text-muted: #475569;
         --font-main: 'Outfit', sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
     }
@@ -25,29 +25,43 @@
     .ai-wrapper {
         color: var(--ai-text);
         border-radius: 24px;
-        padding: 1.25rem;
-        height: calc(100vh - 120px);
+        padding: 1rem;
+        min-height: calc(100vh - 100px);
         display: grid;
         grid-template-columns: 1fr 380px;
-        gap: 1.25rem;
+        gap: 1.5rem;
         position: relative;
-        overflow: hidden;
     }
 
-    /* Soft Glows for Light Mode */
+    @media (max-width: 1200px) {
+        .ai-wrapper { grid-template-columns: 1fr 320px; }
+    }
+
+    @media (max-width: 991px) {
+        .ai-wrapper { 
+            grid-template-columns: 1fr;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-section { height: 600px; order: 1; }
+        .sidebar-panel { order: 2; }
+    }
+
+    /* Soft Glows for Light Mode - Slightly more subtle */
     .bg-glow-1 {
         position: absolute; width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
         top: -200px; left: -100px; z-index: 0; filter: blur(100px);
         animation: float-glow 20s infinite alternate ease-in-out;
     }
     .bg-glow-2 {
         position: absolute; width: 500px; height: 500px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
         bottom: -100px; right: 300px; z-index: 0; filter: blur(80px);
         animation: float-glow 25s infinite alternate-reverse ease-in-out;
     }
-    @keyframes float-glow { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(100px, 50px) scale(1.1); } }
+    @keyframes float-glow { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(60px, 30px) scale(1.05); } }
 
     /* Central Chat Section */
     .chat-section {
@@ -58,13 +72,18 @@
         flex-direction: column;
         z-index: 1;
         overflow: hidden;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        height: calc(100vh - 140px);
+    }
+
+    @media (max-width: 991px) {
+        .chat-section { height: 600px; }
     }
 
     .chat-header {
-        padding: 1.25rem 2rem;
-        border-bottom: 1px solid var(--ai-border);
-        background: rgba(255,255,255,0.8);
+        padding: 1.5rem 2rem;
+        border-bottom: 2px solid var(--ai-bg);
+        background: rgba(255,255,255,0.95);
         backdrop-filter: blur(20px);
         display: flex;
         justify-content: space-between;
@@ -72,74 +91,74 @@
     }
 
     .neural-dot {
-        width: 10px; height: 10px;
+        width: 12px; height: 12px;
         background: var(--ai-accent);
         border-radius: 50%;
-        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
         position: relative;
     }
     .neural-dot::after {
         content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%;
         background: var(--ai-accent); animation: ripple 2.5s infinite;
     }
-    @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3); opacity: 0; } }
+    @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(3.5); opacity: 0; } }
 
     .chat-messages {
-        flex: 1; overflow-y: auto; padding: 2rem;
-        display: flex; flex-direction: column; gap: 1.5rem;
+        flex: 1; overflow-y: auto; padding: 2.5rem;
+        display: flex; flex-direction: column; gap: 2rem;
         scroll-behavior: smooth;
-        background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(248,250,252,0.5) 100%);
+        background: #ffffff;
     }
 
     /* Message Bubbles */
     .msg {
-        max-width: 85%; padding: 1.25rem 1.75rem; border-radius: 22px;
-        font-size: 0.95rem; line-height: 1.6;
-        animation: slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        opacity: 0; transform: translateY(20px);
+        max-width: 85%; padding: 1.5rem 2rem; border-radius: 24px;
+        font-size: 1rem; line-height: 1.6;
+        animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        opacity: 0; transform: translateY(15px);
     }
     @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
 
     .msg-ai {
-        background: white;
+        background: #f8fafc;
         border: 1px solid var(--ai-border);
         color: var(--ai-text); border-bottom-left-radius: 4px;
         align-self: flex-start;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     .msg-user {
-        background: var(--ai-primary);
+        background: linear-gradient(135deg, var(--ai-primary) 0%, var(--ai-secondary) 100%);
         color: white; align-self: flex-end; border-bottom-right-radius: 4px;
-        box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
     }
 
     .ai-avatar {
-        width: 32px; height: 32px;
+        width: 40px; height: 40px;
         background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
-        border-radius: 8px; display: flex; align-items: center;
-        justify-content: center; margin-bottom: 0.75rem; font-size: 1rem;
-        color: white;
+        border-radius: 12px; display: flex; align-items: center;
+        justify-content: center; margin-bottom: 1rem; font-size: 1.25rem;
+        color: white; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
     }
 
     /* Thinking State */
     #thinking-indicator {
-        display: none; align-self: flex-start; padding: 0.75rem 1.25rem;
-        background: white; border: 1px solid var(--ai-border);
-        border-radius: 18px; border-bottom-left-radius: 4px;
+        display: none; align-self: flex-start; padding: 1rem 1.5rem;
+        background: #f8fafc; border: 1px solid var(--ai-border);
+        border-radius: 20px; border-bottom-left-radius: 4px;
     }
-    .dots { display: flex; gap: 6px; }
-    .dot { width: 6px; height: 6px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.2s infinite; }
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 8px; height: 8px; background: var(--ai-primary); border-radius: 50%; animation: bounce 1.2s infinite; }
     .dot:nth-child(2) { animation-delay: 0.2s; }
     .dot:nth-child(3) { animation-delay: 0.4s; }
 
     /* Input Area */
-    .input-area { padding: 1.5rem 2rem; background: white; border-top: 1px solid var(--ai-border); }
+    .input-area { padding: 1.5rem 2.5rem; background: white; border-top: 2px solid var(--ai-bg); }
     .command-box {
         background: #f1f5f9;
-        border: 1px solid var(--ai-border);
-        border-radius: 20px; padding: 0.5rem 1rem;
-        display: flex; align-items: center; gap: 0.75rem;
-        transition: all 0.3s;
+        border: 2px solid transparent;
+        border-radius: 16px; padding: 0.75rem 1.25rem;
+        display: flex; align-items: center; gap: 1rem;
+        transition: all 0.2s ease;
     }
     .command-box:focus-within {
         border-color: var(--ai-primary); background: white;
@@ -147,44 +166,59 @@
     }
     .command-box input {
         flex: 1; background: transparent; border: none; color: var(--ai-text);
-        font-size: 1.05rem; padding: 0.5rem; outline: none;
+        font-size: 1.05rem; outline: none; font-weight: 500;
     }
 
     .btn-submit {
         background: var(--ai-primary);
-        border: none; width: 42px; height: 42px; border-radius: 12px;
+        border: none; width: 48px; height: 48px; border-radius: 12px;
         color: white; transition: all 0.3s; display: flex; align-items: center; justify-content: center;
     }
-    .btn-submit:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3); }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); }
 
     /* Sidebar Panels */
-    .sidebar-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+    .sidebar-panel { display: flex; flex-direction: column; gap: 1.5rem; }
     .premium-card {
         background: white;
-        border: 1px solid var(--ai-border); border-radius: 24px; padding: 1.5rem;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+        border: 1px solid var(--ai-border); border-radius: 24px; padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     .score-percentage .h1 { font-family: var(--font-mono); color: var(--ai-text); }
 
     .nav-suggestion {
         background: #f8fafc; border: 1px solid var(--ai-border);
-        border-radius: 16px; padding: 1rem; display: flex; align-items: center;
-        gap: 1rem; cursor: pointer; transition: all 0.2s ease;
+        border-radius: 16px; padding: 1.25rem; display: flex; align-items: center;
+        gap: 1.25rem; cursor: pointer; transition: all 0.2s ease;
     }
     .nav-suggestion:hover {
         background: white; border-color: var(--ai-primary);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transform: translateY(-3px);
     }
-    .nav-suggestion i { font-size: 1.25rem; color: var(--ai-primary); }
+    .nav-suggestion i { font-size: 1.5rem; color: var(--ai-primary); }
 
-    /* Chart Overrides */
-    canvas { filter: none; }
+    /* Markdown styling - Higher Contrast */
+    .msg-ai p { margin-bottom: 1rem; color: var(--ai-text); }
+    .msg-ai ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+    .msg-ai li { margin-bottom: 0.5rem; }
+    .msg-ai strong { color: var(--ai-primary); font-weight: 800; }
+    .msg-ai blockquote { border-left: 4px solid var(--ai-primary); padding-left: 1.25rem; color: var(--ai-text-muted); font-style: italic; background: rgba(37,99,235,0.03); padding-top: 0.5rem; padding-bottom: 0.5rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
 
-    /* Markdown styling */
-    .msg-ai p { margin-bottom: 0.75rem; }
-    .msg-ai ul { padding-left: 1.2rem; margin-bottom: 0.75rem; }
-    .msg-ai strong { color: var(--ai-primary); font-weight: 700; }
-    .msg-ai blockquote { border-left: 3px solid var(--ai-primary); padding-left: 1rem; color: var(--ai-text-muted); font-style: italic; }
+    /* Knowledge Base Section */
+    .kb-item {
+        padding: 0.75rem; border-radius: 12px; border: 1px solid var(--ai-border);
+        background: #f8fafc; margin-bottom: 0.5rem; transition: all 0.2s;
+        display: flex; align-items: center; gap: 0.75rem;
+    }
+    .kb-item:hover { background: white; border-color: var(--ai-primary); }
+    .kb-item i { font-size: 1.25rem; color: var(--ai-primary); }
+    
+    .upload-zone {
+        border: 2px dashed var(--ai-border); border-radius: 16px;
+        padding: 1.5rem; text-align: center; cursor: pointer;
+        transition: all 0.2s; background: #fafafa;
+    }
+    .upload-zone:hover { border-color: var(--ai-primary); background: white; }
+    .upload-zone i { font-size: 2rem; color: var(--ai-primary); opacity: 0.5; }
 </style>
 {% endblock %}
 
@@ -217,10 +251,10 @@
                 <p>J'ai synchronisé les données de **{{ request.user.company.name|default:"votre entreprise" }}**. Comment puis-je vous assister aujourd'hui ?</p>
                 
                 <div class="ai-actions mt-4 d-flex flex-wrap gap-2">
-                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Prévision de trésorerie')">📈 Prévision Trésorerie</button>
-                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
-                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
-                    <button class="btn btn-sm btn-outline-primary border-opacity-20 rounded-pill px-3 py-2" onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Prévision de trésorerie')">📈 Prévision Trésorerie</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Analyse de marge')">📊 Marges EBITDA</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Burn rate actuel')">🔥 Burn Rate</button>
+                    <button class="btn btn-sm btn-outline-primary border-opacity-50 rounded-pill px-3 py-2 fw-600" onclick="triggerAsk('Risques récents')">⚠️ Risques</button>
                 </div>
             </div>
         </div>
@@ -252,7 +286,7 @@
     <div class="sidebar-panel">
         <!-- Health Score -->
         <div class="premium-card text-center">
-            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4 opacity-70">Score de Santé IA</h6>
+            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4">Score de Santé IA</h6>
             <div class="score-circle mx-auto position-relative" style="width: 140px; height: 140px;">
                 <svg viewBox="0 0 100 100" class="w-100 h-100">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="8"></circle>
@@ -260,13 +294,13 @@
                     <defs>
                         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stop-color="#2563eb"></stop>
-                            <stop offset="100%" stop-color="#8b5cf6"></stop>
+                            <stop offset="100%" stop-color="#7c3aed"></stop>
                         </linearGradient>
                     </defs>
                 </svg>
                 <div class="position-absolute top-50 start-50 translate-middle text-center score-percentage">
-                    <div class="h2 fw-800 mb-0">{{ confidence|default:"82" }}</div>
-                    <div class="small fw-900 text-success" style="font-size: 0.6rem">STABLE</div>
+                    <div class="h2 fw-900 mb-0 text-dark">{{ confidence|default:"82" }}</div>
+                    <div class="small fw-900 text-success" style="font-size: 0.7rem">STABLE</div>
                 </div>
             </div>
             <p class="small text-muted mt-3 mb-0 px-2">Indice basé sur l'analyse de tous vos flux financiers en cours.</p>
@@ -302,9 +336,9 @@
 
         <!-- Latest Insights from Context -->
         <div class="premium-card flex-grow-1 overflow-auto">
-            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4 opacity-70">Insights Prioritaires</h6>
+            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-4">Insights Prioritaires</h6>
             {% for item in insights %}
-            <div class="p-3 rounded-4 mb-3 border border-light bg-light">
+            <div class="p-3 rounded-4 mb-3 border border-light bg-white shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2" style="font-size: 0.55rem">
                         {{ item.get_insight_type_display|upper }}
@@ -320,6 +354,39 @@
                 <div class="small fw-bold">Analyse en cours...</div>
             </div>
             {% endfor %}
+        </div>
+
+        <!-- Knowledge Base -->
+        <div class="premium-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="text-muted small fw-800 tracking-widest uppercase mb-0">Cerveau IA (RAG)</h6>
+                <button class="btn btn-sm btn-primary rounded-circle" style="width: 28px; height: 28px; padding: 0" onclick="document.getElementById('kbFile').click()">
+                    <i class="bi bi-plus"></i>
+                </button>
+                <input type="file" id="kbFile" hidden accept=".pdf,.docx,.txt" onchange="uploadKnowledge(this)">
+            </div>
+            
+            <div id="kbList" class="flex-column gap-1">
+                {% for doc in knowledge_documents %}
+                <div class="kb-item">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <div class="overflow-hidden">
+                        <div class="small fw-800 text-truncate text-dark" style="max-width: 200px">{{ doc.filename }}</div>
+                        <div class="text-muted" style="font-size: 0.6rem">
+                            {% if doc.status == 'indexed' %}<i class="bi bi-check-circle-fill text-success"></i> INDEXÉ • {{ doc.chunk_count }} segments
+                            {% elif doc.status == 'processing' %}<i class="spinner-border spinner-border-sm"></i> ANALYSE...
+                            {% else %}<i class="bi bi-exclamation-circle-fill text-danger"></i> ÉCHEC{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="upload-zone" onclick="document.getElementById('kbFile').click()">
+                    <i class="bi bi-cloud-arrow-up mb-2"></i>
+                    <div class="small fw-800 text-muted">Ajouter un document</div>
+                    <div class="text-muted" style="font-size: 0.6rem">PDF, Word ou Texte</div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
@@ -349,9 +416,9 @@
             if (items && items.length) {
                 content += '<div class="mt-3 d-flex flex-column gap-2">';
                 items.forEach(item => {
-                    content += `<div class="p-3 rounded-4 bg-light border border-light">
+                    content += `<div class="p-3 rounded-4 bg-white shadow-sm border border-light">
                         <div class="fw-800 small text-dark">${item.title}</div>
-                        <div class="small text-muted">${item.desc}</div>
+                        <div class="small text-muted" style="font-size: 0.85rem">${item.desc}</div>
                     </div>`;
                 });
                 content += '</div>';
@@ -403,6 +470,44 @@
     }
 
     interactForm.onsubmit = (e) => { e.preventDefault(); triggerAsk(inputField.value); };
+
+    async function uploadKnowledge(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        // UI Feedback
+        const kbList = document.getElementById('kbList');
+        const tempItem = document.createElement('div');
+        tempItem.className = 'kb-item';
+        tempItem.innerHTML = `<i class="spinner-border spinner-border-sm text-primary"></i>
+            <div>
+                <div class="small fw-800 text-dark">${file.name}</div>
+                <div class="text-muted" style="font-size: 0.6rem">Téléchargement...</div>
+            </div>`;
+        kbList.prepend(tempItem);
+
+        try {
+            const resp = await fetch('{% url "api_upload_knowledge" %}', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i>
+                    <div>
+                        <div class="small fw-800 text-dark">${file.name}</div>
+                        <div class="text-muted" style="font-size: 0.6rem">${data.error || 'Erreur'}</div>
+                    </div>`;
+            }
+        } catch (e) {
+            tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i><div>Erreur réseau</div>`;
+        }
+    }
 
     function renderChart(id, payload) {
         const ctx = document.getElementById(id).getContext('2d');

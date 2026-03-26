@@ -8,10 +8,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
-from .models import AIAnalysis, CashFlowForecast, AIInsight, AnomalyDetection
+from .models import AIAnalysis, CashFlowForecast, AIInsight, AnomalyDetection, KnowledgeDocument, KnowledgeChunk
+from .services_rag import RAGService
 from sakinafinance.accounting.models import Transaction, TransactionLine, Invoice
 from django.db.models import Sum, Count, Q
 from decimal import Decimal
+import logging
+
+logger = logging.getLogger('sakinafinance')
 
 
 def _get_company(request):
@@ -150,6 +154,7 @@ def ai_dashboard(request):
         'total_insights': AIInsight.objects.filter(company=company, is_dismissed=False).count() if company else 0,
         'critical_alerts': AIInsight.objects.filter(company=company, priority='critical', is_dismissed=False).count() if company else 0,
         'anomalies_count': AnomalyDetection.objects.filter(company=company, is_false_positive=False).count() if company else 0,
+        'knowledge_documents': KnowledgeDocument.objects.filter(company=company).order_by('-created_at') if company else [],
     }
     return render(request, 'ai_engine/dashboard.html', context)
 
@@ -303,9 +308,81 @@ def api_ai_chat(request):
             'insights': ["Renforcement recommandé du suivi de recouvrement."]
         })
 
-    # DEFAULT
+    # 3. RAG Context Retrieval
+    rag = RAGService()
+    context_items = rag.retrieve_context(message, company)
+    relevant_context = rag.rerank_context(message, context_items)
+    
+    if relevant_context:
+        context_text = "\n\n".join([f"[Source: {c['filename']}] {c['content']}" for c in relevant_context])
+        prompt = f"""
+        Utilise les extraits de documents suivants pour répondre à la question de l'utilisateur.
+        Si la réponse n'est pas dans le contexte, utilise tes connaissances générales mais précise-le.
+        
+        Contexte :
+        {context_text}
+        
+        Question : {message}
+        
+        Réponds en français de manière professionnelle. Utilise le format Markdown.
+        """
+        
+        try:
+            from .services import AIService
+            ai_service = AIService()
+            if ai_service.client:
+                response = ai_service.client.chat.completions.create(
+                    model="gpt-4o", # Better for RAG
+                    messages=[
+                        {"role": "system", "content": "Tu es l'IA Advisor de SakinaFinance, expert en gestion d'entreprise."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=800,
+                    temperature=0.3
+                )
+                return JsonResponse({
+                    'text': response.choices[0].message.content.strip(),
+                    'type': 'text',
+                    'sources': [c['filename'] for c in relevant_context]
+                })
+        except Exception as e:
+            logger.error(f"RAG Chat error: {str(e)}")
+
+    # 4. Fallback to existing logic if no RAG context or AI error
     return JsonResponse({
         'text': f"Bonjour {request.user.first_name or 'Partner'}. Le Sakina Neural Core est opérationnel. Je peux analyser votre trésorerie, vos marges ou détecter des risques financiers.",
         'type': 'text',
         'suggestions': ["Forecast Trésorerie", "Analyse Marge EBITDA", "Calcul Burn Rate", "Détection Risques"]
     })
+@login_required
+def api_upload_knowledge(request):
+    """API: Upload a file to the knowledge base and index it"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+        
+    company = _get_company(request)
+    file = request.FILES.get('file')
+    
+    if not file:
+        return JsonResponse({'error': 'Aucun fichier fourni'}, status=400)
+        
+    try:
+        doc = KnowledgeDocument.objects.create(
+            company=company,
+            file=file,
+            filename=file.name,
+            uploaded_by=request.user,
+            file_type=file.name.split('.')[-1].lower() if '.' in file.name else ''
+        )
+        
+        # Immediate indexing (should ideally be a Celery task)
+        rag = RAGService()
+        success = rag.index_document(doc.id)
+        
+        if success:
+            return JsonResponse({'status': 'success', 'doc_id': str(doc.id)})
+        else:
+            return JsonResponse({'status': 'error', 'error': doc.error_message}, status=500)
+            
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'error': str(e)}, status=500)

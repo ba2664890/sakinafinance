@@ -23,7 +23,7 @@ def _get_company(request):
 
 
 @login_required
-def hr_view(request):
+def hr_dashboard(request):
     """Module RH & Paie — vue principale (Squelette)"""
     return render(request, 'hr/index.html', {'page_title': 'RH & Paie'})
 

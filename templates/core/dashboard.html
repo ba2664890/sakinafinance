@@ -147,6 +147,7 @@
     </div>
 </div>
 
+{% if request.user.can_access_finance %}
 <!-- ── KPI Cards ── -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
@@ -190,12 +191,14 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- ── Quick Actions ── -->
 <div class="row g-2 mb-4">
     <div class="col-12">
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <span class="text-muted small fw-semibold" style="white-space:nowrap;">Actions rapides :</span>
+            {% if request.user.can_access_finance %}
             <a href="{% url 'accounting' %}" class="quick-action-card">
                 <div class="qa-icon"><i class="bi bi-plus-circle-fill"></i></div>
                 Nouvelle Facture
@@ -204,14 +207,19 @@
                 <div class="qa-icon"><i class="bi bi-arrow-left-right"></i></div>
                 Transaction
             </a>
+            {% endif %}
+            {% if request.user.can_access_hr %}
             <a href="{% url 'financial_statements' %}" class="quick-action-card">
                 <div class="qa-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
                 Rapport
             </a>
+            {% endif %}
+            {% if request.user.can_access_finance %}
             <a href="{% url 'treasury' %}" class="quick-action-card">
                 <div class="qa-icon"><i class="bi bi-bank"></i></div>
                 Trésorerie
             </a>
+            {% endif %}
             <a href="{% url 'ai_advisor' %}" class="quick-action-card">
                 <div class="qa-icon"><i class="bi bi-robot"></i></div>
                 IA Advisor
@@ -220,6 +228,7 @@
     </div>
 </div>
 
+{% if request.user.can_access_finance %}
 <!-- ── Charts Row ── -->
 <div class="row g-4 mb-4">
     <!-- Performance Chart -->
@@ -326,6 +335,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <script>
 const fmt = (v, currency='XOF') =>

@@ -269,3 +269,64 @@ class AnomalyDetection(models.Model):
 
     def __str__(self):
         return f"[{self.severity.upper()}] {self.title}"
+
+class KnowledgeDocument(models.Model):
+    """Document de la base de connaissances pour le RAG"""
+
+    class Status(models.TextChoices):
+        UPLOADED = 'uploaded', _('Téléchargé')
+        PROCESSING = 'processing', _('Traitement en cours')
+        INDEXED = 'indexed', _('Indexé')
+        FAILED = 'failed', _('Échec')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='knowledge_documents'
+    )
+    file = models.FileField(upload_to='knowledge/documents/')
+    filename = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    
+    # Metadata
+    file_type = models.CharField(max_length=10, blank=True) # pdf, docx, txt
+    word_count = models.IntegerField(default=0)
+    chunk_count = models.IntegerField(default=0)
+    
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.UPLOADED
+    )
+    error_message = models.TextField(blank=True)
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    indexed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.filename} ({self.company})"
+
+
+class KnowledgeChunk(models.Model):
+    """Segment de texte indexé pour la recherche sémantique"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document = models.ForeignKey(
+        KnowledgeDocument, on_delete=models.CASCADE, related_name='chunks'
+    )
+    content = models.TextField()
+    
+    # Embedding vector (stored as JSON array of floats)
+    embedding = models.JSONField(null=True, blank=True)
+    
+    # Metadata for search relevance
+    token_count = models.IntegerField(default=0)
+    index_in_doc = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Chunk {self.index_in_doc} from {self.document.filename}"
