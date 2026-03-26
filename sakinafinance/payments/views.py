@@ -16,7 +16,14 @@ import json
 from .models import Subscription, PaymentMethod, Invoice, PaymentHistory, Plan
 
 # Initialize Stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+def get_stripe_key():
+    return getattr(settings, 'STRIPE_SECRET_KEY', '')
+
+def is_stripe_demo_mode():
+    key = get_stripe_key()
+    return not key or key == 'sk_test_...' or key.startswith('sk_test_placeholder')
+
+stripe.api_key = get_stripe_key()
 
 
 @login_required
@@ -39,10 +46,7 @@ def subscribe_view(request, plan_slug):
 
     # Check for placeholder Stripe keys (Demo Mode)
     # Improved demo mode detection
-    stripe_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
-    is_demo = not stripe_key or stripe_key == 'sk_test_...' or stripe_key.startswith('sk_test_placeholder')
-    
-    if settings.DEBUG and is_demo:
+    if settings.DEBUG and is_stripe_demo_mode():
         # Mock Stripe flow for demo purposes
         if not user.company:
             messages.warning(request, "Veuillez configurer votre entreprise avant de vous abonner (Mode Demo).")
@@ -69,6 +73,11 @@ def subscribe_view(request, plan_slug):
 
     # Get or create Stripe customer
     try:
+        # Re-verify API key just before call
+        stripe.api_key = get_stripe_key()
+        if not stripe.api_key:
+            raise stripe.error.AuthenticationError("Clé Secrète Stripe non configurée dans .env")
+            
         subscription = Subscription.objects.get(user=user)
         customer_id = subscription.stripe_customer_id
     except Subscription.DoesNotExist:
@@ -181,15 +190,12 @@ def cancel_subscription_view(request):
             subscription = Subscription.objects.get(user=request.user)
             
             # Check for placeholder Stripe keys (Demo Mode)
-            # Improved demo mode detection
-            stripe_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
-            is_demo = not stripe_key or stripe_key == 'sk_test_...' or stripe_key.startswith('sk_test_placeholder')
-                    
-            if settings.DEBUG and is_demo:
+            if settings.DEBUG and is_stripe_demo_mode():
                 # Mock cancellation
                 pass
             else:
                 # Cancel in Stripe
+                stripe.api_key = get_stripe_key()
                 stripe.Subscription.delete(subscription.stripe_subscription_id)
             
             # Update local subscription
@@ -217,13 +223,8 @@ def add_payment_method_view(request):
             data = json.loads(request.body)
             payment_method_id = data.get('payment_method_id')
             
-            # Check for placeholder Stripe keys (Demo Mode)
-            # Improved demo mode detection
-            stripe_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
-            is_demo = not stripe_key or stripe_key == 'sk_test_...' or stripe_key.startswith('sk_test_placeholder')
-                    
             # Get or create customer
-            if settings.DEBUG and is_demo:
+            if settings.DEBUG and is_stripe_demo_mode():
                 customer_id = 'cus_mock_123'
                 pm_brand = 'Visa'
                 pm_last4 = '4242'
@@ -234,6 +235,7 @@ def add_payment_method_view(request):
                     subscription = Subscription.objects.get(user=request.user)
                     customer_id = subscription.stripe_customer_id
                 except Subscription.DoesNotExist:
+                    stripe.api_key = get_stripe_key()
                     customer = stripe.Customer.create(
                         email=request.user.email,
                         name=f"{request.user.first_name} {request.user.last_name}",
@@ -241,6 +243,7 @@ def add_payment_method_view(request):
                     customer_id = customer.id
                 
                 # Attach payment method to customer
+                stripe.api_key = get_stripe_key()
                 stripe.PaymentMethod.attach(
                     payment_method_id,
                     customer=customer_id,
