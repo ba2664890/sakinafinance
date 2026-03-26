@@ -47,6 +47,10 @@
                                         <div class="bg-success bg-opacity-10 text-success p-2 rounded-circle">
                                             <i class="bi bi-check-circle"></i>
                                         </div>
+                                    {% elif notification.notification_type == 'warning' %}
+                                        <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-circle">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                        </div>
                                     {% else %}
                                         <div class="bg-secondary bg-opacity-10 text-secondary p-2 rounded-circle">
                                             <i class="bi bi-bell"></i>
@@ -59,7 +63,12 @@
                                         <h6 class="mb-0 fw-bold {% if not notification.is_read %}text-dark{% else %}text-muted{% endif %}">
                                             {{ notification.title }}
                                         </h6>
-                                        <small class="text-muted">{{ notification.created_at|timesince }}</small>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <small class="text-muted">{{ notification.created_at|timesince }}</small>
+                                            <button class="btn btn-link text-muted p-0 delete-notification-btn" title="Supprimer">
+                                                <i class="bi bi-x-lg" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <p class="mb-2 {% if not notification.is_read %}text-secondary{% else %}text-muted{% endif %}">
                                         {{ notification.message }}
@@ -82,33 +91,31 @@
                     {% endif %}
                 </div>
             </div>
-            
-            {% if notifications.has_other_pages %}
-            <div class="card-footer bg-white border-top p-3">
-                <!-- Pagination can go here if needed -->
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
-<style>
-    .notification-item {
-        transition: background-color 0.2s;
-    }
-    .notification-item.unread {
-        background-color: rgba(59, 130, 246, 0.03);
-    }
-    .notification-item:hover {
-        background-color: rgba(0, 0, 0, 0.01);
-    }
-    .notification-icon i {
-        font-size: 1.25rem;
-    }
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const unreadCountText = document.querySelector('.card-header p.small');
+    let unreadCount = parseInt("{{ unread_count }}");
+
+    function updateCounter() {
+        if (unreadCountText) {
+            unreadCountText.textContent = `${unreadCount} notification${unreadCount !== 1 ? 's' : ''} non lue${unreadCount !== 1 ? 's' : ''}`;
+        }
+        // Also update the global badge if it exists
+        const badge = document.getElementById('notif-badge');
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = '';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
     // Mark single as read
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -126,8 +133,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.status === 'success') {
                     item.classList.remove('unread');
                     this.remove();
+                    if (unreadCount > 0) unreadCount--;
+                    updateCounter();
                 }
             });
+        });
+    });
+
+    // Delete notification
+    document.querySelectorAll('.delete-notification-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const item = this.closest('.notification-item');
+            const id = item.dataset.id;
+            const isUnread = item.classList.contains('unread');
+            
+            if (confirm('Voulez-vous supprimer cette notification ?')) {
+                fetch(`/accounts/notifications/${id}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        item.classList.add('fade-out');
+                        setTimeout(() => {
+                            item.remove();
+                            if (isUnread && unreadCount > 0) unreadCount--;
+                            updateCounter();
+                            if (document.querySelectorAll('.notification-item').length === 0) {
+                                location.reload(); // Show empty state
+                            }
+                        }, 300);
+                    }
+                });
+            }
         });
     });
 
@@ -144,16 +185,44 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    document.querySelectorAll('.notification-item').forEach(item => {
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
                         item.classList.remove('unread');
                     });
                     document.querySelectorAll('.mark-read-btn').forEach(btn => {
                         btn.remove();
                     });
+                    unreadCount = 0;
+                    updateCounter();
                 }
             });
         });
     }
 });
 </script>
+
+<style>
+    .notification-item {
+        transition: background-color 0.2s, opacity 0.3s;
+    }
+    .fade-out {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    .notification-item.unread {
+        background-color: rgba(59, 130, 246, 0.03);
+    }
+    .notification-item:hover {
+        background-color: rgba(0, 0, 0, 0.01);
+    }
+    .notification-icon i {
+        font-size: 1.25rem;
+    }
+    .delete-notification-btn {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .notification-item:hover .delete-notification-btn {
+        opacity: 1;
+    }
+</style>
 {% endblock %}

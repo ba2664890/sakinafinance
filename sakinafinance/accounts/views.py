@@ -15,6 +15,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from .models import User, Company, Entity, Notification, UserActivity
 from .forms import UserRegistrationForm, UserLoginForm, CompanyForm, UserProfileForm, ComprehensiveRegistrationForm
 from allauth.account.utils import send_email_confirmation
@@ -218,8 +220,20 @@ def mark_notification_read(request, notification_id):
 @login_required
 def mark_all_notifications_read(request):
     """Mark All Notifications as Read"""
-    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-    return JsonResponse({'status': 'success'})
+    if request.method == 'POST':
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+
+@login_required
+def delete_notification(request, notification_id):
+    """Delete a Notification"""
+    if request.method == 'POST':
+        notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+        notification.delete()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
 
 
 # API Views
@@ -240,8 +254,40 @@ def api_user_info(request):
 
 @login_required
 def api_notifications(request):
-    """API: Get User Notifications"""
-    notifications = Notification.objects.filter(user=request.user).values(
-        'id', 'title', 'message', 'notification_type', 'is_read', 'created_at'
-    )[:10]
-    return JsonResponse({'notifications': list(notifications)})
+    """API: Get User Notifications with formatting for UI"""
+    notifications_qs = Notification.objects.filter(user=request.user).order_by('-created_at')
+    total_unread = notifications_qs.filter(is_read=False).count()
+    
+    # Get latest 10
+    latest = notifications_qs[:10]
+    
+    formatted_notifications = []
+    for n in latest:
+        # Icon mapping
+        icon = 'bi-info-circle'
+        btn_type = 'info'
+        if n.notification_type == 'alert':
+            icon = 'bi-exclamation-triangle'
+            btn_type = 'danger'
+        elif n.notification_type == 'success':
+            icon = 'bi-check-circle'
+            btn_type = 'success'
+        elif n.notification_type == 'warning':
+            icon = 'bi-exclamation-circle'
+            btn_type = 'warning'
+        
+        formatted_notifications.append({
+            'id': str(n.id),
+            'title': n.title,
+            'message': n.message,
+            'type': btn_type,
+            'icon': icon,
+            'is_read': n.is_read,
+            'time': naturaltime(n.created_at),
+            'url': n.link or '#',
+        })
+        
+    return JsonResponse({
+        'notifications': formatted_notifications,
+        'total_count': total_unread
+    })
