@@ -184,3 +184,105 @@ def api_create_transaction(request):
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+@login_required
+def api_trial_balance(request):
+    """API: Get Full Trial Balance (Essai Complet)"""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Company non spécifiée'}, status=400)
+    
+    # 1. Fetch all accounts
+    accounts = Account.objects.filter(company=company).order_by('code')
+    
+    # 2. Prepare aggregated movements
+    # We aggregate debits and credits from TransactionLine for validated transactions
+    movements = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status='posted'
+    ).values('account_id').annotate(
+        total_debit=Sum('debit'),
+        total_credit=Sum('credit')
+    )
+    
+    # Map movements for quick access
+    movements_dict = {m['account_id']: (m['total_debit'] or 0, m['total_credit'] or 0) for m in movements}
+    
+    trial_balance = []
+    total_initial_debit = Decimal('0')
+    total_initial_credit = Decimal('0')
+    total_mov_debit = Decimal('0')
+    total_mov_credit = Decimal('0')
+    total_final_debit = Decimal('0')
+    total_final_credit = Decimal('0')
+    
+    for acc in accounts:
+        # Initial balance (OHADA/IFRS logic)
+        # For Assets (2,3,5) and Expenses (6): Opening is usually debit
+        # For Liabilities (1,4L), Equity (1) and Income (7): Opening is usually credit
+        # Here we use the stored opening_balance and assume it follows the account type
+        
+        initial_debit = Decimal('0')
+        initial_credit = Decimal('0')
+        
+        # Simple heuristic for trial balance display:
+        if acc.account_type in ['asset', 'expense']:
+            if acc.opening_balance >= 0:
+                initial_debit = acc.opening_balance
+            else:
+                initial_credit = abs(acc.opening_balance)
+        else:
+            if acc.opening_balance >= 0:
+                initial_credit = acc.opening_balance
+            else:
+                initial_debit = abs(acc.opening_balance)
+        
+        # Movements
+        mov_debit, mov_credit = movements_dict.get(acc.id, (Decimal('0'), Decimal('0')))
+        
+        # Final Balance
+        # Calculation: Opening + Movements
+        # Current balance in model might be net, but we want debit/credit columns
+        
+        # Net sum of all
+        net_total = (initial_debit - initial_credit) + (mov_debit - mov_credit)
+        
+        final_debit = Decimal('0')
+        final_credit = Decimal('0')
+        
+        if net_total >= 0:
+            final_debit = net_total
+        else:
+            final_credit = abs(net_total)
+            
+        trial_balance.append({
+            'id': str(acc.id),
+            'code': acc.code,
+            'name': acc.name,
+            'initial_debit': float(initial_debit),
+            'initial_credit': float(initial_credit),
+            'mov_debit': float(mov_debit),
+            'mov_credit': float(mov_credit),
+            'final_debit': float(final_debit),
+            'final_credit': float(final_credit),
+        })
+        
+        # Totals for row confirmation
+        total_initial_debit += initial_debit
+        total_initial_credit += initial_credit
+        total_mov_debit += mov_debit
+        total_mov_credit += mov_credit
+        total_final_debit += final_debit
+        total_final_credit += final_credit
+        
+    return JsonResponse({
+        'status': 'success',
+        'data': trial_balance,
+        'totals': {
+            'initial_debit': float(total_initial_debit),
+            'initial_credit': float(total_initial_credit),
+            'mov_debit': float(total_mov_debit),
+            'mov_credit': float(total_mov_credit),
+            'final_debit': float(total_final_debit),
+            'final_credit': float(total_final_credit),
+        }
+    })

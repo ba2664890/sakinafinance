@@ -36,7 +36,8 @@ def register_view(request):
                         company_type=form.cleaned_data['company_type'],
                         registration_number=form.cleaned_data['registration_number'],
                         city=form.cleaned_data['city'],
-                        country=form.cleaned_data['country']
+                        country=form.cleaned_data['country'],
+                        subscription_plan=form.cleaned_data.get('subscription_plan', 'free')
                     )
                     
                     # Create User
@@ -46,7 +47,8 @@ def register_view(request):
                         first_name=form.cleaned_data['first_name'],
                         last_name=form.cleaned_data['last_name'],
                         company=company,
-                        role='admin'
+                        role='admin',
+                        subscription_plan=form.cleaned_data.get('subscription_plan', 'free')
                     )
                 
                 # Send Email Confirmation (Allauth)

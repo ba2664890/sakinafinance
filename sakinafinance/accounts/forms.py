@@ -72,6 +72,19 @@ class ComprehensiveRegistrationForm(forms.Form):
     city = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ville'}))
     country = forms.CharField(max_length=100, initial='Sénégal', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pays'}))
     
+    # Subscription
+    subscription_plan = forms.ChoiceField(
+        choices=[
+            ('free', 'Gratuit (Essai 14 jours)'),
+            ('startup', 'Startup'),
+            ('pme', 'PME'),
+            ('enterprise', 'Enterprise'),
+            ('groupe', 'Groupe'),
+        ],
+        initial='free',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")

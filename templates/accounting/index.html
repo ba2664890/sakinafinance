@@ -109,6 +109,9 @@
             <p class="text-secondary mb-0">Comptabilité OHADA/IFRS • Balance Interactive • Clôture AI-Assisted</p>
         </div>
         <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-8 px-3" id="btn-toggle-trial">
+                <i class="bi bi-list-check me-2"></i><span id="toggle-label">Essai Complet</span>
+            </button>
             <button class="btn btn-sm btn-outline-secondary rounded-8 px-3">
                 <i class="bi bi-download me-2"></i>Exporter
             </button>
@@ -158,33 +161,70 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
-        <!-- Balance Sheet Structure -->
-        <div class="col-xl-7">
-            <div class="card h-100">
-                <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary-emphasis fw-bold">Structure du Bilan</h5>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-secondary active">Actif</button>
-                        <button class="btn btn-outline-secondary">Passif</button>
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view">
+        <div class="row g-4 mb-4">
+            <!-- Balance Sheet Structure -->
+            <div class="col-xl-7">
+                <div class="card h-100">
+                    <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary-emphasis fw-bold">Structure du Bilan</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary active">Actif</button>
+                            <button class="btn btn-outline-secondary">Passif</button>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <div class="row g-4" id="balance-sheet-container">
-                        <!-- Left Side: Actif -->
-                        <div class="col-md-6 border-end">
-                            <h6 class="text-secondary small fw-bold text-uppercase mb-3">Actif (Emplois)</h6>
-                            <div id="acc-assets-breakdown">
-                                <!-- Dynamic items -->
-                                <div class="text-center py-4 text-secondary">Chargement...</div>
+                    <div class="card-body">
+                        <div class="row g-4" id="balance-sheet-container">
+                            <!-- Left Side: Actif -->
+                            <div class="col-md-6 border-end">
+                                <h6 class="text-secondary small fw-bold text-uppercase mb-3">Actif (Emplois)</h6>
+                                <div id="acc-assets-breakdown">
+                                    <!-- Dynamic items -->
+                                    <div class="text-center py-4 text-secondary">Chargement...</div>
+                                </div>
+                            </div>
+                            <!-- Right Side: Passif -->
+                            <div class="col-md-6">
+                                <h6 class="text-secondary small fw-bold text-uppercase mb-3">Passif (Ressources)</h6>
+                                <div id="acc-liabilities-breakdown">
+                                    <!-- Dynamic items -->
+                                    <div class="text-center py-4 text-secondary">Chargement...</div>
+                                </div>
                             </div>
                         </div>
-                        <!-- Right Side: Passif -->
-                        <div class="col-md-6">
-                            <h6 class="text-secondary small fw-bold text-uppercase mb-3">Passif (Ressources)</h6>
-                            <div id="acc-liabilities-breakdown">
-                                <!-- Dynamic items -->
-                                <div class="text-center py-4 text-secondary">Chargement...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Panel -->
+            <div class="col-xl-5">
+                <div class="card h-100 overflow-hidden">
+                    <div class="card-header border-0 bg-transparent py-3">
+                        <h5 class="mb-0 text-primary-emphasis fw-bold">Intelligence Comptable</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="ai-insight-panel mb-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-cpu text-white me-2 fs-5"></i>
+                                <h6 class="mb-0 text-white fw-bold">Analyse Diagnostic AI</h6>
+                            </div>
+                            <p class="small text-white-90 mb-3" id="acc-ai-insight">
+                                Analyse de la balance en cours... L'IA vérifie la cohérence des comptes et détecte d'éventuels écarts de lettrage.
+                            </p>
+                            <div class="d-flex gap-2">
+                                <span class="ratio-badge bg-primary bg-opacity-20 text-white border border-white border-opacity-25">Liquidité: 1.8</span>
+                                <span class="ratio-badge bg-success bg-opacity-20 text-white border border-white border-opacity-25">Solvabilité: 0.6</span>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info border-0 rounded-16 small mb-0">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-info-circle-fill fs-5"></i>
+                                <div>
+                                    <strong>Rappel Clôture :</strong>
+                                    <p class="mb-0 mt-1">La période de clôture mensuelle approche. <strong><span id="pending-count">0</span> écritures</strong> sont encore en attente de validation.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -192,80 +232,91 @@
             </div>
         </div>
 
-        <!-- AI Panel -->
-        <div class="col-xl-5">
-            <div class="card h-100 overflow-hidden">
-                <div class="card-header border-0 bg-transparent py-3">
-                    <h5 class="mb-0 text-primary-emphasis fw-bold">Intelligence Comptable</h5>
-                </div>
-                <div class="card-body">
-                    <div class="ai-insight-panel mb-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-cpu text-white me-2 fs-5"></i>
-                            <h6 class="mb-0 text-white fw-bold">Analyse Diagnostic AI</h6>
-                        </div>
-                        <p class="small text-white-90 mb-3" id="acc-ai-insight">
-                            Analyse de la balance en cours... L'IA vérifie la cohérence des comptes et détecte d'éventuels écarts de lettrage.
-                        </p>
-                        <div class="d-flex gap-2">
-                            <span class="ratio-badge bg-primary bg-opacity-20 text-white border border-white border-opacity-25">Liquidité: 1.8</span>
-                            <span class="ratio-badge bg-success bg-opacity-20 text-white border border-white border-opacity-25">Solvabilité: 0.6</span>
+        <!-- Journal Entries Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary-emphasis fw-bold">Dernières Écritures au Journal</h5>
+                        <div class="input-group input-group-sm w-auto">
+                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control border-start-0" placeholder="Rechercher une opération...">
                         </div>
                     </div>
-                    
-                    <div class="alert alert-info border-0 rounded-16 small mb-0">
-                        <div class="d-flex gap-2">
-                            <i class="bi bi-info-circle-fill fs-5"></i>
-                            <div>
-                                <strong>Rappel Clôture :</strong>
-                                <p class="mb-0 mt-1">La période de clôture mensuelle approche. <strong><span id="pending-count">0</span> écritures</strong> sont encore en attente de validation.</p>
-                            </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Référence</th>
+                                        <th>Libellé / Description</th>
+                                        <th>Compte Principal</th>
+                                        <th class="text-end">Débit</th>
+                                        <th class="text-end">Crédit</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="acc-journal-entries">
+                                    <!-- Dynamic entries -->
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <p class="mt-2 text-secondary small">Extraction des écritures...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 text-center py-3">
+                        <a href="#" class="text-primary fw-bold text-decoration-none small">Voir le Grand Livre Complet <i class="bi bi-arrow-right ms-1"></i></a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Journal Entries Table -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary-emphasis fw-bold">Dernières Écritures au Journal</h5>
-                    <div class="input-group input-group-sm w-auto">
-                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control border-start-0" placeholder="Rechercher une opération...">
-                    </div>
+    <!-- TRIAL BALANCE VIEW (Essai Complet) -->
+    <div id="trial-balance-view" style="display: none;">
+        <div class="card border-0 shadow-sm rounded-16">
+            <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1 text-primary-emphasis fw-bold">Balance de Vérification (Essai Complet)</h5>
+                    <p class="text-secondary small mb-0">Vue détaillée du Plan de Compte • Mouvements & Soldes</p>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-custom align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Référence</th>
-                                    <th>Libellé / Description</th>
-                                    <th>Compte Principal</th>
-                                    <th class="text-end">Débit</th>
-                                    <th class="text-end">Crédit</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="acc-journal-entries">
-                                <!-- Dynamic entries -->
-                                <tr>
-                                    <td colspan="7" class="text-center py-5">
-                                        <div class="spinner-border text-primary" role="status"></div>
-                                        <p class="mt-2 text-secondary small">Extraction des écritures...</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary active">Tout</button>
+                    <button class="btn btn-sm btn-outline-primary">Mouvementés</button>
                 </div>
-                <div class="card-footer bg-transparent border-0 text-center py-3">
-                    <a href="#" class="text-primary fw-bold text-decoration-none small">Voir le Grand Livre Complet <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="trial-balance-table">
+                        <thead class="bg-light">
+                            <tr>
+                                <th rowspan="2" class="border-end py-3 px-4">Code</th>
+                                <th rowspan="2" class="border-end py-3 px-4">Intitulé du Compte</th>
+                                <th colspan="2" class="text-center border-bottom border-end py-2">Solde Initial</th>
+                                <th colspan="2" class="text-center border-bottom border-end py-2">Mouvements</th>
+                                <th colspan="2" class="text-center border-bottom py-2">Solde Final</th>
+                            </tr>
+                            <tr>
+                                <th class="text-end py-2 small border-end">Débit</th>
+                                <th class="text-end py-2 small border-end">Crédit</th>
+                                <th class="text-end py-2 small border-end">Débit</th>
+                                <th class="text-end py-2 small border-end">Crédit</th>
+                                <th class="text-end py-2 small border-end">Débit</th>
+                                <th class="text-end py-2 small">Crédit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trial-balance-body">
+                            <!-- Data injected via JS -->
+                        </tbody>
+                        <tfoot class="bg-light fw-bold" id="trial-balance-footer">
+                            <!-- Totals injected via JS -->
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
@@ -441,6 +492,89 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error loading accounting data:', error);
         }
+    }
+
+    // Trial Balance Loading with filter
+    async function loadTrialBalance(onlyMovemented = false) {
+        try {
+            const response = await fetch('{% url "api_trial_balance" %}');
+            const result = await response.json();
+            if (result.status === 'success') {
+                const body = document.getElementById('trial-balance-body');
+                let data = result.data;
+                
+                if (onlyMovemented) {
+                    data = data.filter(acc => 
+                        acc.initial_debit !== 0 || acc.initial_credit !== 0 || 
+                        acc.mov_debit !== 0 || acc.mov_credit !== 0
+                    );
+                }
+
+                body.innerHTML = data.map(acc => `
+                    <tr>
+                        <td class="px-4 fw-bold text-dark">${acc.code}</td>
+                        <td class="px-4 text-secondary">${acc.name}</td>
+                        <td class="text-end border-start px-3">${acc.initial_debit > 0 ? fmt(acc.initial_debit) : '-'}</td>
+                        <td class="text-end border-start px-3">${acc.initial_credit > 0 ? fmt(acc.initial_credit) : '-'}</td>
+                        <td class="text-end border-start px-3 fw-bold text-primary">${acc.mov_debit > 0 ? fmt(acc.mov_debit) : '-'}</td>
+                        <td class="text-end border-start px-3 fw-bold text-danger">${acc.mov_credit > 0 ? fmt(acc.mov_credit) : '-'}</td>
+                        <td class="text-end border-start px-3 fw-bold text-dark bg-light-subtle">${acc.final_debit > 0 ? fmt(acc.final_debit) : '-'}</td>
+                        <td class="text-end border-start px-4 fw-bold text-dark bg-light-subtle">${acc.final_credit > 0 ? fmt(acc.final_credit) : '-'}</td>
+                    </tr>
+                `).join('');
+
+                const foot = document.getElementById('trial-balance-footer');
+                const t = result.totals;
+                foot.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="px-4 py-3">TOTAL GÉNÉRAL</td>
+                        <td class="text-end border-start px-3">${fmt(t.initial_debit)}</td>
+                        <td class="text-end border-start px-3">${fmt(t.initial_credit)}</td>
+                        <td class="text-end border-start px-3 text-primary">${fmt(t.mov_debit)}</td>
+                        <td class="text-end border-start px-3 text-danger">${fmt(t.mov_credit)}</td>
+                        <td class="text-end border-start px-3">${fmt(t.final_debit)}</td>
+                        <td class="text-end border-start px-4">${fmt(t.final_credit)}</td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading trial balance:', error);
+        }
+    }
+
+    // Trial Balance View Filter Buttons
+    const trialFilterBtns = document.querySelectorAll('#trial-balance-view .btn-group button');
+    trialFilterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            trialFilterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            loadTrialBalance(this.textContent.trim() === 'Mouvementés');
+        });
+    });
+
+    // Toggle Logic
+    const toggleBtn = document.getElementById('btn-toggle-trial');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            const dash = document.getElementById('dashboard-view');
+            const trial = document.getElementById('trial-balance-view');
+            const label = document.getElementById('toggle-label');
+            
+            if (dash.style.display === 'none') {
+                dash.style.display = 'block';
+                trial.style.display = 'none';
+                label.textContent = 'Essai Complet';
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-outline-secondary');
+            } else {
+                dash.style.display = 'none';
+                trial.style.display = 'block';
+                label.textContent = 'Retour Dashboard';
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-primary');
+                loadTrialBalance();
+            }
+        });
     }
 
     // Modal Calculation Logic
