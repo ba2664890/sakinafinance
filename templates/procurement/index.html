@@ -6,44 +6,95 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --proc-blue: #2563eb;
+        --proc-green: #10b981;
+        --proc-card-bg: rgba(255, 255, 255, 0.9);
+    }
+    
     .procurement-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
     .p-stat-card {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        background: var(--proc-card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 20px;
+        padding: 1.75rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .p-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     }
 
-    .p-stat-val { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
-    .p-stat-lbl { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .p-stat-val { 
+        font-size: 1.85rem; 
+        font-weight: 900; 
+        color: #1e293b; 
+        margin-bottom: 0.1rem; 
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .p-stat-lbl { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
 
-    .procurement-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; height: 100%; }
-    .p-panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-    .p-panel-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+    .procurement-panel { 
+        background: var(--proc-card-bg); 
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4); 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 20px; 
+        overflow: hidden; 
+        height: 100%; 
+    }
+    .p-panel-header { 
+        padding: 1.5rem; 
+        border-bottom: 1px solid #f1f5f9; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background: rgba(248, 250, 252, 0.5);
+    }
+    .p-panel-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 0.95rem; }
     .p-panel-content { padding: 1.5rem; }
 
     .po-table { width: 100%; border-collapse: collapse; }
-    .po-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; }
-    .po-table td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+    .po-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; }
+    .po-table td { padding: 1.25rem 1rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; color: #475569; }
 
-    .status-pill-proc { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-    .status-shipped { background: #eff6ff; color: #2563eb; }
-    .status-processing { background: #fffbeb; color: #d97706; }
-    .status-delivered { background: #f0fdf4; color: #16a34a; }
-
-    .supplier-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding: 0.75rem; border-radius: 12px; background: #fcfdfe; border: 1px solid #f1f5f9; }
-    .supplier-logo { width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #2563eb; }
-    .supplier-info h6 { font-size: 0.875rem; font-weight: 700; margin-bottom: 0.1rem; color: #1e293b; }
-    .supplier-info p { font-size: 0.75rem; color: #64748b; margin: 0; }
+    .status-pill-proc { padding: 0.35rem 0.75rem; border-radius: 12px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+    
+    .supplier-item { 
+        display: flex; 
+        align-items: center; 
+        gap: 1.25rem; 
+        margin-bottom: 1.25rem; 
+        padding: 1rem; 
+        border-radius: 16px; 
+        background: rgba(255,255,255,0.5); 
+        border: 1px solid #f1f5f9; 
+        transition: all 0.2s;
+    }
+    .supplier-item:hover {
+        background: #fff;
+        border-color: var(--proc-blue);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.05);
+    }
+    .supplier-logo { width: 44px; height: 44px; border-radius: 14px; background: #fff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--proc-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .supplier-info h6 { font-size: 0.9rem; font-weight: 800; margin-bottom: 0.2rem; color: #0f172a; }
+    .supplier-info p { font-size: 0.75rem; color: #64748b; margin: 0; font-weight: 500; }
+    
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in-up { animation: slideUp 0.5s ease-out forwards; }
 </style>
 {% endblock %}
 

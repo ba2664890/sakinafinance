@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
-from .models import TaxType, TaxFiling, RegulatoryRequirement, ComplianceRisk
+from .models import TaxFiling, RegulatoryRequirement, ComplianceRisk, TaxType
 from sakinafinance.accounts.models import Entity
 
 @login_required
@@ -80,15 +80,22 @@ def api_compliance_data(request):
             'level': r.severity # 'success', 'warning', 'danger'
         })
 
-    # Fallback/Demo data if empty
-    if not calendar_data and not history_data:
-        # If no data in DB, return a mix or empty state
-        # For now, let's just return what's in DB (which will be empty)
-        pass
+    # No data in DB: returns empty state naturally via preparations above
+
+    # 4. Regulatory Requirements
+    regulatory_qs = RegulatoryRequirement.objects.filter(company=company, is_active=True)
+    regulatory_data = []
+    for reg in regulatory_qs:
+        regulatory_data.append({
+            'name': reg.name,
+            'authority': reg.authority,
+            'frequency': reg.get_frequency_display(),
+            'description': reg.description
+        })
 
     data = {
-        'compliance_score': 92 if open_risks_count == 0 else max(100 - (open_risks_count * 5), 0),
-        'open_risks': open_risks_count,
+        'compliance_score': 100 if open_risks_count == 0 else max(100 - (open_risks_count * 10), 0),
+        'open_risks_count': open_risks_count,
         'declarations_pending': pending_filings,
         'tax_provision': float(tax_provision),
         'next_deadline_days': (upcoming[0].deadline - timezone.now().date()).days if upcoming else 0,

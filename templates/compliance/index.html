@@ -6,52 +6,107 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --comp-primary: #2563eb;
+        --comp-danger: #ef4444;
+        --comp-warning: #f59e0b;
+        --comp-card-bg: rgba(255, 255, 255, 0.9);
+    }
+
     .compliance-kpis {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
     .c-kpi-card {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.25rem;
+        background: var(--comp-card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 20px;
+        padding: 1.5rem;
         text-align: center;
-        transition: transform 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .c-kpi-card:hover { transform: translateY(-3px); border-color: var(--primary-color); }
+    .c-kpi-card:hover { transform: translateY(-5px); border-color: var(--comp-primary); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
 
-    .c-kpi-val { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.15rem; }
-    .c-kpi-lbl { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .c-kpi-val { 
+        font-size: 2rem; 
+        font-weight: 900; 
+        color: #0f172a; 
+        margin-bottom: 0.25rem; 
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .c-kpi-lbl { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
 
     .compliance-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
-        gap: 1.5rem;
+        gap: 2rem;
     }
 
-    .c-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; height: 100%; }
-    .c-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-    .c-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+    .c-panel { 
+        background: var(--comp-card-bg); 
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4); 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 24px; 
+        overflow: hidden; 
+        height: 100%; 
+    }
+    .c-header { 
+        padding: 1.5rem 1.75rem; 
+        border-bottom: 1px solid #f1f5f9; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background: rgba(248, 250, 252, 0.5);
+    }
+    .c-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
 
     .c-table { width: 100%; border-collapse: collapse; }
-    .c-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 0.85rem 1rem; border-bottom: 1px solid #f1f5f9; }
-    .c-table td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+    .c-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 1rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; }
+    .c-table td { padding: 1.25rem 1rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; color: #475569; font-weight: 500; }
 
-    .badge-deadline { padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
-    .deadline-urgent { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-    .deadline-normal { background: #f1f5f9; color: #475569; }
+    .badge-deadline { padding: 0.4rem 0.8rem; border-radius: 10px; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.02em; }
+    .deadline-urgent { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; box-shadow: 0 0 10px rgba(220, 38, 38, 0.1); }
+    .deadline-normal { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-    .risk-item { padding: 1rem; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem; position: relative; border-left: 4px solid #e2e8f0; }
-    .risk-item-danger { border-left-color: #ef4444; background: #fffafb; }
-    .risk-item-warning { border-left-color: #f59e0b; background: #fffdfa; }
-    .risk-item-success { border-left-color: #10b981; background: #fafffc; }
+    .risk-item { 
+        padding: 1.25rem; 
+        border-radius: 18px; 
+        border: 1px solid #f1f5f9; 
+        margin-bottom: 1rem; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 0.6rem; 
+        position: relative; 
+        border-left: 5px solid #e2e8f0; 
+        transition: all 0.2s;
+    }
+    .risk-item:hover { transform: scale(1.02); }
+    .risk-item-danger { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.02); }
+    .risk-item-warning { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.02); }
+    .risk-item-success { border-left-color: #10b981; background: rgba(16, 185, 129, 0.02); }
 
-    .risk-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
-    .risk-meta { font-size: 0.75rem; color: #64748b; display: flex; justify-content: space-between; }
+    .risk-title { font-size: 0.925rem; font-weight: 800; color: #0f172a; }
+    .risk-meta { font-size: 0.725rem; color: #64748b; display: flex; justify-content: space-between; font-weight: 600; }
+    
+    .entity-card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s;
+    }
+    .entity-card:hover { border-color: var(--comp-primary); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06); }
 </style>
 {% endblock %}
 
@@ -148,14 +203,46 @@
                     </table>
                 </div>
             </div>
-        </div>
+                        <tbody id="compliance_calendar_body">
+                            <!-- Dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-        <!-- Legal Entities -->
-        <div class="col-lg-4">
-            <div class="c-panel">
-                <div class="c-header"><h6>Entités Légales & Identifiants</h6></div>
-                <div class="p-3" id="entity_container">
-                    <!-- Dynamic -->
+            <div class="right-col">
+                <div class="c-panel mb-4">
+                    <div class="c-header">
+                        <h6>Analyse des Risques</h6>
+                    </div>
+                    <div class="p-3" id="compliance_risks_container">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="regulatory-content" style="display:none;">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="c-panel">
+                    <div class="c-header">
+                        <h6>Obligations Réglementaires Activées</h6>
+                    </div>
+                    <div class="p-4" id="regulatory_container">
+                        <!-- Dynamic -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="c-panel">
+                    <div class="c-header">
+                        <h6>Entités Enregistrées</h6>
+                    </div>
+                    <div class="p-3" id="compliance_entities_container">
+                        <!-- Dynamic -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -166,55 +253,39 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    loadComplianceData();
+    loadCompliance();
 
-    async function loadComplianceData() {
+    async function loadCompliance() {
         try {
             const response = await fetch('/compliance/api/data/');
             const data = await response.json();
 
             // KPIs
             document.getElementById('comp-score').textContent = `${data.compliance_score}%`;
-            document.getElementById('comp-risks').textContent = data.open_risks;
-            document.getElementById('comp-pending').textContent = data.declarations_pending;
-            document.getElementById('comp-provision').textContent = `${data.tax_provision.toLocaleString()} XOF`;
-            document.getElementById('comp-deadline').textContent = `${data.next_deadline_days} Jrs`;
+            document.getElementById('comp-risks').textContent = data.open_risks_count;
+            document.getElementById('comp-upcoming').textContent = data.calendar.length;
 
-            // Tax Calendar
-            const calendarBody = document.getElementById('tax_calendar_body');
-            calendarBody.innerHTML = data.tax_calendar.map(item => `
+            // Calendar
+            const calendarBody = document.getElementById('compliance_calendar_body');
+            calendarBody.innerHTML = data.calendar.length ? data.calendar.map(item => `
                 <tr>
+                    <td><span class="badge-deadline ${item.is_urgent ? 'deadline-urgent' : 'deadline-normal'}">${item.deadline}</span></td>
                     <td>
-                        <span class="badge-deadline ${item.urgent ? 'deadline-urgent' : 'deadline-normal'}">
-                            ${item.deadline}
-                        </span>
-                        <div class="small text-muted mt-1">${item.days_left} jours restants</div>
+                        <div class="fw-bold">${item.tax_name}</div>
+                        <div class="small text-muted">${item.tax_code}</div>
                     </td>
-                    <td class="fw-bold">${item.tax}</td>
-                    <td class="small">${item.entity}</td>
-                    <td class="fw-bold">${item.amount.toLocaleString()}</td>
-                    <td><span class="badge bg-${item.status_class}">${item.status}</span></td>
+                    <td>${item.entity}</td>
+                    <td class="fw-bold">${item.amount.toLocaleString()} XOF</td>
+                    <td><span class="badge bg-light text-dark border">${item.status}</span></td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="5" class="text-center py-4">Aucune déclaration à venir</td></tr>';
 
             // Risks
-            const riskContainer = document.getElementById('risk_container');
-            riskContainer.innerHTML = data.risks.map(risk => `
+            const risksContainer = document.getElementById('compliance_risks_container');
+            risksContainer.innerHTML = data.history.length ? data.history.map(risk => `
                 <div class="risk-item risk-item-${risk.level}">
-                    <div class="risk-title">${risk.description}</div>
-                    <div class="small text-muted">${risk.impact}</div>
+                    <div class="risk-title">${risk.title}</div>
                     <div class="risk-meta">
-                        <span class="fw-bold text-${risk.level}">Proba: ${risk.probability}</span>
-                        <span class="badge bg-light text-dark border">${risk.status}</span>
-                    </div>
-                </div>
-            `).join('');
-
-            // Filed Declarations
-            const filedBody = document.getElementById('filed_declarations_body');
-            filedBody.innerHTML = data.filed_declarations.map(doc => `
-                <tr>
-                    <td class="fw-bold">${doc.period}</td>
                     <td>${doc.tax}</td>
                     <td>${doc.entity}</td>
                     <td class="fw-bold">${doc.amount.toLocaleString()}</td>

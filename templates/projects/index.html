@@ -6,46 +6,100 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --proj-primary: #2563eb;
+        --proj-success: #10b981;
+        --proj-warning: #f59e0b;
+        --proj-card-bg: rgba(255, 255, 255, 0.9);
+    }
+
     .project-kpis {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
     }
 
     .proj-card {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 1.5rem;
+        background: var(--proj-card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 24px;
+        padding: 1.75rem;
+        transition: all 0.3s ease;
     }
+    .proj-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
 
-    .proj-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
-    .proj-lbl { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+    .proj-val { 
+        font-size: 2.25rem; 
+        font-weight: 900; 
+        color: #0f172a; 
+        margin-bottom: 0.1rem;
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .proj-lbl { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
 
-    .projects-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
-    .proj-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-    .proj-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
+    .projects-panel { 
+        background: var(--proj-card-bg); 
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4); 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 24px; 
+        overflow: hidden; 
+    }
+    .proj-header { 
+        padding: 1.5rem 1.75rem; 
+        border-bottom: 1px solid #f1f5f9; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background: rgba(248, 250, 252, 0.5);
+    }
+    .proj-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
 
     .proj-table { width: 100%; border-collapse: collapse; }
-    .proj-table th { text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 1rem; border-bottom: 1px solid #f1f5f9; }
-    .proj-table td { padding: 1.25rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+    .proj-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 1rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; }
+    .proj-table td { padding: 1.5rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; color: #475569; }
 
-    .proj-name { font-weight: 700; color: #1e293b; display: block; }
-    .proj-client { font-size: 0.75rem; color: #64748b; }
+    .proj-name { font-weight: 800; color: #0f172a; display: block; font-size: 0.95rem; }
+    .proj-client { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
 
-    .progress-wrapper { width: 120px; }
-    .progress-label { font-size: 0.7rem; font-weight: 700; color: #475569; margin-bottom: 0.25rem; display: block; }
+    .progress-wrapper { width: 140px; }
+    .progress { height: 8px; border-radius: 99px; background: #f1f5f9; overflow: hidden; }
+    .progress-bar { border-radius: 99px; transition: width 1s ease-in-out; }
+    .progress-label { font-size: 0.65rem; font-weight: 800; color: #64748b; margin-bottom: 0.4rem; display: block; text-transform: uppercase; }
 
-    .milestone-item { padding: 1rem; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; position: relative; }
-    .milestone-date { width: 50px; text-align: center; border-right: 1px solid #f1f5f9; padding-right: 1rem; flex-shrink: 0; }
-    .milestone-date .day { font-size: 1.25rem; font-weight: 800; color: #0f172a; line-height: 1; }
-    .milestone-date .month { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .milestone-item { 
+        padding: 1.25rem; 
+        border-radius: 18px; 
+        border: 1px solid #f1f5f9; 
+        margin-bottom: 1rem; 
+        display: flex; 
+        align-items: center; 
+        gap: 1.25rem; 
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.5);
+    }
+    .milestone-item:hover { transform: scale(1.02); border-color: var(--proj-primary); background: #fff; }
+    
+    .milestone-date { 
+        width: 60px; 
+        text-align: center; 
+        border-right: 2px solid #f1f5f9; 
+        padding-right: 1.25rem; 
+        flex-shrink: 0; 
+    }
+    .milestone-date .day { font-size: 1.4rem; font-weight: 900; color: #0f172a; line-height: 1; }
+    .milestone-date .month { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-top: 0.2rem; display: block; }
 
-    .milestone-info h6 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.1rem; }
-    .milestone-info p { font-size: 0.75rem; color: #94a3b8; margin: 0; }
+    .milestone-info h6 { font-size: 0.925rem; font-weight: 800; margin-bottom: 0.25rem; color: #1e293b; }
+    .milestone-info p { font-size: 0.75rem; color: #94a3b8; margin: 0; font-weight: 500; }
 
-    .budget-pill { background: #f1f5f9; color: #475569; padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+    .budget-pill { background: #f8fafc; color: #475569; padding: 0.4rem 0.8rem; border-radius: 10px; font-weight: 800; font-size: 0.75rem; border: 1px solid #e2e8f0; }
 </style>
 {% endblock %}
 

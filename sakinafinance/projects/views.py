@@ -79,34 +79,6 @@ def api_project_data(request):
             'status': m.get_status_display(),
         } for m in milestones]
 
-    else:
-        # Fallback demonstration data
-        total_projects = 12
-        active_projects_count = 5
-        completed_ytd = 4
-        total_budget = 850000
-        spent_budget = 425000
-        budget_pct = 50
-        on_schedule = 4
-        delayed = 1
-        overdue_tasks = 4
-        active_projects = [
-            {
-                'name': 'Cloud Migration', 'client': 'Internal', 'manager': 'Jean Dupont',
-                'budget': 150000, 'spent': 120000, 'progress': 80, 'deadline': '15/05/2025',
-                'status': 'En cours', 'status_class': 'primary', 'health': 'Stable', 'health_class': 'primary', 'team': 5
-            },
-            {
-                'name': 'ERP Implementation', 'client': 'Sakina Corp', 'manager': 'Marie Sine',
-                'budget': 500000, 'spent': 210000, 'progress': 42, 'deadline': '30/09/2025',
-                'status': 'En cours', 'status_class': 'primary', 'health': 'Excellent', 'health_class': 'success', 'team': 12
-            }
-        ]
-        milestone_data = [
-            {'project': 'Cloud Migration', 'title': 'UAT Testing', 'date': '20/04/2025', 'day': '20', 'month': 'AVR', 'status': 'Planifié'},
-            {'project': 'ERP Implementation', 'title': 'Data Migration', 'date': '15/05/2025', 'day': '15', 'month': 'MAI', 'status': 'En cours'},
-        ]
-
     data = {
         'total_projects': total_projects,
         'active_projects_count': active_projects_count,

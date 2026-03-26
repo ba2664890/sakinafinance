@@ -99,37 +99,14 @@ def api_hr_data(request):
             end_date__gte=timezone.now().date()
         ).count()
 
-    else:
-        # Fallback demonstration data
-        total_employees = 124
-        new_hires = 3
-        payroll_total = 145200
-        avg_salary = 1170
-        dept_data = [
-            {'name': 'Finance', 'count': 12, 'pct': 10, 'color': 'primary'},
-            {'name': 'Operations', 'count': 45, 'pct': 36, 'color': 'success'},
-        ]
-        payroll_runs = [
-            {'period': 'Mars 2025', 'employees': 124, 'gross': 145200, 'net': 118400, 'status': 'Payé', 'date': '31/03/2025'},
-        ]
-        leave_summary = [
-            {'type': 'Congés annuels', 'pending': 5, 'approved': 12},
-        ]
-        recruitments = [
-            {'title': 'Analyste Financier Senior', 'dept': 'Finance', 'posted': '15/03/2025', 'candidates': 8, 'stage': 'Entretiens'},
-        ]
-        pending_leaves = 15
-        approved_leaves = 44
-        ongoing_leaves = 15
-
     data = {
         'total_employees': total_employees,
         'new_hires': new_hires,
-        'turnover_rate': 6.2,
+        'turnover_rate': 0.0,
         'payroll_total': payroll_total,
-        'payroll_growth': 4.8,
+        'payroll_growth': 0.0,
         'avg_salary': avg_salary,
-        'satisfaction_score': 78,
+        'satisfaction_score': 0,
         'departments': dept_data,
         'payroll_runs': payroll_runs,
         'leave_summary': leave_summary,

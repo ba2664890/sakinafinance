@@ -6,93 +6,102 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --inv-primary: #2563eb;
+        --inv-success: #10b981;
+        --inv-warning: #f59e0b;
+        --inv-card-bg: rgba(255, 255, 255, 0.9);
+    }
+
     .inventory-kpis {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
     }
 
     .i-kpi-card {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 1.5rem;
+        background: var(--inv-card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 20px;
+        padding: 1.75rem;
         display: flex;
         align-items: center;
-        gap: 1.25rem;
-        transition: all 0.3s ease;
+        gap: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .i-kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        border-color: var(--primary-color);
-    }
+    .i-kpi-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
 
     .i-kpi-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
         font-size: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
-    .i-kpi-info h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #1e293b; }
-    .i-kpi-info p { margin: 0; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    .i-kpi-info h3 { 
+        margin: 0; 
+        font-size: 1.6rem; 
+        font-weight: 900; 
+        color: #0f172a;
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .i-kpi-info p { margin: 0; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
 
     .inventory-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
-        gap: 1.5rem;
+        gap: 2rem;
     }
 
-    .i-panel {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    .i-panel { 
+        background: var(--inv-card-bg); 
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4); 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 24px; 
+        overflow: hidden; 
+        height: 100%; 
     }
-
-    .i-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .i-header { 
+        padding: 1.5rem 1.75rem; 
+        border-bottom: 1px solid #f1f5f9; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background: rgba(248, 250, 252, 0.5);
     }
-
-    .i-header h5 { margin: 0; font-weight: 800; color: #0f172a; }
+    .i-header h5 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
 
     .i-table { width: 100%; border-collapse: collapse; }
-    .i-table th { text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 1rem 1.5rem; background: #f8fafc; }
-    .i-table td { padding: 1.25rem 1.5rem; font-size: 0.875rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .i-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; }
+    .i-table td { padding: 1.25rem 1.5rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; color: #475569; font-weight: 500; }
 
-    .stock-badge {
-        padding: 0.35rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-    }
-    .stock-good { background: #ecfdf5; color: #059669; }
-    .stock-low { background: #fffbeb; color: #d97706; }
-    .stock-critical { background: #fef2f2; color: #dc2626; }
+    .stock-badge { padding: 0.4rem 0.8rem; border-radius: 12px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+    .stock-good { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    .stock-low { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+    .stock-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
 
-    .trans-item {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #f8fafc;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .trans-item { 
+        padding: 1.25rem 1.5rem; 
+        border-bottom: 1px solid #f8fafc; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        transition: background 0.2s;
     }
-    .trans-item:last-child { border-bottom: none; }
-    .trans-info { display: flex; flex-direction: column; }
-    .trans-name { font-weight: 700; color: #1e293b; font-size: 0.875rem; }
-    .trans-meta { font-size: 0.75rem; color: #94a3b8; }
-    .trans-qty { font-weight: 800; font-size: 0.9rem; }
+    .trans-item:hover { background: rgba(255,255,255,0.5); }
+    .trans-info { display: flex; flex-direction: column; gap: 0.2rem; }
+    .trans-name { font-weight: 800; color: #1e293b; font-size: 0.9rem; }
+    .trans-meta { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+    .trans-qty { font-weight: 900; font-size: 0.95rem; }
     .qty-in { color: #10b981; }
     .qty-out { color: #ef4444; }
 </style>

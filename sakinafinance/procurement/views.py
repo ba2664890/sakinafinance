@@ -98,14 +98,14 @@ def api_procurement_data(request):
         rfq_data = []
 
     data = {
-        'total_spends': float(total_spends) if total_spends > 0 else 142500, # Fallback
-        'purchases_growth': -3.2,
+        'total_spends': float(total_spends),
+        'purchases_growth': 0.0,
         'suppliers_count': suppliers_count,
         'po_count': po_count,
-        'savings_rate': 8.4,
-        'savings': float(total_spends) * 0.08 if total_spends > 0 else 12500,
-        'avg_lead_time_days': 45,
-        'on_time_delivery': 87.3,
+        'savings_rate': 0.0,
+        'savings': 0.0,
+        'avg_lead_time_days': 0,
+        'on_time_delivery': 0.0,
         'purchase_orders': po_data,
         'suppliers': supplier_data,
         'categories': cat_data,

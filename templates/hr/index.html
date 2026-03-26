@@ -6,61 +6,122 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --hr-primary: #2563eb;
+        --hr-success: #10b981;
+        --hr-card-bg: rgba(255, 255, 255, 0.9);
+    }
+    
     .hr-stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 1.5rem;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
     }
 
     .stat-card-glass {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 1.5rem;
+        background: var(--hr-card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 20px;
+        padding: 1.75rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+    }
+    
+    .stat-card-glass:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     }
 
     .stat-card-glass::after {
         content: "";
         position: absolute;
-        top: -20px;
-        right: -20px;
-        width: 80px;
-        height: 80px;
-        background: rgba(37, 99, 235, 0.03);
+        top: -30px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        background: rgba(37, 99, 235, 0.04);
         border-radius: 50%;
     }
 
-    .stat-val { font-size: 1.75rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
-    .stat-lbl { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-    .stat-sub { font-size: 0.7rem; color: #94a3b8; margin-top: 0.5rem; }
+    .stat-val { 
+        font-size: 2rem; 
+        font-weight: 900; 
+        color: #0f172a; 
+        margin-bottom: 0.15rem; 
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .stat-lbl { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; }
+    .stat-sub { font-size: 0.725rem; font-weight: 600; color: #64748b; margin-top: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
 
-    .hr-panel { background: white; border: 1px solid var(--border-color); border-radius: 16px; height: 100%; }
-    .hr-panel-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-    .hr-panel-header h6 { margin: 0; font-weight: 700; color: #1e293b; }
-    .hr-panel-content { padding: 1.5rem; }
+    .hr-panel { 
+        background: var(--hr-card-bg); 
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4); 
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border-radius: 24px; 
+        height: 100%; 
+        overflow: hidden;
+    }
+    .hr-panel-header { 
+        padding: 1.5rem 1.75rem; 
+        border-bottom: 1px solid #f1f5f9; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background: rgba(248, 250, 252, 0.5);
+    }
+    .hr-panel-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
+    .hr-panel-content { padding: 1.75rem; }
 
     .payroll-table { width: 100%; border-collapse: collapse; }
-    .payroll-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; }
-    .payroll-table td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+    .payroll-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 1rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.08em; }
+    .payroll-table td { padding: 1.25rem 1rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; color: #475569; font-weight: 500; }
     
-    .status-pill-hr { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.7rem; font-weight: 700; }
-    .pill-paid { background: #f0fdf4; color: #16a34a; }
-    .pill-pending { background: #fffbeb; color: #d97706; }
+    .status-pill-hr { padding: 0.35rem 0.85rem; border-radius: 12px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+    .pill-paid { background: #f0fdf4; color: #16a34a; box-shadow: 0 2px 4px rgba(22, 163, 74, 0.05); }
+    .pill-pending { background: #fffbeb; color: #d97706; box-shadow: 0 2px 4px rgba(217, 119, 6, 0.05); }
 
-    .dept-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-    .dept-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .dept-item { 
+        display: flex; 
+        align-items: center; 
+        gap: 1.25rem; 
+        margin-bottom: 1.25rem; 
+        padding: 1rem;
+        border-radius: 16px;
+        transition: background 0.2s;
+        border: 1px solid transparent;
+    }
+    .dept-item:hover { background: rgba(255,255,255,0.8); border-color: #f1f5f9; }
+    .dept-color { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; box-shadow: 0 0 10px currentColor; opacity: 0.8; }
     .dept-info { flex: 1; }
-    .dept-name { font-size: 0.8rem; font-weight: 600; color: #475569; }
-    .dept-bar { height: 6px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 0.25rem; }
-    .dept-fill { height: 100%; border-radius: 99px; }
+    .dept-name { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
+    .dept-bar { height: 8px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 0.6rem; }
+    .dept-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(0.1, 0, 1, 0); }
 
-    .recruitment-card { border: 1px solid #f1f5f9; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; transition: border-color 0.2s; }
-    .recruitment-card:hover { border-color: var(--primary-color); }
-    .recruit-title { font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 0.25rem; }
-    .recruit-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 1rem; }
+    .recruitment-card { 
+        background: #fff;
+        border: 1px solid #f1f5f9; 
+        border-radius: 18px; 
+        padding: 1.25rem; 
+        margin-bottom: 1rem; 
+        transition: all 0.3s;
+    }
+    .recruitment-card:hover { 
+        transform: scale(1.02);
+        border-color: var(--hr-primary);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.08);
+    }
+    .recruit-title { font-size: 1rem; font-weight: 800; color: #0f172a; margin-bottom: 0.4rem; }
+    .recruit-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 1.25rem; font-weight: 600; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-fade { animation: fadeIn 0.6s ease-in-out forwards; }
 </style>
 {% endblock %}
 
