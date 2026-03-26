@@ -312,9 +312,9 @@ def api_ai_chat(request):
     rag = RAGService()
     context_items = rag.retrieve_context(message, company, top_k=5)
 
-    # Generate answer with HuggingFace Mistral
+    # Generate answer with HuggingFace Mistral (now with SQL + RAG context)
     user_name = request.user.first_name or 'Partenaire'
-    hf_answer = rag.generate_rag_answer(message, context_items, user_name=user_name)
+    hf_answer = rag.generate_rag_answer(message, context_items, company=company, user_name=user_name)
 
     if hf_answer:
         sources = list({c['filename'] for c in context_items}) if context_items else []

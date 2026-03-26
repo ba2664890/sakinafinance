@@ -324,38 +324,83 @@ class RAGService:
             return []
 
     # -----------------------------------------------------------------------
+    # SQL Context — Données réelles de la base
+    # -----------------------------------------------------------------------
+
+    def get_company_sql_context(self, company) -> str:
+        """
+        Récupère un résumé structuré des données financières (SQL) de l'entreprise.
+        C'est ce qui évite que l'IA soit 'générique'.
+        """
+        try:
+            from sakinafinance.accounting.models import Account, Invoice
+            from django.db.models import Sum
+
+            # 1. Trésorerie (Comptes classe 5)
+            cash_accounts = Account.objects.filter(company=company, code__startswith='5')
+            cash_total = cash_accounts.aggregate(Sum('current_balance'))['current_balance__sum'] or 0
+
+            # 2. Factures récentes
+            recent_invoices = Invoice.objects.filter(company=company).order_by('-invoice_date')[:5]
+            inv_list = "\n".join([
+                f"- Facture {i.invoice_number}: {i.partner_name}, {i.total} {i.currency} ({i.get_status_display()})"
+                for i in recent_invoices
+            ])
+
+            # 3. Comptes Clés (CA, Dettes, etc.)
+            # Simplification : on prend les soldes des racines 7 (Produits) et 4 (Tiers)
+            revenue_total = Account.objects.filter(company=company, code__startswith='7').aggregate(Sum('current_balance'))['current_balance__sum'] or 0
+            
+            context = f"""
+=== DONNÉES RÉELLES DE L'ENTREPRISE (SQL) ===
+Entreprise : {company.name}
+Trésorerie Totale (Comptes 5) : {cash_total:,.0f} XOF
+Chiffre d'Affaires estimé (Comptes 7) : {revenue_total:,.0f} XOF
+
+Factures Récentes :
+{inv_list if inv_list else "Aucune facture enregistrée."}
+"""
+            return context
+        except Exception as e:
+            logger.error(f"Erreur extraction SQL context: {e}")
+            return "Attention : Impossible de charger les données financières réelles pour le moment."
+
+    # -----------------------------------------------------------------------
     # Génération de réponse RAG via HuggingFace
     # -----------------------------------------------------------------------
 
-    def generate_rag_answer(self, query: str, context_items: list[dict], user_name: str = "utilisateur") -> str | None:
+    def generate_rag_answer(self, query: str, context_items: list[dict], company=None, user_name: str = "utilisateur") -> str | None:
         """
-        Génère une réponse en utilisant le contexte RAG + HuggingFace Mistral.
-        Retourne None si le LLM est indisponible (le caller utilisera un fallback).
+        Génère une réponse en utilisant :
+        1. Le contexte SQL (données réelles)
+        2. Le contexte RAG (documents uploadés)
+        3. Le LLM HuggingFace Mistral
         """
         client = self._get_hf_client()
         if client is None:
-            if not self.hf_token:
-                logger.warning("HUGGINGFACE_API_TOKEN non configuré.")
             return None
 
-        # Construire le contexte
+        # 1. Récupérer le contexte SQL si la company est fournie
+        sql_context = ""
+        if company:
+            sql_context = self.get_company_sql_context(company)
+
+        # 2. Construire le contexte RAG (documents)
+        rag_context = ""
         if context_items:
-            context_text = "\n\n".join([
-                f"[Source: {c['filename']}, score: {c['score']:.2f}]\n{c['content']}"
+            rag_context = "=== DOCUMENTS (BASE DE CONNAISSANCES) ===\n" + "\n\n".join([
+                f"[Source: {c['filename']}]\n{c['content']}"
                 for c in context_items[:4]
             ])
-            user_prompt = (
-                f"Utilise les extraits de documents financiers suivants pour répondre à la question.\n\n"
-                f"=== DOCUMENTS ===\n{context_text}\n\n"
-                f"=== QUESTION DE {user_name.upper()} ===\n{query}\n\n"
-                f"Réponds de manière professionnelle en citant les sources pertinentes."
-            )
-        else:
-            user_prompt = (
-                f"{query}\n\n"
-                f"(Aucun document pertinent trouvé dans la base de connaissances. "
-                f"Réponds avec tes connaissances générales en finance OHADA.)"
-            )
+
+        # 3. Assembler le prompt final
+        user_prompt = (
+            f"Question de {user_name.upper()} : {query}\n\n"
+            f"{sql_context}\n\n"
+            f"{rag_context}\n\n"
+            f"CONSIGNE : Analyse la question en priorité avec les DONNÉES RÉELLES (SQL) si elles sont pertinentes, "
+            f"sinon utilise les DOCUMENTS. Si tu n'as pas l'info, sois franc."
+        )
 
         messages = [
             {"role": "system", "content": self.SYSTEM_PROMPT},
