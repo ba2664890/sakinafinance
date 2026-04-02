@@ -35,7 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         GROUPE = 'groupe', _('Groupe / Holding')
     
     class Role(models.TextChoices):
-        ADMIN = 'admin', _('Administrateur')
+        ADMIN = 'admin', _('Administrateur société')
         CEO = 'ceo', _('CEO / DG')
         CFO = 'cfo', _('DAF / CFO')
         ACCOUNTANT = 'accountant', _('Comptable')
@@ -205,10 +205,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.plan in ['enterprise', 'groupe']
     
     def save(self, *args, **kwargs):
-        """Auto-set is_staff and is_superuser for admin role"""
-        if self.role == self.Role.ADMIN:
-            self.is_staff = True
-            self.is_superuser = True
+        """Business roles never grant Django staff or superuser privileges."""
         super().save(*args, **kwargs)
 
 

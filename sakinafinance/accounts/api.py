@@ -1,4 +1,7 @@
-from rest_framework import serializers, viewsets, permissions
+from rest_framework import serializers
+
+from sakinafinance.core.api_mixins import CompanyScopedReadOnlyViewSet
+
 from .models import User, Company, Entity
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,12 +14,11 @@ class CompanySerializer(serializers.ModelSerializer):
         model = Company
         fields = '__all__'
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(CompanyScopedReadOnlyViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-class CompanyViewSet(viewsets.ModelViewSet):
+class CompanyViewSet(CompanyScopedReadOnlyViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    company_field = 'self'

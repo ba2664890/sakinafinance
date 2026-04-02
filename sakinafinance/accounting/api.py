@@ -1,31 +1,26 @@
-from rest_framework import viewsets, permissions
 from .models import Account, Journal, Transaction, Invoice, FinancialStatement
 from .serializers import (
     AccountSerializer, JournalSerializer, TransactionSerializer,
     InvoiceSerializer, FinancialStatementSerializer
 )
+from sakinafinance.core.api_mixins import CompanyScopedModelViewSet
 
-class AccountViewSet(viewsets.ModelViewSet):
+class AccountViewSet(CompanyScopedModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-class JournalViewSet(viewsets.ModelViewSet):
+class JournalViewSet(CompanyScopedModelViewSet):
     queryset = Journal.objects.all()
     serializer_class = JournalSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-class TransactionViewSet(viewsets.ModelViewSet):
+class TransactionViewSet(CompanyScopedModelViewSet):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-class InvoiceViewSet(viewsets.ModelViewSet):
+class InvoiceViewSet(CompanyScopedModelViewSet):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-class FinancialStatementViewSet(viewsets.ModelViewSet):
+class FinancialStatementViewSet(CompanyScopedModelViewSet):
     queryset = FinancialStatement.objects.all()
     serializer_class = FinancialStatementSerializer
-    permission_classes = [permissions.IsAuthenticated]

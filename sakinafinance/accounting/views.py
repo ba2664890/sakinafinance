@@ -3,16 +3,23 @@ Comptabilité Views — SakinaFinance
 """
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 import json
 from datetime import datetime
 from decimal import Decimal
+from json import JSONDecodeError
 
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum
+from django.utils import timezone
 from .models import Account, Transaction, TransactionLine, Journal
-from sakinafinance.ai_engine.services import AIService
+from .services import (
+    ZERO,
+    aggregate_posted_movements,
+    build_accounting_insight,
+    build_balance_sheet_snapshot,
+)
 
 @login_required
 def accounting_view(request):
@@ -22,91 +29,124 @@ def accounting_view(request):
 
 @login_required
 def api_accounting_data(request):
-    """API: Get Real-time Accounting Metrics and Balance Sheet"""
+    """API: Get accounting metrics based on posted entries and opening balances."""
     user = request.user
     company = user.company
-    
-    # Real data from Chart of Accounts
-    accounts = Account.objects.filter(company=company)
-    
-    # Simple calculation logic based on OHADA/IFRS classes
-    assets = accounts.filter(account_class__in=['2', '3', '5']).aggregate(total=Sum('current_balance'))['total'] or 0
-    receivables = accounts.filter(account_class='4', account_type='asset').aggregate(total=Sum('current_balance'))['total'] or 0
-    total_assets = float(assets + receivables)
-    
-    liabilities = accounts.filter(account_class='1', account_type='liability').aggregate(total=Sum('current_balance'))['total'] or 0
-    payables = accounts.filter(account_class='4', account_type='liability').aggregate(total=Sum('current_balance'))['total'] or 0
-    total_liabilities = float(liabilities + payables)
-    
-    equity = float(accounts.filter(account_class='1', account_type='equity').aggregate(total=Sum('current_balance'))['total'] or 0)
-    
-    products = accounts.filter(account_class='7').aggregate(total=Sum('current_balance'))['total'] or 0
-    charges = accounts.filter(account_class='6').aggregate(total=Sum('current_balance'))['total'] or 0
-    net_income = float(products - charges)
-    
-    # Last Entries
+
+    data = {
+        'total_assets': 0.0,
+        'total_assets_growth': None,
+        'total_liabilities': 0.0,
+        'equity': 0.0,
+        'equity_ratio': None,
+        'net_income': 0.0,
+        'net_income_margin': None,
+        'pending_entries': 0,
+        'ai_insight': build_accounting_insight(False, ZERO, ZERO, ZERO, None, None),
+        'journal_entries': [],
+        'balance_sheet': {
+            'actif': [],
+            'passif': [],
+        },
+        'ratios': {
+            'liquidity_ratio': None,
+            'solvability_ratio': None,
+        },
+        'quality': {
+            'level': 'warning',
+            'title': 'Données comptables partielles',
+            'message': "Aucune entreprise n'est associée à cet utilisateur.",
+            'is_reliable': False,
+        },
+        'journals': [],
+    }
+
+    if not company:
+        return JsonResponse(data)
+
+    today = timezone.now().date()
+    year_start = today.replace(month=1, day=1)
+    period_movements = aggregate_posted_movements(company, start_date=year_start, end_date=today)
+    period_accounts = Account.objects.in_bulk(period_movements.keys())
+    balance_sheet = build_balance_sheet_snapshot(company, end_date=today)
+    posted_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.POSTED)
+    pending_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.PENDING)
+
+    revenue = ZERO
+    expenses = ZERO
+    for account_id, movement in period_movements.items():
+        account = period_accounts.get(account_id)
+        if not account:
+            continue
+        if account.account_class == Account.AccountClass.CLASS_7:
+            revenue += movement['credit'] - movement['debit']
+        elif account.account_class == Account.AccountClass.CLASS_6:
+            expenses += movement['debit'] - movement['credit']
+
+    net_income = revenue - expenses
+    total_assets = balance_sheet['total_assets']
+    total_liabilities = balance_sheet['total_liabilities']
+    equity = balance_sheet['total_equity']
+    current_assets = balance_sheet['current_assets']
+    current_liabilities = balance_sheet['current_liabilities']
+
+    liquidity_ratio = float(current_assets / current_liabilities) if current_liabilities > ZERO else None
+    solvability_ratio = float(equity / total_assets) if total_assets > ZERO else None
+    net_income_margin = float((net_income / revenue) * 100) if revenue > ZERO else None
+
     last_entries = []
-    transactions = Transaction.objects.filter(company=company, status='posted').order_by('-date')[:6]
-    for tx in transactions:
+    for tx in posted_transactions.select_related('journal').prefetch_related('lines__account').order_by('-date', '-created_at')[:6]:
+        first_line = tx.lines.first()
         last_entries.append({
             'date': tx.date.strftime('%d/%m/%Y'),
             'ref': tx.reference,
             'libelle': tx.description,
             'debit': float(tx.total_debit),
             'credit': float(tx.total_credit),
-            'compte': 'MULT' if tx.lines.count() > 2 else tx.lines.first().account.code if tx.lines.exists() else 'N/A'
+            'compte': 'MULT' if tx.lines.count() > 2 else first_line.account.code if first_line else 'N/A',
         })
 
-    # Calculate Ratios
-    assets_f = float(assets)
-    liabilities_f = float(total_liabilities)
-    equity_f = float(equity)
-    receivables_f = float(receivables)
+    is_reliable = posted_transactions.exists()
+    quality_message = (
+        "Vue calculée à partir des écritures validées et des soldes d'ouverture. Le mapping détaillé des états OHADA reste encore simplifié."
+        if is_reliable
+        else "Aucune écriture validée n'alimente encore cette vue. Les rubriques restent limitées aux soldes d'ouverture éventuels."
+    )
 
-    liquidity_ratio = assets_f / liabilities_f if liabilities_f > 0 else 0
-    solvability_ratio = equity_f / assets_f if assets_f > 0 else 0
-    
-    # AI Insight
-    ai_service = AIService()
-    ai_insight = ai_service.generate_accounting_insights({
+    data.update({
         'total_assets': float(total_assets),
         'total_liabilities': float(total_liabilities),
-        'equity': equity_f,
+        'equity': float(equity),
+        'equity_ratio': round(solvability_ratio * 100, 1) if solvability_ratio is not None else None,
         'net_income': float(net_income),
-        'liquidity_ratio': liquidity_ratio,
-        'solvability_ratio': solvability_ratio
+        'net_income_margin': round(net_income_margin, 1) if net_income_margin is not None else None,
+        'pending_entries': pending_transactions.count(),
+        'ai_insight': build_accounting_insight(
+            is_reliable,
+            total_assets,
+            total_liabilities,
+            equity,
+            liquidity_ratio,
+            solvability_ratio,
+        ),
+        'journal_entries': last_entries,
+        'balance_sheet': {
+            'actif': balance_sheet['actif'],
+            'passif': balance_sheet['passif'],
+        },
+        'ratios': {
+            'liquidity_ratio': round(liquidity_ratio, 2) if liquidity_ratio is not None else None,
+            'solvability_ratio': round(solvability_ratio, 2) if solvability_ratio is not None else None,
+        },
+        'quality': {
+            'level': 'info' if is_reliable else 'warning',
+            'title': 'Base comptable contrôlée' if is_reliable else 'Données comptables partielles',
+            'message': quality_message,
+            'is_reliable': is_reliable,
+        },
+        'journals': list(Journal.objects.filter(company=company, is_active=True).values('id', 'name', 'code')),
     })
 
-    data = {
-        'total_assets': float(total_assets) if total_assets > 0 else 845200000.0,
-        'total_assets_growth': 8.3,
-        'total_liabilities': float(total_liabilities) if total_liabilities > 0 else 423100000.0,
-        'equity': equity_f if equity_f > 0 else 422100000.0,
-        'equity_ratio': round(solvability_ratio * 100, 1) if solvability_ratio > 0 else 49.9,
-        'net_income': float(net_income) if net_income != 0 else 84200000.0,
-        'net_income_margin': 19.6,
-        'pending_entries': Transaction.objects.filter(company=company, status='pending').count(),
-        'ai_insight': ai_insight,
-        
-        'journal_entries': last_entries or [
-            {'date': '17/03/2025', 'ref': 'JV-2025-1847', 'libelle': 'Vente marchandises Dakar', 'debit': 4500000.0, 'credit': 0.0, 'compte': '411100'},
-            {'date': '17/03/2025', 'ref': 'JV-2025-1846', 'libelle': 'TVA collectée T1', 'debit': 0.0, 'credit': 752000.0, 'compte': '445710'},
-        ],
-        
-        'balance_sheet': {
-            'actif': [
-                {'label': 'Immobilisations', 'amount': assets_f * 0.6, 'pct': 60},
-                {'label': 'Créances Client', 'amount': receivables_f, 'pct': 20},
-                {'label': 'Disponibilités', 'amount': assets_f * 0.2, 'pct': 20},
-            ],
-            'passif': [
-                {'label': 'Capitaux Propres', 'amount': equity_f, 'pct': 50},
-                {'label': 'Dettes Fournisseurs', 'amount': liabilities_f * 0.4, 'pct': 20},
-                {'label': 'Dettes Financières', 'amount': liabilities_f * 0.6, 'pct': 30},
-            ]
-        },
-        'journals': list(Journal.objects.filter(company=company, is_active=True).values('id', 'name', 'code'))
-    }
     return JsonResponse(data)
 
 def _get_company(request):
@@ -119,11 +159,14 @@ def _get_company(request):
 
 @login_required
 @require_POST
-@csrf_exempt
 def api_create_transaction(request):
     """Create a manual journal entry."""
     try:
         payload = json.loads(request.body)
+    except JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Payload JSON invalide.'}, status=400)
+
+    try:
         company = _get_company(request)
         if not company:
             return JsonResponse({'status': 'error', 'message': 'Company non spécifiée'}, status=400)
@@ -134,43 +177,72 @@ def api_create_transaction(request):
             if not journal:
                 return JsonResponse({'status': 'error', 'message': 'Journal non trouvé'}, status=400)
         else:
-            journal = Journal.objects.get(id=journal_id, company=company)
+            try:
+                journal = Journal.objects.get(id=journal_id, company=company)
+            except (Journal.DoesNotExist, ValueError, DjangoValidationError):
+                journal = Journal.objects.get(code=journal_id, company=company)
             
-        # Create Transaction
+        lines_payload = payload.get('lines', [])
+        if len(lines_payload) < 2:
+            return JsonResponse({'status': 'error', 'message': 'Au moins deux lignes sont requises.'}, status=400)
+
+        total_debit = Decimal('0')
+        total_credit = Decimal('0')
+        normalized_lines = []
+        
+        for line in lines_payload:
+            acc_id = line.get('account')
+            debit = Decimal(str(line.get('debit', 0)))
+            credit = Decimal(str(line.get('credit', 0)))
+            
+            if not acc_id:
+                continue
+            if debit < 0 or credit < 0:
+                return JsonResponse({'status': 'error', 'message': 'Les montants négatifs ne sont pas autorisés.'}, status=400)
+            if debit > 0 and credit > 0:
+                return JsonResponse({'status': 'error', 'message': 'Une ligne ne peut pas porter un débit et un crédit simultanément.'}, status=400)
+            if debit == 0 and credit == 0:
+                return JsonResponse({'status': 'error', 'message': 'Chaque ligne doit porter un montant.'}, status=400)
+
+            try:
+                account = Account.objects.get(id=acc_id, company=company)
+            except (Account.DoesNotExist, ValueError, DjangoValidationError):
+                account = Account.objects.get(code=acc_id, company=company)
+
+            normalized_lines.append({
+                'account': account,
+                'debit': debit,
+                'credit': credit,
+                'description': line.get('description', payload.get('description', 'Saisie manuelle')),
+            })
+            total_debit += debit
+            total_credit += credit
+
+        if len(normalized_lines) < 2:
+            return JsonResponse({'status': 'error', 'message': 'Au moins deux lignes valides sont requises.'}, status=400)
+        if total_debit <= ZERO or total_credit <= ZERO:
+            return JsonResponse({'status': 'error', 'message': 'Les totaux débit et crédit doivent être strictement positifs.'}, status=400)
+        if total_debit != total_credit:
+            return JsonResponse({'status': 'error', 'message': "L'écriture doit être équilibrée."}, status=400)
+
         tx = Transaction.objects.create(
             company=company,
             journal=journal,
             reference=payload.get('reference', f"MAN-{datetime.now().strftime('%Y%m%d%H%M')}"),
             date=payload.get('date', datetime.now().date()),
             description=payload.get('description', 'Saisie manuelle'),
-            status='pending',
+            status=Transaction.TransactionStatus.PENDING,
             created_by=request.user
         )
-        
-        total_debit = Decimal('0')
-        total_credit = Decimal('0')
-        
-        for line in payload.get('lines', []):
-            acc_id = line.get('account')
-            debit = Decimal(str(line.get('debit', 0)))
-            credit = Decimal(str(line.get('credit', 0)))
-            
-            if acc_id:
-                # Try to find by ID then by Code if it's a string code
-                try:
-                    account = Account.objects.get(id=acc_id, company=company)
-                except (Account.DoesNotExist, ValueError):
-                    account = Account.objects.get(code=acc_id, company=company)
 
-                TransactionLine.objects.create(
-                    transaction=tx,
-                    account=account,
-                    debit=debit,
-                    credit=credit,
-                    description=line.get('description', tx.description)
-                )
-                total_debit += debit
-                total_credit += credit
+        for line in normalized_lines:
+            TransactionLine.objects.create(
+                transaction=tx,
+                account=line['account'],
+                debit=line['debit'],
+                credit=line['credit'],
+                description=line['description']
+            )
         
         tx.total_debit = total_debit
         tx.total_credit = total_credit
@@ -178,7 +250,7 @@ def api_create_transaction(request):
         
         return JsonResponse({
             'status': 'success',
-            'message': 'Transaction créée avec succès',
+            'message': 'Écriture créée en attente de validation',
             'transaction_id': str(tx.id)
         })
         

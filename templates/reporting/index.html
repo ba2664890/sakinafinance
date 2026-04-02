@@ -129,6 +129,10 @@
 
 {% block content %}
 <div class="fade-in">
+    <div id="reporting-quality-banner" class="alert alert-warning rounded-16 border-0 mb-4">
+        Chargement du niveau de fiabilité du reporting...
+    </div>
+
     <div class="row mb-5">
         <div class="col-12">
             <h5 class="fw-bold mb-4">Indicateurs de Performance (Ratios)</h5>
@@ -207,9 +211,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/reporting/api/data/');
             const data = await response.json();
 
+            const qualityBanner = document.getElementById('reporting-quality-banner');
+            qualityBanner.className = `alert alert-${data.quality.level} rounded-16 border-0 mb-4`;
+            qualityBanner.innerHTML = `<strong>${data.quality.title}</strong><div class="small mt-1">${data.quality.message}</div>`;
+
             // Ratios
             const ratioContainer = document.getElementById('ratio_container');
-            ratioContainer.innerHTML = data.ratios.map(r => `
+            ratioContainer.innerHTML = data.ratios.length ? data.ratios.map(r => `
                 <div class="ratio-card">
                     <div class="ratio-circle status-${r.status}">
                         <i class="bi ${r.status === 'good' ? 'bi-check-circle' : 'bi-exclamation-circle'}"></i>
@@ -218,41 +226,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="ratio-lbl">${r.label}</div>
                     <div class="ratio-bench">Marché: ${r.benchmark}</div>
                 </div>
-            `).join('');
+            `).join('') : `<div class="text-center w-100 p-4 text-muted">Aucun ratio calculable pour le moment.</div>`;
 
             // Income Statement
             const incomeBody = document.getElementById('income_statement_body');
-            incomeBody.innerHTML = data.income_statement.map(row => {
-                const variationClass = row.variation > 0 ? 'pos-val' : 'neg-val';
-                const currentClass = row.positive ? 'pos-val' : (row.current < 0 ? 'neg-val' : '');
-                const totalClass = row.is_total ? 'total-row' : '';
-                
-                return `
-                    <tr class="${totalClass}">
-                        <td class="label-col">${row.label}</td>
-                        <td class="${currentClass}">${row.current.toLocaleString()}</td>
-                        <td>${row.previous.toLocaleString()}</td>
-                        <td class="${variationClass}">
-                            ${row.variation ? (row.variation > 0 ? '+' : '') + row.variation + '%' : '-'}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            if (!data.income_statement.length) {
+                incomeBody.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-muted">Aucune écriture validée disponible pour produire un compte de résultat fiable.</td></tr>`;
+            } else {
+                incomeBody.innerHTML = data.income_statement.map(row => {
+                    const variationClass = row.variation > 0 ? 'pos-val' : 'neg-val';
+                    const currentClass = row.positive ? 'pos-val' : (row.current < 0 ? 'neg-val' : '');
+                    const totalClass = row.is_total ? 'total-row' : '';
+                    
+                    return `
+                        <tr class="${totalClass}">
+                            <td class="label-col">${row.label}</td>
+                            <td class="${currentClass}">${row.current.toLocaleString()}</td>
+                            <td>${row.previous.toLocaleString()}</td>
+                            <td class="${variationClass}">
+                                ${row.variation ? (row.variation > 0 ? '+' : '') + row.variation + '%' : '-'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
             // Cash Flow
             const cashContainer = document.getElementById('cash_flow_container');
-            cashContainer.innerHTML = data.cash_flows.map(item => `
+            cashContainer.innerHTML = data.cash_flows.length ? data.cash_flows.map(item => `
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="small fw-semibold text-muted">${item.category}</div>
                     <div class="fw-bold ${item.positive ? 'text-success' : 'text-danger'}">
                         ${item.amount.toLocaleString()}
                     </div>
                 </div>
-            `).join('');
+            `).join('') : `<div class="text-center py-4 text-muted">Aucun flux disponible.</div>`;
 
             // Reports
             const reportList = document.getElementById('report_list');
-            reportList.innerHTML = data.reports.map(rep => `
+            reportList.innerHTML = data.reports.length ? data.reports.map(rep => `
                 <div class="report-item">
                     <div class="report-icon"><i class="bi bi-file-earmark-pdf"></i></div>
                     <div class="report-info">
@@ -261,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <button class="btn btn-sm p-0 ms-auto text-primary"><i class="bi bi-download"></i></button>
                 </div>
-            `).join('');
+            `).join('') : `<div class="text-center py-4 text-muted">Aucun état généré pour cette société.</div>`;
 
         } catch (error) {
             console.error('Error loading Reporting data:', error);

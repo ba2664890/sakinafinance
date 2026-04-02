@@ -49,7 +49,7 @@ def register_view(request):
                         first_name=form.cleaned_data['first_name'],
                         last_name=form.cleaned_data['last_name'],
                         company=company,
-                        role='admin',
+                        role=User.Role.ADMIN,
                         subscription_plan=form.cleaned_data.get('subscription_plan', 'free')
                     )
                 

@@ -121,6 +121,10 @@
         </div>
     </div>
 
+    <div id="acc-data-quality" class="alert alert-warning rounded-16 border-0 mb-4">
+        Chargement de la qualité des données comptables...
+    </div>
+
     <!-- KPI Section -->
     <div class="row g-3 mb-4">
         <div class="col-xl-3 col-md-6">
@@ -213,8 +217,8 @@
                                 Analyse de la balance en cours... L'IA vérifie la cohérence des comptes et détecte d'éventuels écarts de lettrage.
                             </p>
                             <div class="d-flex gap-2">
-                                <span class="ratio-badge bg-primary bg-opacity-20 text-white border border-white border-opacity-25">Liquidité: 1.8</span>
-                                <span class="ratio-badge bg-success bg-opacity-20 text-white border border-white border-opacity-25">Solvabilité: 0.6</span>
+                                <span class="ratio-badge bg-primary bg-opacity-20 text-white border border-white border-opacity-25" id="acc-liquidity-badge">Liquidité: N/A</span>
+                                <span class="ratio-badge bg-success bg-opacity-20 text-white border border-white border-opacity-25" id="acc-solvency-badge">Solvabilité: N/A</span>
                             </div>
                         </div>
                         
@@ -333,6 +337,7 @@
             </div>
             <div class="modal-body p-4">
                 <form id="manualEntryForm">
+                    {% csrf_token %}
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Journal</label>
@@ -403,6 +408,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
     const fmtM = (num) => num >= 1e9 ? (num/1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num/1e6).toFixed(1) + 'M' : fmt(num));
+    const getCsrfToken = () => document.querySelector('#manualEntryForm [name="csrfmiddlewaretoken"]')?.value || '';
 
     async function loadAccountingData() {
         try {
@@ -415,20 +421,32 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('acc-equity').innerHTML = `${fmtM(data.equity)} <small class="fs-6">XOF</small>`;
             document.getElementById('acc-net-income').innerHTML = `${fmtM(data.net_income)} <small class="fs-6">XOF</small>`;
             
-            document.getElementById('acc-assets-trend').innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${data.total_assets_growth}% vs N-1`;
-            document.getElementById('acc-equity-ratio').textContent = `${data.equity_ratio}% du bilan`;
-            document.getElementById('acc-income-margin').textContent = `${data.net_income_margin}% Marge Net`;
+            document.getElementById('acc-assets-trend').innerHTML = data.total_assets_growth === null
+                ? `<i class="bi bi-info-circle me-1"></i>Comparatif N-1 indisponible`
+                : `<i class="bi bi-arrow-up-right me-1"></i>+${data.total_assets_growth}% vs N-1`;
+            document.getElementById('acc-equity-ratio').textContent = data.equity_ratio === null
+                ? 'Structure du bilan indisponible'
+                : `${data.equity_ratio}% du bilan`;
+            document.getElementById('acc-income-margin').textContent = data.net_income_margin === null
+                ? 'Marge indisponible'
+                : `${data.net_income_margin}% Marge nette simplifiée`;
             document.getElementById('pending-count').textContent = data.pending_entries;
+
+            const qualityBox = document.getElementById('acc-data-quality');
+            qualityBox.className = `alert alert-${data.quality.level} rounded-16 border-0 mb-4`;
+            qualityBox.innerHTML = `<strong>${data.quality.title}</strong><div class="small mt-1">${data.quality.message}</div>`;
 
             // AI Insight
             if (data.ai_insight) {
                 document.getElementById('acc-ai-insight').innerHTML = data.ai_insight;
             }
+            document.getElementById('acc-liquidity-badge').textContent = `Liquidité: ${data.ratios.liquidity_ratio ?? 'N/A'}`;
+            document.getElementById('acc-solvency-badge').textContent = `Solvabilité: ${data.ratios.solvability_ratio ?? 'N/A'}`;
 
             // Balance Sheet Breakdown
             const assetsBreakdown = document.getElementById('acc-assets-breakdown');
             if (assetsBreakdown) {
-                assetsBreakdown.innerHTML = data.balance_sheet.actif.map(item => `
+                assetsBreakdown.innerHTML = data.balance_sheet.actif.length ? data.balance_sheet.actif.map(item => `
                     <div class="balance-sheet-item">
                         <div class="d-flex justify-content-between mb-1">
                             <span class="small fw-bold text-dark">${item.label}</span>
@@ -438,12 +456,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="progress-bar" style="width: ${item.pct}%"></div>
                         </div>
                     </div>
-                `).join('');
+                `).join('') : `<div class="text-center py-4 text-secondary">Aucune rubrique d'actif disponible.</div>`;
             }
 
             const liabBreakdown = document.getElementById('acc-liabilities-breakdown');
             if (liabBreakdown) {
-                liabBreakdown.innerHTML = data.balance_sheet.passif.map(item => `
+                liabBreakdown.innerHTML = data.balance_sheet.passif.length ? data.balance_sheet.passif.map(item => `
                     <div class="balance-sheet-item">
                         <div class="d-flex justify-content-between mb-1">
                             <span class="small fw-bold text-dark">${item.label}</span>
@@ -453,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="progress-bar bg-warning" style="width: ${item.pct}%"></div>
                         </div>
                     </div>
-                `).join('');
+                `).join('') : `<div class="text-center py-4 text-secondary">Aucune rubrique de passif disponible.</div>`;
             }
 
             // Journal Entries
@@ -623,13 +641,16 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const res = await fetch('{% url "api_create_transaction" %}', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
                     body: JSON.stringify(payload)
                 });
                 const result = await res.json();
                 if (result.status === 'success') {
                     alert("Succès : " + result.message);
-                    bootstrap.Modal.getInstance(document.getElementById('newEntryModal')).hide();
+                    bootstrap.Modal.getInstance(document.getElementById('manualEntryModal')).hide();
                     loadAccountingData();
                 } else {
                     alert("Erreur : " + result.message);
