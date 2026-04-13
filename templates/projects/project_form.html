@@ -128,6 +128,7 @@
                 <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                 {% endif %}
 
+                {% if form.name %}
                 <div class="form-section">
                     <h6>Identite du projet</h6>
                     <div class="form-grid">
@@ -158,6 +159,18 @@
                         <div>{{ form.currency|as_crispy_field }}</div>
                     </div>
                 </div>
+                {% else %}
+                <div class="form-section">
+                    <h6>Informations</h6>
+                    <div class="form-grid">
+                        {% for field in form %}
+                            <div class="{% if field.name == 'description' or field.name == 'notes' %}full{% endif %}">
+                                {{ field|as_crispy_field }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
                     <a href="javascript:history.back()" class="text-muted fw-bold text-decoration-none small">
