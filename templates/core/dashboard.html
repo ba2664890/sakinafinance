@@ -125,6 +125,7 @@ width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify
 .chart-loading { display:none; text-align:center; padding:3rem; color:var(--text-secondary); }
 .spinner-ring { display:inline-block; width:32px;height:32px; border:3px solid var(--border-color); border-top-color:
 var(--primary-color); border-radius:50%; animation: spin .8s linear infinite; }
+.perf-chart-wrap { position: relative; height: 300px; max-height: 300px; }
 
 /* ── AI Banner ── */
 .ai-banner { 
@@ -276,7 +277,9 @@ content:'';position:absolute;right:30px;bottom:-20px;width:80px;height:80px;bord
                     <div class="spinner-ring mb-2"></div>
                     <div>Chargement des données...</div>
                 </div>
-                <canvas id="performanceChart" height="300"></canvas>
+                <div class="perf-chart-wrap">
+                    <canvas id="performanceChart"></canvas>
+                </div>
                 <!-- Legend -->
                 <div class="d-flex gap-3 mt-2 flex-wrap" style="font-size:.75rem;">
                     <span><span
@@ -384,6 +387,8 @@ content:'';position:absolute;right:30px;bottom:-20px;width:80px;height:80px;bord
     let perfChart, cashChart;
     const perfCanvas = document.getElementById('performanceChart');
     if (perfCanvas) {
+        const existingPerfChart = Chart.getChart(perfCanvas);
+        if (existingPerfChart) existingPerfChart.destroy();
         perfChart = new Chart(perfCanvas.getContext('2d'), {
             type: 'line',
             data: { labels: [], datasets: [] },
@@ -411,6 +416,8 @@ content:'';position:absolute;right:30px;bottom:-20px;width:80px;height:80px;bord
 
     const cashCanvas = document.getElementById('cashFlowChart');
     if (cashCanvas) {
+        const existingCashChart = Chart.getChart(cashCanvas);
+        if (existingCashChart) existingCashChart.destroy();
         cashChart = new Chart(cashCanvas.getContext('2d'), {
             type: 'doughnut',
             data: { labels: [], datasets: [] },
@@ -468,7 +475,7 @@ content:'';position:absolute;right:30px;bottom:-20px;width:80px;height:80px;bord
                         { label: 'EBITDA', data: d.chart_data.ebitda, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.06)', fill: true, tension: .4, pointRadius: 3 },
                     ]
                 };
-                perfChart.update();
+                perfChart.update('none');
             }
 
             // ── Cash Flow Donut ──
