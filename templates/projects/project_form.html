@@ -6,14 +6,24 @@
 
 {% block extra_css %}
 <style>
-    .form-container {
-        max-width: 800px;
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+    .proj-form-scope {
+        font-family: 'Space Grotesk', ui-sans-serif, system-ui;
+    }
+    .form-shell {
+        max-width: 1100px;
         margin: 2rem auto;
-        background: rgba(255, 255, 255, 0.9);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 2rem;
+    }
+    .form-container {
+        background: rgba(255, 255, 255, 0.94);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-        border-radius: 24px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+        border-radius: 26px;
         padding: 2.5rem;
     }
     .form-header {
@@ -22,12 +32,49 @@
         padding-bottom: 1rem;
     }
     .form-header h2 {
-        font-weight: 900;
+        font-weight: 800;
         color: #0f172a;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.35rem;
     }
+    .form-header p { color: #64748b; margin: 0; }
+
+    .form-section { margin-bottom: 1.75rem; }
+    .form-section h6 {
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+    .form-control:focus {
+        border-color: #0f766e;
+        box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+    }
+    label {
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 0.4rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
     .btn-submit {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        background: linear-gradient(135deg, #0f766e 0%, #0f172a 100%);
         border: none;
         border-radius: 12px;
         padding: 0.75rem 2rem;
@@ -36,56 +83,103 @@
     }
     .btn-submit:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 10px 18px rgba(15, 118, 110, 0.25);
     }
-    .form-control, .form-select {
-        border-radius: 12px;
-        border: 1px solid #e2e8f0;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
+
+    .aside-card {
+        background: #0f172a;
+        color: white;
+        border-radius: 24px;
+        padding: 1.75rem;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.25);
     }
-    .form-control:focus {
-        border-color: #2563eb;
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-    }
-    label {
-        font-weight: 700;
-        color: #475569;
-        margin-bottom: 0.5rem;
+    .aside-card h5 { font-weight: 800; margin-bottom: 0.5rem; }
+    .aside-card p { font-size: 0.85rem; opacity: 0.8; }
+    .aside-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
+    .aside-list li { display: flex; gap: 0.75rem; font-size: 0.85rem; }
+    .aside-list i { color: #67e8f9; margin-top: 0.15rem; }
+
+    .form-note {
+        background: #f1f5f9;
+        border-radius: 14px;
+        padding: 1rem;
         font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        color: #475569;
+    }
+
+    @media (max-width: 992px) {
+        .form-shell { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="fade-in">
-    <div class="form-container">
-        <div class="form-header">
-            <h2>{{ page_title }}</h2>
-            <p class="text-muted">Remplissez les informations ci-dessous pour {{ action|lower }} l'élément.</p>
+<div class="proj-form-scope fade-in">
+    <div class="form-shell">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>{{ page_title }}</h2>
+                <p>Renseignez les informations essentielles pour {{ action|lower }} un projet performant.</p>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="form-section">
+                    <h6>Identite du projet</h6>
+                    <div class="form-grid">
+                        <div>{{ form.name|as_crispy_field }}</div>
+                        <div>{{ form.code|as_crispy_field }}</div>
+                        <div>{{ form.category|as_crispy_field }}</div>
+                        <div>{{ form.client_name|as_crispy_field }}</div>
+                        <div class="full">{{ form.description|as_crispy_field }}</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h6>Gouvernance</h6>
+                    <div class="form-grid">
+                        <div>{{ form.manager|as_crispy_field }}</div>
+                        <div>{{ form.priority|as_crispy_field }}</div>
+                        <div>{{ form.health|as_crispy_field }}</div>
+                        <div class="form-note full">Definissez clairement le chef de projet et le niveau de risque pour un suivi precis.</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h6>Planning et budget</h6>
+                    <div class="form-grid">
+                        <div>{{ form.start_date|as_crispy_field }}</div>
+                        <div>{{ form.end_date|as_crispy_field }}</div>
+                        <div>{{ form.budget_total|as_crispy_field }}</div>
+                        <div>{{ form.currency|as_crispy_field }}</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+                    <a href="javascript:history.back()" class="text-muted fw-bold text-decoration-none small">
+                        <i class="bi bi-arrow-left me-1"></i> Annuler et retourner
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        <i class="bi bi-check2-circle me-1"></i> {{ action }}
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <form method="post" novalidate>
-            {% csrf_token %}
-            <div class="row">
-                {% for field in form %}
-                    <div class="col-md-{% if field.name == 'description' or field.name == 'address' or field.name == 'notes' %}12{% else %}6{% endif %} mb-4">
-                        {{ field|as_crispy_field }}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
-                <a href="javascript:history.back()" class="text-muted fw-bold text-decoration-none small">
-                    <i class="bi bi-arrow-left me-1"></i> Annuler et retourner
-                </a>
-                <button type="submit" class="btn btn-primary btn-submit">
-                    <i class="bi bi-check2-circle me-1"></i> {{ action }}
-                </button>
-            </div>
-        </form>
+        <aside class="aside-card">
+            <h5>Check-list Projet</h5>
+            <p>Avant de lancer, assurez-vous que ces elements sont clairs.</p>
+            <ul class="aside-list">
+                <li><i class="bi bi-check-circle"></i> Objectifs et livrables definis</li>
+                <li><i class="bi bi-people"></i> Responsables et parties prenantes alignes</li>
+                <li><i class="bi bi-graph-up-arrow"></i> Budget et reserves valides</li>
+                <li><i class="bi bi-calendar2-week"></i> Jalons et dates limites poses</li>
+            </ul>
+        </aside>
     </div>
 </div>
 {% endblock %}

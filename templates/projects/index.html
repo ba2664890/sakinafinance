@@ -6,152 +6,303 @@
 
 {% block extra_css %}
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
     :root {
-        --proj-primary: #2563eb;
-        --proj-success: #10b981;
-        --proj-warning: #f59e0b;
+        --proj-primary: #0f766e;
+        --proj-accent: #f97316;
+        --proj-ink: #0f172a;
+        --proj-muted: #64748b;
         --proj-card-bg: rgba(255, 255, 255, 0.9);
+        --proj-border: rgba(15, 23, 42, 0.08);
     }
 
-    .project-kpis {
+    .projects-scope {
+        font-family: 'Space Grotesk', ui-sans-serif, system-ui;
+    }
+
+    .projects-hero {
+        background: radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 55%),
+                    radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.12), transparent 50%),
+                    #f8fafc;
+        border: 1px solid var(--proj-border);
+        border-radius: 28px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+    .projects-hero h2 {
+        font-weight: 800;
+        color: var(--proj-ink);
+        margin-bottom: 0.5rem;
+    }
+    .projects-hero p { color: var(--proj-muted); margin: 0; }
+
+    .hero-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
     }
 
-    .proj-card {
+    .kpi-card {
         background: var(--proj-card-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        border-radius: 24px;
-        padding: 1.75rem;
-        transition: all 0.3s ease;
+        border: 1px solid var(--proj-border);
+        border-radius: 22px;
+        padding: 1.5rem 1.75rem;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .proj-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
-
-    .proj-val { 
-        font-size: 2.25rem; 
-        font-weight: 900; 
-        color: #0f172a; 
-        margin-bottom: 0.1rem;
-        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.1);
     }
-    .proj-lbl { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--proj-ink);
+        margin-bottom: 0.15rem;
+    }
+    .kpi-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+    .kpi-meta {
+        margin-top: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--proj-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
 
-    .projects-panel { 
-        background: var(--proj-card-bg); 
+    .filters-bar {
+        background: var(--proj-card-bg);
+        border: 1px solid var(--proj-border);
+        border-radius: 18px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+    .filters-left {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    .filter-field {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: white;
+    }
+    .filter-field input {
+        border: none;
+        outline: none;
+        font-size: 0.85rem;
+        width: 220px;
+        background: transparent;
+    }
+    .filter-select {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        background: white;
+    }
+
+    .projects-panel {
+        background: var(--proj-card-bg);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.4); 
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        border-radius: 24px; 
-        overflow: hidden; 
+        border: 1px solid var(--proj-border);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        border-radius: 24px;
+        overflow: hidden;
     }
-    .proj-header { 
-        padding: 1.5rem 1.75rem; 
-        border-bottom: 1px solid #f1f5f9; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        background: rgba(248, 250, 252, 0.5);
+    .proj-header {
+        padding: 1.5rem 1.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(248, 250, 252, 0.7);
     }
-    .proj-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
+    .proj-header h6 { margin: 0; font-weight: 800; color: var(--proj-ink); font-size: 1rem; }
 
     .proj-table { width: 100%; border-collapse: collapse; }
-    .proj-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 1rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; }
-    .proj-table td { padding: 1.5rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; color: #475569; }
+    .proj-table th {
+        text-align: left;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #94a3b8;
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        letter-spacing: 0.08em;
+    }
+    .proj-table td { padding: 1.4rem 1rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; vertical-align: middle; color: #475569; }
 
-    .proj-name { font-weight: 800; color: #0f172a; display: block; font-size: 0.95rem; }
-    .proj-client { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+    .proj-name { font-weight: 800; color: var(--proj-ink); display: block; font-size: 0.95rem; }
+    .proj-sub { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
 
-    .progress-wrapper { width: 140px; }
-    .progress { height: 8px; border-radius: 99px; background: #f1f5f9; overflow: hidden; }
+    .progress-wrapper { width: 150px; }
+    .progress { height: 7px; border-radius: 99px; background: #f1f5f9; overflow: hidden; }
     .progress-bar { border-radius: 99px; transition: width 1s ease-in-out; }
-    .progress-label { font-size: 0.65rem; font-weight: 800; color: #64748b; margin-bottom: 0.4rem; display: block; text-transform: uppercase; }
+    .progress-label { font-size: 0.65rem; font-weight: 800; color: #64748b; margin-bottom: 0.35rem; display: block; text-transform: uppercase; }
 
-    .milestone-item { 
-        padding: 1.25rem; 
-        border-radius: 18px; 
-        border: 1px solid #f1f5f9; 
-        margin-bottom: 1rem; 
-        display: flex; 
-        align-items: center; 
-        gap: 1.25rem; 
+    .pill {
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.65rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .pill-success { background: rgba(16, 185, 129, 0.15); color: #047857; }
+    .pill-warning { background: rgba(245, 158, 11, 0.2); color: #b45309; }
+    .pill-danger { background: rgba(239, 68, 68, 0.2); color: #b91c1c; }
+    .pill-primary { background: rgba(15, 118, 110, 0.15); color: #0f766e; }
+    .pill-muted { background: #f1f5f9; color: #64748b; }
+
+    .milestone-item {
+        padding: 1.1rem;
+        border-radius: 18px;
+        border: 1px solid #f1f5f9;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
         transition: all 0.2s;
-        background: rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.7);
     }
-    .milestone-item:hover { transform: scale(1.02); border-color: var(--proj-primary); background: #fff; }
-    
-    .milestone-date { 
-        width: 60px; 
-        text-align: center; 
-        border-right: 2px solid #f1f5f9; 
-        padding-right: 1.25rem; 
-        flex-shrink: 0; 
+    .milestone-item:hover { transform: translateY(-2px); border-color: var(--proj-primary); background: #fff; }
+
+    .milestone-date {
+        width: 62px;
+        text-align: center;
+        border-right: 2px solid #f1f5f9;
+        padding-right: 1rem;
+        flex-shrink: 0;
     }
-    .milestone-date .day { font-size: 1.4rem; font-weight: 900; color: #0f172a; line-height: 1; }
+    .milestone-date .day { font-size: 1.4rem; font-weight: 900; color: var(--proj-ink); line-height: 1; }
     .milestone-date .month { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-top: 0.2rem; display: block; }
 
-    .milestone-info h6 { font-size: 0.925rem; font-weight: 800; margin-bottom: 0.25rem; color: #1e293b; }
-    .milestone-info p { font-size: 0.75rem; color: #94a3b8; margin: 0; font-weight: 500; }
+    .milestone-info h6 { font-size: 0.92rem; font-weight: 800; margin-bottom: 0.2rem; color: #1e293b; }
+    .milestone-info p { font-size: 0.75rem; color: #94a3b8; margin: 0; font-weight: 600; }
 
-    .budget-pill { background: #f8fafc; color: #475569; padding: 0.4rem 0.8rem; border-radius: 10px; font-weight: 800; font-size: 0.75rem; border: 1px solid #e2e8f0; }
+    .quick-card {
+        border-radius: 20px;
+        padding: 1.25rem 1.5rem;
+        background: #0f172a;
+        color: white;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.25);
+    }
+    .quick-card h5 { font-weight: 800; margin-bottom: 0.5rem; }
+
+    @media (max-width: 768px) {
+        .projects-hero { padding: 1.5rem; }
+        .filter-field input { width: 160px; }
+        .proj-table th, .proj-table td { padding: 1rem 0.7rem; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="fade-in">
-    <!-- Top KPIs -->
-    <div class="project-kpis">
-        <div class="proj-card">
-            <div class="proj-val" id="active_projects_count">...</div>
-            <div class="proj-lbl">Projets en Cours</div>
-            <div class="mt-3 small text-success fw-bold" id="schedule_badge"><i class="bi bi-clock me-1"></i>En avance</div>
+<div class="projects-scope fade-in">
+    <div class="projects-hero d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h2>Portefeuille Projets</h2>
+            <p>Suivez la performance, les risques et l'execution de vos projets en temps reel.</p>
         </div>
-        <div class="proj-card">
-            <div class="proj-val" id="total_budget">... $</div>
-            <div class="proj-lbl">Budget Total Engagé</div>
-            <div class="mt-3 small text-muted">Répartition: 60% CAPEX / 40% OPEX</div>
-        </div>
-        <div class="proj-card">
-            <div class="proj-val" id="completion_rate_val">...%</div>
-            <div class="proj-lbl">Taux de Complétion</div>
-            <div class="mt-3 progress" style="height: 6px;">
-                <div class="progress-bar bg-primary" id="completion_rate_bar" style="width: 0%"></div>
-            </div>
-        </div>
-        <div class="proj-card">
-            <div class="proj-val text-danger" id="overdue_tasks">...</div>
-            <div class="proj-lbl">Tâches en Retard</div>
-            <div class="mt-3 small text-muted">Priorité: Haute / Critique</div>
+        <div class="hero-actions">
+            <a href="{% url 'project_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Nouveau Projet</a>
+            <button class="btn btn-outline-dark"><i class="bi bi-diagram-3 me-1"></i>Vue Portfolio</button>
         </div>
     </div>
 
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value" id="active_projects_count">...</div>
+            <div class="kpi-label">Projets Actifs</div>
+            <div class="kpi-meta" id="schedule_badge"><i class="bi bi-clock"></i>Chargement...</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="total_budget">... XOF</div>
+            <div class="kpi-label">Budget Engage</div>
+            <div class="kpi-meta" id="spent_budget_meta">Depense: ...</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="completion_rate_val">...%</div>
+            <div class="kpi-label">Avancement Moyen</div>
+            <div class="kpi-meta"><span class="pill pill-primary" id="completed_ytd">... termines</span></div>
+            <div class="mt-3 progress" style="height: 6px;">
+                <div class="progress-bar" id="completion_rate_bar" style="width: 0%; background: var(--proj-primary);"></div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value text-danger" id="overdue_tasks">...</div>
+            <div class="kpi-label">Taches En Retard</div>
+            <div class="kpi-meta" id="delay_meta">Priorite haute</div>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <div class="filters-left">
+            <div class="filter-field">
+                <i class="bi bi-search text-muted"></i>
+                <input id="project_search" type="text" placeholder="Rechercher par nom, code, client ou chef" />
+            </div>
+            <select id="project_status" class="filter-select">
+                <option value="">Tous les statuts</option>
+            </select>
+            <select id="project_health" class="filter-select">
+                <option value="">Tous les niveaux de sante</option>
+            </select>
+            <button id="reset_filters" class="btn btn-outline-secondary btn-sm">Reinitialiser</button>
+        </div>
+        <div class="filters-right small text-muted" id="project_count">0 projet</div>
+    </div>
+
     <div class="row g-4 mb-4">
-        <!-- Active Projects Table -->
         <div class="col-lg-8">
             <div class="projects-panel">
                 <div class="proj-header">
-                    <h6>Suivi Opérationnel des Projets</h6>
-                    <a href="{% url 'project_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Nouveau Projet</a>
+                    <h6>Suivi Operationnel des Projets</h6>
+                    <span class="small text-muted">Derniere mise a jour: <span id="projects_last_update">...</span></span>
                 </div>
                 <div class="p-0 overflow-auto">
                     <table class="proj-table">
                         <thead>
                             <tr>
                                 <th>Projet</th>
+                                <th>Chef</th>
                                 <th>Budget</th>
                                 <th>Progression</th>
-                                <th>Santé</th>
+                                <th>Sante</th>
+                                <th>Echeance</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="projects_table_body">
-                            <tr><td colspan="5" class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr>
+                            <tr><td colspan="7" class="text-center p-4"><div class="spinner-border spinner-border-sm text-primary"></div> Chargement...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -159,12 +310,11 @@
             </div>
         </div>
 
-        <!-- Milestones list -->
         <div class="col-lg-4">
             <div class="projects-panel">
-                <div class="proj-header"><h6>Jalons Prochains (Milestones)</h6></div>
+                <div class="proj-header"><h6>Jalons Prochains</h6></div>
                 <div class="p-3" id="milestone_list">
-                    <!-- Dynamic -->
+                    <div class="text-center text-muted small">Chargement...</div>
                 </div>
                 <div class="p-3">
                     <button class="btn btn-outline-primary w-100 btn-sm">Calendrier d'investissements</button>
@@ -173,24 +323,233 @@
         </div>
     </div>
 
-    <!-- AI Project Analysis -->
-    <div class="row">
-        <div class="col-12">
-            <div class="projects-panel bg-dark text-white p-4">
-                <div class="row align-items-center">
-                    <div class="col-md-2 text-center">
-                        <div style="font-size: 3.5rem; color: #60a5fa;"><i class="bi bi-robot"></i></div>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="quick-card">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="font-size: 2.8rem; color: #67e8f9;"><i class="bi bi-robot"></i></div>
+                    <div>
+                        <h5>IA Project Insights</h5>
+                        <p class="mb-2 opacity-75">Risque de derive budgetaire detecte sur les projets intensifs en GPU. Ajuster les provisions pour les lots Q3.</p>
+                        <button class="btn btn-outline-light btn-sm">Simuler les scenarios</button>
                     </div>
-                    <div class="col-md-7">
-                        <h5 class="fw-bold mb-2">IA Project Insights: Risque de dérive budgétaire</h5>
-                        <p class="mb-0 opacity-75 small">L'analyse IA détecte une probabilité de <span class="text-warning fw-bold">15% de dépassement budgétaire</span> sur le projet "Cloud Migration" suite à l'augmentation des coûts GPU. Nous recommandons de recalculer les provisions de contingence pour le Q3.</p>
-                    </div>
-                    <div class="col-md-3 text-end">
-                        <button class="btn btn-primary">Simuler les Scénarios</button>
-                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="projects-panel p-4">
+                <h6 class="fw-bold mb-2">Focus Gestion</h6>
+                <p class="small text-muted mb-3">Suivez les flux critiques et priorisez les arbitrages.</p>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">Projets en avance</span>
+                    <span class="pill pill-success" id="on_schedule">0</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">Projets en alerte</span>
+                    <span class="pill pill-warning" id="delayed">0</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="small">Taches critiques</span>
+                    <span class="pill pill-danger" id="critical_tasks">0</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const projectEndpoint = "{% url 'api_project_data' %}";
+
+    const elements = {
+        activeProjects: document.getElementById('active_projects_count'),
+        totalBudget: document.getElementById('total_budget'),
+        completionRateVal: document.getElementById('completion_rate_val'),
+        completionRateBar: document.getElementById('completion_rate_bar'),
+        overdueTasks: document.getElementById('overdue_tasks'),
+        scheduleBadge: document.getElementById('schedule_badge'),
+        spentBudgetMeta: document.getElementById('spent_budget_meta'),
+        completedYtd: document.getElementById('completed_ytd'),
+        delayMeta: document.getElementById('delay_meta'),
+        projectCount: document.getElementById('project_count'),
+        projectsBody: document.getElementById('projects_table_body'),
+        milestoneList: document.getElementById('milestone_list'),
+        lastUpdate: document.getElementById('projects_last_update'),
+        onSchedule: document.getElementById('on_schedule'),
+        delayed: document.getElementById('delayed'),
+        criticalTasks: document.getElementById('critical_tasks')
+    };
+
+    const filters = {
+        search: document.getElementById('project_search'),
+        status: document.getElementById('project_status'),
+        health: document.getElementById('project_health'),
+        reset: document.getElementById('reset_filters')
+    };
+
+    const state = {
+        projects: []
+    };
+
+    const money = (value, currency) => {
+        const amount = Number(value || 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+        return `${amount} ${currency || 'XOF'}`;
+    };
+
+    const updateFiltersOptions = (projects) => {
+        const statuses = new Set();
+        const healths = new Set();
+        projects.forEach((p) => {
+            if (p.status) statuses.add(p.status);
+            if (p.health) healths.add(p.health);
+        });
+        filters.status.innerHTML = '<option value="">Tous les statuts</option>';
+        Array.from(statuses).sort().forEach((status) => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            filters.status.appendChild(option);
+        });
+        filters.health.innerHTML = '<option value="">Tous les niveaux de sante</option>';
+        Array.from(healths).sort().forEach((health) => {
+            const option = document.createElement('option');
+            option.value = health;
+            option.textContent = health;
+            filters.health.appendChild(option);
+        });
+    };
+
+    const renderProjects = (projects) => {
+        if (!projects.length) {
+            elements.projectsBody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-muted">Aucun projet actif pour ces filtres.</td></tr>';
+            elements.projectCount.textContent = '0 projet';
+            return;
+        }
+        elements.projectCount.textContent = `${projects.length} projet${projects.length > 1 ? 's' : ''}`;
+        elements.projectsBody.innerHTML = projects.map((p) => {
+            const progressColor = p.progress >= 80 ? '#10b981' : (p.progress >= 50 ? '#f59e0b' : '#3b82f6');
+            const healthClass = p.health_class === 'danger' ? 'pill-danger' : (p.health_class === 'warning' ? 'pill-warning' : 'pill-success');
+            return `
+                <tr>
+                    <td>
+                        <span class="proj-name">${p.name}</span>
+                        <span class="proj-sub">${p.code} · ${p.client}</span>
+                    </td>
+                    <td>
+                        <span class="proj-name" style="font-size:0.85rem;">${p.manager}</span>
+                        <span class="proj-sub">Equipe: ${p.team}</span>
+                    </td>
+                    <td>
+                        <span class="proj-name" style="font-size:0.85rem;">${money(p.spent, p.currency)}</span>
+                        <span class="proj-sub">/ ${money(p.budget, p.currency)}</span>
+                    </td>
+                    <td class="progress-wrapper">
+                        <span class="progress-label">${p.progress}%</span>
+                        <div class="progress">
+                            <div class="progress-bar" style="width:${p.progress}%; background:${progressColor};"></div>
+                        </div>
+                    </td>
+                    <td><span class="pill ${healthClass}">${p.health}</span></td>
+                    <td>
+                        <span class="proj-name" style="font-size:0.85rem;">${p.deadline}</span>
+                        <span class="proj-sub">Debut: ${p.start_date}</span>
+                    </td>
+                    <td>
+                        <a href="${p.detail_url}" class="btn btn-outline-dark btn-sm">Ouvrir</a>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    };
+
+    const renderMilestones = (milestones) => {
+        if (!milestones.length) {
+            elements.milestoneList.innerHTML = '<div class="text-center text-muted small">Aucun jalon imminent.</div>';
+            return;
+        }
+        elements.milestoneList.innerHTML = milestones.map((m) => {
+            return `
+                <div class="milestone-item">
+                    <div class="milestone-date">
+                        <div class="day">${m.day}</div>
+                        <span class="month">${m.month}</span>
+                    </div>
+                    <div class="milestone-info">
+                        <h6>${m.title}</h6>
+                        <p>${m.project} · ${m.status}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    const applyFilters = () => {
+        const query = filters.search.value.trim().toLowerCase();
+        const status = filters.status.value;
+        const health = filters.health.value;
+
+        const filtered = state.projects.filter((p) => {
+            const haystack = `${p.name} ${p.client} ${p.code} ${p.manager}`.toLowerCase();
+            const matchQuery = !query || haystack.includes(query);
+            const matchStatus = !status || p.status === status;
+            const matchHealth = !health || p.health === health;
+            return matchQuery && matchStatus && matchHealth;
+        });
+        renderProjects(filtered);
+    };
+
+    const bindFilters = () => {
+        filters.search.addEventListener('input', applyFilters);
+        filters.status.addEventListener('change', applyFilters);
+        filters.health.addEventListener('change', applyFilters);
+        filters.reset.addEventListener('click', () => {
+            filters.search.value = '';
+            filters.status.value = '';
+            filters.health.value = '';
+            applyFilters();
+        });
+    };
+
+    const updateKpis = (data) => {
+        elements.activeProjects.textContent = data.active_projects_count ?? 0;
+        elements.totalBudget.textContent = money(data.total_budget, 'XOF');
+        elements.completionRateVal.textContent = `${data.completion_rate ?? 0}%`;
+        elements.completionRateBar.style.width = `${data.completion_rate ?? 0}%`;
+        elements.overdueTasks.textContent = data.overdue_tasks ?? 0;
+        elements.completedYtd.textContent = `${data.completed_ytd ?? 0} termines`;
+        elements.onSchedule.textContent = data.on_schedule ?? 0;
+        elements.delayed.textContent = data.delayed ?? 0;
+        elements.criticalTasks.textContent = data.overdue_tasks ?? 0;
+
+        const scheduleText = (data.delayed ?? 0) > 0
+            ? `${data.delayed} projets en alerte`
+            : 'Tous les projets stables';
+        elements.scheduleBadge.innerHTML = `<i class="bi bi-clock"></i>${scheduleText}`;
+
+        const spentText = money(data.spent_budget, 'XOF');
+        elements.spentBudgetMeta.textContent = `Depense: ${spentText}`;
+
+        elements.delayMeta.textContent = data.overdue_tasks > 0 ? 'Priorite critique' : 'Aucun blocage majeur';
+        elements.lastUpdate.textContent = new Date().toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+    };
+
+    const loadProjects = async () => {
+        try {
+            const response = await fetch(projectEndpoint, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await response.json();
+            state.projects = data.active_projects || [];
+            updateKpis(data);
+            updateFiltersOptions(state.projects);
+            renderProjects(state.projects);
+            renderMilestones(data.milestones || []);
+        } catch (error) {
+            elements.projectsBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger p-4">Erreur de chargement des projets.</td></tr>';
+            elements.milestoneList.innerHTML = '<div class="text-center text-danger small">Erreur de chargement.</div>';
+        }
+    };
+
+    bindFilters();
+    loadProjects();
+</script>
 {% endblock %}
