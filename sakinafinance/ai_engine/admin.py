@@ -3,6 +3,7 @@ AI Engine Admin — SakinaFinance
 """
 from django.contrib import admin
 from django.utils.html import format_html
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
     AIAnalysis, CashFlowForecast, AIInsight,
     DocumentOCR, AnomalyDetection
@@ -10,7 +11,7 @@ from .models import (
 
 
 @admin.register(AIAnalysis)
-class AIAnalysisAdmin(admin.ModelAdmin):
+class AIAnalysisAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'title', 'analysis_type', 'company', 'status',
         'confidence_score', 'requested_by', 'created_at'
@@ -21,7 +22,7 @@ class AIAnalysisAdmin(admin.ModelAdmin):
 
 
 @admin.register(CashFlowForecast)
-class CashFlowForecastAdmin(admin.ModelAdmin):
+class CashFlowForecastAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'company', 'forecast_date', 'horizon', 'confidence_score',
         'min_balance', 'max_balance', 'has_liquidity_risk'
@@ -31,7 +32,7 @@ class CashFlowForecastAdmin(admin.ModelAdmin):
 
 
 @admin.register(AIInsight)
-class AIInsightAdmin(admin.ModelAdmin):
+class AIInsightAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'priority_badge', 'title', 'insight_type', 'company',
         'impact_amount', 'is_read', 'is_dismissed', 'created_at'
@@ -65,7 +66,7 @@ class AIInsightAdmin(admin.ModelAdmin):
 
 
 @admin.register(DocumentOCR)
-class DocumentOCRAdmin(admin.ModelAdmin):
+class DocumentOCRAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'filename', 'document_type', 'company', 'status',
         'confidence_score', 'uploaded_by', 'created_at'
@@ -76,7 +77,7 @@ class DocumentOCRAdmin(admin.ModelAdmin):
 
 
 @admin.register(AnomalyDetection)
-class AnomalyDetectionAdmin(admin.ModelAdmin):
+class AnomalyDetectionAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'severity_badge', 'title', 'anomaly_type', 'company',
         'amount', 'is_confirmed', 'is_false_positive', 'created_at'

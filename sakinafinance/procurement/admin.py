@@ -2,6 +2,7 @@
 Procurement Admin — SakinaFinance
 """
 from django.contrib import admin
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
     SupplierCategory, Supplier, PurchaseRFQ,
     PurchaseOrder, PurchaseOrderLine, GoodsReceipt,
@@ -10,14 +11,14 @@ from .models import (
 
 
 @admin.register(SupplierCategory)
-class SupplierCategoryAdmin(admin.ModelAdmin):
+class SupplierCategoryAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'code', 'company']
     list_filter = ['company']
     search_fields = ['name', 'code']
 
 
 @admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
+class SupplierAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'name', 'category', 'country', 'email', 'phone',
         'rating', 'total_spend', 'total_orders', 'status'
@@ -54,7 +55,7 @@ class PurchaseOrderLineInline(admin.TabularInline):
 
 
 @admin.register(PurchaseOrder)
-class PurchaseOrderAdmin(admin.ModelAdmin):
+class PurchaseOrderAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'reference', 'supplier', 'order_date', 'expected_delivery',
         'total', 'currency', 'status', 'priority'
@@ -73,7 +74,7 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(PurchaseRFQ)
-class PurchaseRFQAdmin(admin.ModelAdmin):
+class PurchaseRFQAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['reference', 'title', 'estimated_budget', 'deadline', 'responses_count', 'status']
     list_filter = ['company', 'status']
     search_fields = ['reference', 'title']
@@ -81,7 +82,8 @@ class PurchaseRFQAdmin(admin.ModelAdmin):
 
 
 @admin.register(GoodsReceipt)
-class GoodsReceiptAdmin(admin.ModelAdmin):
+class GoodsReceiptAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'purchase_order__company'
     list_display = ['reference', 'purchase_order', 'receipt_date', 'received_by', 'status']
     list_filter = ['status']
     search_fields = ['reference']
@@ -89,7 +91,7 @@ class GoodsReceiptAdmin(admin.ModelAdmin):
 
 
 @admin.register(InventoryItem)
-class InventoryItemAdmin(admin.ModelAdmin):
+class InventoryItemAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['sku', 'name', 'item_type', 'current_stock', 'unit_measure', 'unit_cost', 'is_active']
     list_filter = ['company', 'item_type', 'is_active']
     search_fields = ['sku', 'name']
@@ -97,7 +99,8 @@ class InventoryItemAdmin(admin.ModelAdmin):
 
 
 @admin.register(StockTransaction)
-class StockTransactionAdmin(admin.ModelAdmin):
+class StockTransactionAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'item__company'
     list_display = ['timestamp', 'item', 'transaction_type', 'quantity', 'unit_cost', 'reference']
     list_filter = ['transaction_type']
     search_fields = ['item__name', 'reference']

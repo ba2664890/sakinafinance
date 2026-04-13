@@ -4,11 +4,12 @@ Admin configuration for Accounts Module
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import User, Company, Entity, UserActivity, Notification
 
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(CompanyScopedAdminMixin, BaseUserAdmin):
     list_display = [
         'email', 'first_name', 'last_name', 'company', 
         'role', 'user_type', 'is_active', 'date_joined'
@@ -48,7 +49,8 @@ class UserAdmin(BaseUserAdmin):
 
 
 @admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+class CompanyAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'pk'
     list_display = [
         'name', 'company_type', 'accounting_standard', 
         'base_currency', 'is_active', 'created_at'
@@ -89,14 +91,15 @@ class CompanyAdmin(admin.ModelAdmin):
 
 
 @admin.register(Entity)
-class EntityAdmin(admin.ModelAdmin):
+class EntityAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['code', 'name', 'company', 'entity_type', 'country', 'is_active']
     list_filter = ['entity_type', 'country', 'is_active']
     search_fields = ['name', 'code']
 
 
 @admin.register(UserActivity)
-class UserActivityAdmin(admin.ModelAdmin):
+class UserActivityAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'user__company'
     list_display = ['user', 'activity_type', 'module', 'timestamp']
     list_filter = ['activity_type', 'module', 'timestamp']
     search_fields = ['user__email', 'description']
@@ -104,7 +107,8 @@ class UserActivityAdmin(admin.ModelAdmin):
 
 
 @admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
+class NotificationAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'user__company'
     list_display = ['title', 'user', 'notification_type', 'is_read', 'created_at']
     list_filter = ['notification_type', 'is_read', 'created_at']
     search_fields = ['title', 'message', 'user__email']

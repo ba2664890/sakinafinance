@@ -3,10 +3,12 @@ Admin configuration for Core Module
 """
 
 from django.contrib import admin
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import DashboardWidget, SystemSetting, AuditLog, Integration, Currency, ExchangeRate
 
 @admin.register(DashboardWidget)
-class DashboardWidgetAdmin(admin.ModelAdmin):
+class DashboardWidgetAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'user__company'
     list_display = ['name', 'user', 'widget_type', 'is_active']
     list_filter = ['widget_type', 'is_active']
     search_fields = ['name', 'user__email']
@@ -17,14 +19,15 @@ class SystemSettingAdmin(admin.ModelAdmin):
     search_fields = ['key', 'description']
 
 @admin.register(AuditLog)
-class AuditLogAdmin(admin.ModelAdmin):
+class AuditLogAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'user__company'
     list_display = ['action', 'module', 'model_name', 'user', 'timestamp']
     list_filter = ['action', 'module', 'timestamp']
     search_fields = ['model_name', 'object_id', 'user__email']
     readonly_fields = ['id', 'timestamp']
 
 @admin.register(Integration)
-class IntegrationAdmin(admin.ModelAdmin):
+class IntegrationAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'company', 'integration_type', 'provider', 'is_active', 'is_connected']
     list_filter = ['integration_type', 'is_active', 'is_connected']
     search_fields = ['name', 'provider']

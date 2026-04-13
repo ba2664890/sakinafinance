@@ -3,6 +3,7 @@ Admin configuration for Accounting Module
 """
 
 from django.contrib import admin
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
     Account, Journal, Transaction, TransactionLine,
     Invoice, InvoiceLine, FinancialStatement, TaxDeclaration,
@@ -22,21 +23,21 @@ class InvoiceLineInline(admin.TabularInline):
 
 
 @admin.register(Account)
-class AccountAdmin(admin.ModelAdmin):
+class AccountAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['code', 'name', 'account_class', 'account_type', 'company', 'current_balance', 'is_active']
     list_filter = ['account_class', 'account_type', 'company', 'is_active']
     search_fields = ['code', 'name']
 
 
 @admin.register(Journal)
-class JournalAdmin(admin.ModelAdmin):
+class JournalAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['code', 'name', 'journal_type', 'company', 'is_active']
     list_filter = ['journal_type', 'company', 'is_active']
     search_fields = ['code', 'name']
 
 
 @admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['reference', 'date', 'journal', 'total_debit', 'total_credit', 'status', 'company']
     list_filter = ['status', 'journal', 'company', 'date']
     search_fields = ['reference', 'description']
@@ -45,7 +46,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Invoice)
-class InvoiceAdmin(admin.ModelAdmin):
+class InvoiceAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['invoice_number', 'partner_name', 'invoice_type', 'invoice_date', 'total', 'status', 'company']
     list_filter = ['invoice_type', 'status', 'company', 'invoice_date']
     search_fields = ['invoice_number', 'partner_name']
@@ -54,14 +55,14 @@ class InvoiceAdmin(admin.ModelAdmin):
 
 
 @admin.register(FinancialStatement)
-class FinancialStatementAdmin(admin.ModelAdmin):
+class FinancialStatementAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['statement_type', 'period_start', 'period_end', 'company', 'is_draft']
     list_filter = ['statement_type', 'company', 'is_draft']
     date_hierarchy = 'period_end'
 
 
 @admin.register(TaxDeclaration)
-class TaxDeclarationAdmin(admin.ModelAdmin):
+class TaxDeclarationAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['tax_type', 'period_start', 'period_end', 'tax_amount', 'status', 'company']
     list_filter = ['tax_type', 'status', 'company']
     date_hierarchy = 'period_end'
@@ -70,7 +71,7 @@ class TaxDeclarationAdmin(admin.ModelAdmin):
 # ─── IMMOBILISATIONS ─────────────────────────────────────────────────────────
 
 @admin.register(AssetCategory)
-class AssetCategoryAdmin(admin.ModelAdmin):
+class AssetCategoryAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'code', 'useful_life_years', 'depreciation_method', 'depreciation_rate']
     list_filter = ['company', 'depreciation_method']
     search_fields = ['name', 'code']
@@ -84,7 +85,7 @@ class AssetDepreciationInline(admin.TabularInline):
 
 
 @admin.register(FixedAsset)
-class FixedAssetAdmin(admin.ModelAdmin):
+class FixedAssetAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'asset_code', 'name', 'category', 'acquisition_date',
         'acquisition_cost', 'accumulated_depreciation', 'net_book_value', 'status'
@@ -111,7 +112,8 @@ class FixedAssetAdmin(admin.ModelAdmin):
 
 
 @admin.register(AssetDepreciation)
-class AssetDepreciationAdmin(admin.ModelAdmin):
+class AssetDepreciationAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'asset__company'
     list_display = ['asset', 'period', 'amount', 'accumulated', 'net_book_value', 'is_posted']
     list_filter = ['is_posted', 'asset__company']
     search_fields = ['asset__name', 'asset__asset_code']
@@ -121,7 +123,7 @@ class AssetDepreciationAdmin(admin.ModelAdmin):
 # ─── CONSOLIDATION GROUPE ─────────────────────────────────────────────────────
 
 @admin.register(InterCompanyElimination)
-class InterCompanyEliminationAdmin(admin.ModelAdmin):
+class InterCompanyEliminationAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'elimination_type', 'entity_source', 'entity_target',
         'period_start', 'period_end', 'amount', 'currency', 'is_posted'
@@ -132,7 +134,7 @@ class InterCompanyEliminationAdmin(admin.ModelAdmin):
 
 
 @admin.register(ConsolidationReport)
-class ConsolidationReportAdmin(admin.ModelAdmin):
+class ConsolidationReportAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'title', 'company', 'period_start', 'period_end',
         'accounting_standard', 'consolidated_revenue', 'consolidated_net_income', 'status'
@@ -141,4 +143,3 @@ class ConsolidationReportAdmin(admin.ModelAdmin):
     search_fields = ['title']
     filter_horizontal = ['included_entities']
     readonly_fields = ['generated_at']
-

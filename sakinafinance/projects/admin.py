@@ -2,6 +2,7 @@
 Projects Admin — SakinaFinance
 """
 from django.contrib import admin
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
     ProjectCategory, Project, ProjectMember,
     Milestone, Task, TimeEntry, ProjectBudgetLine
@@ -9,7 +10,7 @@ from .models import (
 
 
 @admin.register(ProjectCategory)
-class ProjectCategoryAdmin(admin.ModelAdmin):
+class ProjectCategoryAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'color', 'company']
     list_filter = ['company']
 
@@ -34,7 +35,7 @@ class BudgetLineInline(admin.TabularInline):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'name', 'client_name', 'manager', 'start_date', 'end_date',
         'budget_total', 'budget_spent', 'progress_pct', 'status', 'priority', 'health'
@@ -60,7 +61,8 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 @admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
+class TaskAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'project__company'
     list_display = ['title', 'project', 'assigned_to', 'due_date', 'estimated_hours', 'actual_hours', 'status', 'priority']
     list_filter = ['status', 'priority', 'project']
     search_fields = ['title', 'project__name']
@@ -68,14 +70,16 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(Milestone)
-class MilestoneAdmin(admin.ModelAdmin):
+class MilestoneAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'project__company'
     list_display = ['name', 'project', 'due_date', 'completed_date', 'status', 'completion_pct']
     list_filter = ['status', 'project']
     search_fields = ['name', 'project__name']
 
 
 @admin.register(TimeEntry)
-class TimeEntryAdmin(admin.ModelAdmin):
+class TimeEntryAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'project__company'
     list_display = ['user', 'project', 'task', 'date', 'hours', 'cost']
     list_filter = ['project', 'date']
     search_fields = ['user__first_name', 'project__name']

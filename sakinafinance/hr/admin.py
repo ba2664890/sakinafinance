@@ -3,6 +3,7 @@ HR Admin — SakinaFinance
 """
 from django.contrib import admin
 from django.utils.html import format_html
+from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
     Department, JobPosition, Employee, LeaveType,
     LeaveRequest, PayrollPeriod, Payslip, Recruitment
@@ -10,14 +11,14 @@ from .models import (
 
 
 @admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
+class DepartmentAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'code', 'company', 'manager', 'employee_count', 'is_active']
     list_filter = ['company', 'is_active']
     search_fields = ['name', 'code']
 
 
 @admin.register(JobPosition)
-class JobPositionAdmin(admin.ModelAdmin):
+class JobPositionAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['title', 'department', 'grade', 'min_salary', 'max_salary', 'is_active']
     list_filter = ['company', 'department', 'is_active']
     search_fields = ['title']
@@ -31,7 +32,7 @@ class PayslipInline(admin.TabularInline):
 
 
 @admin.register(Employee)
-class EmployeeAdmin(admin.ModelAdmin):
+class EmployeeAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'employee_number', 'get_full_name', 'department', 'position',
         'contract_type', 'hire_date', 'base_salary', 'status'
@@ -70,13 +71,14 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 
 @admin.register(LeaveType)
-class LeaveTypeAdmin(admin.ModelAdmin):
+class LeaveTypeAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'code', 'days_per_year', 'is_paid', 'requires_approval']
     list_filter = ['company', 'is_paid']
 
 
 @admin.register(LeaveRequest)
-class LeaveRequestAdmin(admin.ModelAdmin):
+class LeaveRequestAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'employee__company'
     list_display = ['employee', 'leave_type', 'start_date', 'end_date', 'days', 'status']
     list_filter = ['status', 'leave_type', 'employee__department']
     search_fields = ['employee__first_name', 'employee__last_name']
@@ -103,7 +105,7 @@ class PayslipInlineForPeriod(admin.TabularInline):
 
 
 @admin.register(PayrollPeriod)
-class PayrollPeriodAdmin(admin.ModelAdmin):
+class PayrollPeriodAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = [
         'name', 'period_start', 'period_end', 'payment_date',
         'employee_count', 'total_gross', 'total_net', 'status'
@@ -115,7 +117,8 @@ class PayrollPeriodAdmin(admin.ModelAdmin):
 
 
 @admin.register(Payslip)
-class PayslipAdmin(admin.ModelAdmin):
+class PayslipAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    company_lookup = 'employee__company'
     list_display = [
         'reference', 'employee', 'period', 'gross_salary',
         'total_deductions', 'net_salary', 'status'
@@ -126,7 +129,7 @@ class PayslipAdmin(admin.ModelAdmin):
 
 
 @admin.register(Recruitment)
-class RecruitmentAdmin(admin.ModelAdmin):
+class RecruitmentAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ['title', 'department', 'contract_type', 'status', 'priority', 'posted_date', 'candidates_count']
     list_filter = ['status', 'priority', 'department', 'contract_type']
     search_fields = ['title']
