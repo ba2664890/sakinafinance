@@ -44,6 +44,60 @@
         border-bottom: 1px solid rgba(255,255,255,0.1);
         padding: 0.8rem 0;
     }
+
+    /* Demo Section Styles */
+    .demo-section {
+        background: #f8fafc;
+        padding: 100px 0;
+        position: relative;
+    }
+    .demo-window {
+        background: #1e293b;
+        border-radius: 20px;
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    .demo-window-header {
+        background: #0f172a;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    
+    .demo-content-mockup {
+        padding: 30px;
+        color: white;
+    }
+    .mockup-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+    }
+    .ai-insight-line {
+        height: 8px;
+        background: rgba(59, 130, 246, 0.3);
+        border-radius: 4px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    .glow-primary {
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+    }
+    .text-gradient {
+        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 </style>
 {% endblock %}
 
@@ -132,6 +186,95 @@
         </div>
     </div>
 </section>
+
+<!-- Demo Section -->
+<section class="demo-section" id="demo">
+    <div class="container">
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-bold">DÉMONSTRATION LIVE</span>
+                <h2 class="display-5 fw-bold mb-4" style="font-family: 'Outfit';">L'Expérience Financière de <span class="text-gradient">Nouvelle Génération</span></h2>
+                <p class="lead text-muted mb-4">Découvrez comment SakinaFinance transforme vos données brutes en insights actionnables grâce à nos modèles d'IA spécialisés.</p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-cpu text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Moteur de Prédiction ML</h6>
+                            <p class="small text-muted mb-0">Anticipation des flux de trésorerie avec une précision de 94 % sur 18 mois.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-success bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-shield-check text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Conformité OHADA Auto</h6>
+                            <p class="small text-muted mb-0">Génération automatique des états financiers aux normes africaines.</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'register' %}" class="btn btn-primary px-4 py-2">Essayer gratuitement <i class="bi bi-arrow-right ms-2"></i></a>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <div class="demo-window">
+                    <div class="demo-window-header">
+                        <div class="dot dot-red"></div>
+                        <div class="dot dot-yellow"></div>
+                        <div class="dot dot-green"></div>
+                        <div class="ms-2 small text-white-50">SakinaFinance - Executive Dashboard</div>
+                    </div>
+                    <div class="demo-content-mockup">
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="mockup-card">
+                                    <div class="small text-white-50 mb-1">CASH FLOW</div>
+                                    <h4 class="fw-bold mb-0">12.4M XOF</h4>
+                                    <div class="small text-success mt-1"><i class="bi bi-caret-up-fill"></i> +14.2%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mockup-card">
+                                    <div class="small text-white-50 mb-1">EBITDA</div>
+                                    <h4 class="fw-bold mb-0">4.8M XOF</h4>
+                                    <div class="small text-primary mt-1">Marge: 24%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-card mb-4 glow-primary" style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.3);">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-robot me-2"></i>INSIGHT IA</h6>
+                                <span class="badge bg-primary border-0" style="font-size: 0.6rem;">ANALYSIS COMPLETE</span>
+                            </div>
+                            <div class="ai-insight-line"></div>
+                            <div class="ai-insight-line" style="width: 80%;"></div>
+                            <div class="ai-insight-line" style="width: 60%;"></div>
+                            <p class="small text-white-50 mt-2 mb-0">L'IA détecte une opportunité de réallocation des réserves vers Sakina Tech Hub pour optimiser le T4.</p>
+                        </div>
+                        <div class="mockup-card">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="small text-white-50">HISTORIQUE RÉCENT</div>
+                                <div class="small text-white-50">TOUT VOIR</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="bg-white bg-opacity-10 rounded p-1" style="width:30px;height:30px;"></div>
+                                <div class="flex-grow-1 ai-insight-line mb-0" style="height:4px; opacity:0.3;"></div>
+                                <div class="small text-white-50">4.5M</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white bg-opacity-10 rounded p-1" style="width:30px;height:30px;"></div>
+                                <div class="flex-grow-1 ai-insight-line mb-0" style="height:4px; opacity:0.3; width:40%;"></div>
+                                <div class="small text-white-50">1.2M</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 
 <!-- Features Section -->
 <section class="landing-features" id="features">

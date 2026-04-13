@@ -1,9 +1,44 @@
-{% extends 'base.html' %}
-{% block title %}Privacy - SakinaFinance{% endblock %}
-{% block body %}
-<div class="container py-5">
-    <h1>Privacy</h1>
-    <p>Ceci est une page de test pour privacy.</p>
-    <a href="{% url 'home' %}" class="btn btn-primary">Retour à l'accueil</a>
-</div>
+{% extends 'legal/legal_base.html' %}
+
+{% block title %}Politique de confidentialité - SakinaFinance{% endblock %}
+
+{% block legal_heading %}Politique de confidentialité{% endblock %}
+{% block legal_intro %}
+Cette politique explique quelles données nous traitons, pourquoi, et comment vous pouvez exercer vos droits.
+{% endblock %}
+
+{% block legal_content %}
+<h2>1. Données collectées</h2>
+<p>Nous collectons les données que vous fournissez lors de la création de compte, de l'utilisation de la plateforme et du support client :</p>
+<ul>
+    <li>Données d'identité et de contact (nom, prénom, email professionnel).</li>
+    <li>Données d'entreprise (raison sociale, pays, ville, informations fiscales).</li>
+    <li>Données d'usage (connexions, journaux techniques, préférences).</li>
+</ul>
+
+<h2>2. Finalités du traitement</h2>
+<p>Vos données sont traitées pour :</p>
+<ul>
+    <li>Créer et gérer votre compte SakinaFinance.</li>
+    <li>Fournir les fonctionnalités financières, comptables et de conformité.</li>
+    <li>Assurer la sécurité, prévenir la fraude et améliorer la qualité de service.</li>
+</ul>
+
+<h2>3. Base légale</h2>
+<p>Le traitement est fondé selon les cas sur l'exécution du contrat, le respect d'obligations légales, votre consentement (cookies optionnels) ou notre intérêt légitime à sécuriser la plateforme.</p>
+
+<h2>4. Conservation des données</h2>
+<p>Les données sont conservées pendant la durée nécessaire au service et aux obligations réglementaires applicables. Les journaux techniques sont conservés sur une durée limitée et révisés périodiquement.</p>
+
+<h2>5. Partage des données</h2>
+<p>Nous ne vendons pas vos données. Elles peuvent être partagées avec des sous-traitants strictement nécessaires (hébergement, email transactionnel, sécurité), sous engagement contractuel de confidentialité.</p>
+
+<h2>6. Vos droits</h2>
+<p>Conformément à la réglementation applicable, vous pouvez demander l'accès, la rectification, l'effacement, la limitation, l'opposition et la portabilité de vos données. Vous pouvez aussi retirer votre consentement pour les cookies non essentiels.</p>
+
+<h2>7. Sécurité</h2>
+<p>Nous appliquons des mesures techniques et organisationnelles (contrôle d'accès, chiffrement en transit, journalisation) pour protéger les données contre tout accès non autorisé.</p>
+
+<h2>8. Contact</h2>
+<p>Pour toute demande liée à la confidentialité: <a href="mailto:legal@sakinafinance.com">legal@sakinafinance.com</a>.</p>
 {% endblock %}

@@ -1,0 +1,15 @@
+<div id="cookie-consent-banner" class="cookie-consent-banner d-none" role="dialog" aria-live="polite" aria-label="Gestion des cookies">
+    <div class="cookie-consent-card p-3 p-md-4">
+        <h2 class="h6 mb-2">Gestion des cookies</h2>
+        <p class="small text-muted mb-3">
+            Nous utilisons des cookies essentiels pour sécuriser la plateforme et des cookies optionnels pour améliorer l'expérience.
+            Vous pouvez modifier votre choix à tout moment dans la page
+            <a href="{% url 'cookies' %}" class="text-decoration-none fw-semibold">Cookies</a>.
+        </p>
+        <div class="cookie-consent-actions">
+            <button type="button" class="btn btn-primary btn-sm" data-cookie-action="accept-all">Accepter tout</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-cookie-action="reject-non-essential">Refuser non essentiels</button>
+            <a href="{% url 'cookies' %}" class="btn btn-light btn-sm border">Personnaliser</a>
+        </div>
+    </div>
+</div>

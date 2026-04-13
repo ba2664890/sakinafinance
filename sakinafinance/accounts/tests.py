@@ -76,3 +76,27 @@ class AccountsSecurityTests(TestCase):
         payload = response.json()
         self.assertEqual(payload['count'], 1)
         self.assertEqual(payload['results'][0]['id'], str(self.company_a.id))
+
+    def test_register_requires_legal_acceptance(self):
+        payload = {
+            'first_name': 'Fatou',
+            'last_name': 'Diop',
+            'email': 'fatou@example.com',
+            'password1': 'SuperTest123!',
+            'password2': 'SuperTest123!',
+            'company_name': 'Finance Demo',
+            'company_type': 'startup',
+            'registration_number': '',
+            'city': 'Dakar',
+            'country': 'Sénégal',
+            'subscription_plan': 'free',
+        }
+
+        response = self.client.post(reverse('register'), payload, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Vous devez accepter les Conditions Générales et la Politique de Confidentialité.",
+        )
+        self.assertFalse(User.objects.filter(email='fatou@example.com').exists())

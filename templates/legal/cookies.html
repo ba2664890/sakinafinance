@@ -1,9 +1,83 @@
-{% extends 'base.html' %}
-{% block title %}Cookies - SakinaFinance{% endblock %}
-{% block body %}
-<div class="container py-5">
-    <h1>Cookies</h1>
-    <p>Ceci est une page de test pour cookies.</p>
-    <a href="{% url 'home' %}" class="btn btn-primary">Retour à l'accueil</a>
+{% extends 'legal/legal_base.html' %}
+
+{% block title %}Politique cookies - SakinaFinance{% endblock %}
+
+{% block legal_heading %}Politique cookies et préférences{% endblock %}
+{% block legal_intro %}
+Cette page vous permet de comprendre les cookies utilisés et d'ajuster votre consentement en temps réel.
+{% endblock %}
+
+{% block legal_content %}
+<h2>1. Qu'est-ce qu'un cookie ?</h2>
+<p>Un cookie est un petit fichier enregistré sur votre navigateur pour assurer des fonctionnalités techniques, mémoriser vos choix ou produire des statistiques d'usage.</p>
+
+<h2>2. Catégories utilisées</h2>
+<div class="table-responsive mb-3">
+    <table class="table table-bordered align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Catégorie</th>
+                <th>Finalité</th>
+                <th>Exemples</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Essentiels</strong></td>
+                <td>Connexion, sécurité, maintien de session.</td>
+                <td><code>sessionid</code>, <code>csrftoken</code>, <code>tf_cookie_*</code></td>
+            </tr>
+            <tr>
+                <td><strong>Mesure d'audience</strong></td>
+                <td>Comprendre l'usage pour améliorer l'ergonomie.</td>
+                <td>Selon votre choix de consentement.</td>
+            </tr>
+            <tr>
+                <td><strong>Marketing</strong></td>
+                <td>Personnalisation de contenus ou campagnes.</td>
+                <td>Selon votre choix de consentement.</td>
+            </tr>
+            <tr>
+                <td><strong>Préférence de consentement</strong></td>
+                <td>Mémoriser votre décision cookies.</td>
+                <td><code>sf_cookie_consent</code></td>
+            </tr>
+        </tbody>
+    </table>
 </div>
+
+<h2>3. Gérer mes préférences</h2>
+<form id="cookie-preferences-form" class="border rounded-4 p-3 p-md-4 bg-light-subtle">
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="consent-essential" checked disabled>
+        <label class="form-check-label" for="consent-essential">
+            Cookies essentiels (obligatoires)
+        </label>
+    </div>
+
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="consent-analytics">
+        <label class="form-check-label" for="consent-analytics">
+            Cookies de mesure d'audience
+        </label>
+    </div>
+
+    <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" id="consent-marketing">
+        <label class="form-check-label" for="consent-marketing">
+            Cookies marketing
+        </label>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary">Enregistrer mes préférences</button>
+        <button type="button" class="btn btn-outline-primary" id="cookie-accept-all">Tout accepter</button>
+        <button type="button" class="btn btn-outline-secondary" id="cookie-reject-optional">Refuser les non essentiels</button>
+    </div>
+
+    <div id="cookie-preferences-status" class="alert d-none mt-3 mb-0" role="status"></div>
+</form>
+
+<h2>4. Retrait du consentement</h2>
+<p>Vous pouvez revenir à tout moment sur cette page pour modifier vos choix. Votre préférence est conservée pendant 12 mois, puis redemandée.</p>
 {% endblock %}

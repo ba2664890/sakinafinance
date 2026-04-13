@@ -1,9 +1,44 @@
-{% extends 'base.html' %}
-{% block title %}Terms - SakinaFinance{% endblock %}
-{% block body %}
-<div class="container py-5">
-    <h1>Terms</h1>
-    <p>Ceci est une page de test pour terms.</p>
-    <a href="{% url 'home' %}" class="btn btn-primary">Retour à l'accueil</a>
-</div>
+{% extends 'legal/legal_base.html' %}
+
+{% block title %}Conditions générales d'utilisation - SakinaFinance{% endblock %}
+
+{% block legal_heading %}Conditions générales d'utilisation{% endblock %}
+{% block legal_intro %}
+Ces conditions définissent les règles d'accès et d'utilisation de la plateforme SakinaFinance.
+{% endblock %}
+
+{% block legal_content %}
+<h2>1. Objet</h2>
+<p>Les présentes conditions encadrent l'utilisation de la plateforme SakinaFinance et de ses modules associés.</p>
+
+<h2>2. Acceptation</h2>
+<p>La création d'un compte implique l'acceptation des présentes conditions ainsi que de la politique de confidentialité.</p>
+
+<h2>3. Compte utilisateur</h2>
+<ul>
+    <li>Vous êtes responsable de l'exactitude des informations transmises.</li>
+    <li>Vous devez conserver la confidentialité de vos identifiants.</li>
+    <li>Vous devez nous signaler immédiatement tout accès non autorisé.</li>
+</ul>
+
+<h2>4. Utilisation du service</h2>
+<p>Vous vous engagez à utiliser la plateforme conformément aux lois applicables, sans usage frauduleux, abusif ou susceptible de nuire à la sécurité du service.</p>
+
+<h2>5. Tarification et abonnement</h2>
+<p>Les conditions tarifaires sont présentées sur la page de souscription. Les essais gratuits et options payantes peuvent évoluer avec préavis raisonnable.</p>
+
+<h2>6. Propriété intellectuelle</h2>
+<p>Les contenus, marques, interfaces et composants logiciels de SakinaFinance restent protégés par les droits de propriété intellectuelle applicables.</p>
+
+<h2>7. Disponibilité</h2>
+<p>Nous mettons en oeuvre des moyens raisonnables pour assurer la disponibilité du service, avec possibilité d'interruptions ponctuelles (maintenance, sécurité, incidents techniques).</p>
+
+<h2>8. Limitation de responsabilité</h2>
+<p>SakinaFinance fournit des outils d'aide à la gestion. Les décisions financières et comptables finales restent sous la responsabilité de l'utilisateur et de son équipe.</p>
+
+<h2>9. Résiliation</h2>
+<p>Vous pouvez demander la fermeture de votre compte à tout moment. Nous pouvons suspendre un compte en cas de non-respect grave des présentes conditions.</p>
+
+<h2>10. Droit applicable</h2>
+<p>Les présentes conditions sont soumises au droit applicable au siège de l'entité contractante, sous réserve des dispositions impératives locales.</p>
 {% endblock %}

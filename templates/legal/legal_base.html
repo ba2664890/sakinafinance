@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+.legal-wrapper {
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    min-height: 100vh;
+}
+
+.legal-surface {
+    max-width: 980px;
+}
+
+.legal-header {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.legal-nav .nav-link {
+    color: #475569;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 600;
+}
+
+.legal-nav .nav-link.active {
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-color: #bfdbfe;
+}
+
+.legal-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.legal-card h2 {
+    font-size: 1.1rem;
+    margin-top: 1.25rem;
+}
+
+.legal-note {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+}
+{% endblock %}
+
+{% block body %}
+<div class="legal-wrapper py-5">
+    <div class="container legal-surface">
+        <div class="legal-header p-4 p-md-5 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-md-between gap-3 align-items-md-start">
+                <div>
+                    <p class="text-uppercase text-primary fw-semibold small mb-2">Mentions légales</p>
+                    <h1 class="h3 mb-2">{% block legal_heading %}{% endblock %}</h1>
+                    <p class="text-muted mb-0">{% block legal_intro %}{% endblock %}</p>
+                </div>
+                <span class="badge text-bg-light border px-3 py-2">Dernière mise à jour: {% block legal_updated %}13 avril 2026{% endblock %}</span>
+            </div>
+
+            <ul class="nav legal-nav gap-2 mt-4">
+                <li class="nav-item">
+                    <a href="{% url 'privacy' %}" class="nav-link {% if request.resolver_match.url_name == 'privacy' %}active{% endif %}">Confidentialité</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'terms' %}" class="nav-link {% if request.resolver_match.url_name == 'terms' %}active{% endif %}">Conditions</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'cookies' %}" class="nav-link {% if request.resolver_match.url_name == 'cookies' %}active{% endif %}">Cookies</a>
+                </li>
+            </ul>
+        </div>
+
+        <article class="card legal-card">
+            <div class="card-body p-4 p-md-5">
+                {% block legal_content %}{% endblock %}
+            </div>
+        </article>
+
+        <div class="legal-note p-3 p-md-4 mt-4 small text-muted">
+            Pour toute question juridique ou relative à vos données, contactez-nous à
+            <a href="mailto:legal@sakinafinance.com" class="text-decoration-none fw-semibold">legal@sakinafinance.com</a>.
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -84,6 +84,13 @@ class ComprehensiveRegistrationForm(forms.Form):
         initial='free',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
+    accept_legal = forms.BooleanField(
+        required=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'terms'}),
+        error_messages={
+            'required': "Vous devez accepter les Conditions Générales et la Politique de Confidentialité."
+        },
+    )
     
     def clean(self):
         cleaned_data = super().clean()
