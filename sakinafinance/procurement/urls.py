@@ -16,4 +16,9 @@ urlpatterns = [
     # Inventory
     path('inventory/', views.inventory_view, name='inventory'),
     path('api/inventory/', views.api_inventory_data, name='api_inventory_data'),
+    
+    # API endpoints for interactive forms
+    path('api/po/create/', views.api_po_create, name='api_po_create'),
+    path('api/inventory/items/create/', views.api_inventory_item_create, name='api_inventory_item_create'),
+    path('api/inventory/stock-movements/', views.api_stock_transaction_create, name='api_stock_transaction_create'),
 ]

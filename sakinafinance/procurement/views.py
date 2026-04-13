@@ -8,6 +8,7 @@ from django.db.models import Sum, Avg, Count, Q
 from .forms import SupplierForm, PurchaseOrderForm, InventoryItemForm
 from django.utils import timezone
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from decimal import Decimal
 
 from .models import Supplier, PurchaseOrder, PurchaseRFQ, SupplierCategory, InventoryItem, StockTransaction
@@ -112,6 +113,7 @@ def api_procurement_data(request):
         'suppliers': supplier_data,
         'categories': cat_data,
         'rfqs': rfq_data,
+        'suppliers_list': list(Supplier.objects.filter(company=company, is_active=True).values('id', 'name')),
     }
     return JsonResponse(data)
 
@@ -202,6 +204,7 @@ def api_inventory_data(request):
         'out_of_stock_count': out_of_stock,
         'inventory_value': float(total_value),
         'items': item_list,
+        'items_list': list(items.values('id', 'name', 'sku')),
         'transactions': transaction_data,
     }
     return JsonResponse(data)
@@ -269,3 +272,90 @@ def inventory_item_create(request):
         'page_title': 'Nouvel Article',
         'action': 'Ajouter'
     })
+
+
+@require_POST
+@login_required
+def api_po_create(request):
+    """API: Créer un bon de commande"""
+    company = _get_company(request)
+    supplier_id = request.POST.get('supplier')
+    expected_delivery = request.POST.get('expected_delivery')
+    items_json = request.POST.get('items') # JSON string of items
+    
+    supplier = get_object_or_404(Supplier, id=supplier_id, company=company)
+    
+    # Création simplifiée pour l'exemple
+    po = PurchaseOrder.objects.create(
+        company=company,
+        supplier=supplier,
+        expected_delivery=expected_delivery or None,
+        status='draft',
+        created_by=request.user,
+        total=Decimal('0')
+    )
+    
+    # Logique pour parser les items et créer les lignes de commande si nécessaire
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Bon de commande créé',
+        'po': {'reference': po.reference}
+    })
+
+
+@require_POST
+@login_required
+def api_inventory_item_create(request):
+    """API: Créer un article"""
+    company = _get_company(request)
+    name = request.POST.get('name')
+    sku = request.POST.get('sku')
+    unit = request.POST.get('unit', 'unit')
+    min_stock = Decimal(request.POST.get('min_stock_level', '10'))
+    
+    item = InventoryItem.objects.create(
+        company=company,
+        name=name,
+        sku=sku or f"SKU-{timezone.now().timestamp()}",
+        unit_measure=unit,
+        min_stock_level=min_stock
+    )
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Article créé',
+        'item': {'id': str(item.id), 'name': item.name}
+    })
+
+
+@require_POST
+@login_required
+def api_stock_transaction_create(request):
+    """API: Créer un mouvement de stock"""
+    company = _get_company(request)
+    item_id = request.POST.get('inventory_item')
+    trans_type = request.POST.get('transaction_type')
+    quantity = Decimal(request.POST.get('quantity', '0'))
+    unit_price = Decimal(request.POST.get('unit_price', '0'))
+    reference = request.POST.get('reference')
+    
+    item = get_object_or_404(InventoryItem, id=item_id, company=company)
+    
+    try:
+        trans = StockTransaction.objects.create(
+            item=item,
+            transaction_type=trans_type,
+            quantity=quantity,
+            unit_price=unit_price,
+            reference=reference
+        )
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Mouvement de stock enregistré',
+            'new_stock': float(item.current_stock)
+        })
+    except ValueError as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': 'Erreur lors de l’enregistrement'}, status=500)

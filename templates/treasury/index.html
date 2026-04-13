@@ -132,7 +132,7 @@
             <button class="btn btn-sm btn-outline-secondary rounded-8 px-3">
                 <i class="bi bi-clock-history me-2"></i>Historique
             </button>
-            <button class="premium-btn rounded-8 px-3">
+            <button class="premium-btn rounded-8 px-3" data-bs-toggle="modal" data-bs-target="#movementModal">
                 <i class="bi bi-plus-circle me-2"></i>Nouveau Mouvement
             </button>
         </div>
@@ -211,7 +211,10 @@
                         </div>
                     </div>
                     <div class="p-3">
-                        <button class="btn btn-outline-primary w-100 rounded-8 py-2 small fw-bold">
+                        <button class="btn btn-outline-primary w-100 rounded-8 py-2 small fw-bold mb-2" data-bs-toggle="modal" data-bs-target="#bankAccountModal">
+                            <i class="bi bi-plus-lg me-1"></i> Nouveau Compte
+                        </button>
+                        <button class="btn btn-primary w-100 rounded-8 py-2 small fw-bold">
                             Rapprochement Bancaire
                         </button>
                     </div>
@@ -291,6 +294,89 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: New Bank Account -->
+<div class="modal fade" id="bankAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-24 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Nouveau Compte Bancaire</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="bankAccountForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nom de la Banque</label>
+                        <input type="text" class="form-control rounded-12" name="bank_name" placeholder="Ex: CBAO, Ecobank..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">IBAN / Numéro de Compte</label>
+                        <input type="text" class="form-control rounded-12" name="account_number" required>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Devise</label>
+                            <select class="form-select rounded-12" name="currency">
+                                <option value="XOF">XOF (CFA)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="USD">USD ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Solde Initial</label>
+                            <input type="number" class="form-control rounded-12" name="initial_balance" value="0">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold mt-4">Enregistrer le compte</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: New Movement -->
+<div class="modal fade" id="movementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-24 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Nouveau Mouvement de Fonds</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="movementForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Compte Bancaire</label>
+                        <select class="form-select rounded-12" name="bank_account" id="movementBankSelect" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Type de Mouvement</label>
+                        <select class="form-select rounded-12" name="type">
+                            <option value="IN">Entrée (Encaissement)</option>
+                            <option value="OUT">Sortie (Décaissement)</option>
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Montant</label>
+                            <input type="number" class="form-control rounded-12" name="amount" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Date</label>
+                            <input type="date" class="form-control rounded-12" name="date" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Libellé / Description</label>
+                        <input type="text" class="form-control rounded-12" name="description" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold mt-2">Valider le mouvement</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -355,9 +441,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 `).join('');
             }
 
+            // Populate Bank Account Select for Movement
+            const bankSelect = document.getElementById('bankMovementSelect');
+            if (bankSelect && data.bank_accounts_list) {
+                bankSelect.innerHTML = '<option value="">Choisir un compte</option>' + 
+                    data.bank_accounts_list.map(b => `<option value="${b.id}">${b.bank_name} (${b.account_number})</option>`).join('');
+            }
+
         } catch (error) {
             console.error('Error:', error);
         }
+    }
+
+    // Handle Bank Account Form
+    const bankAccountForm = document.getElementById('bankAccountForm');
+    if (bankAccountForm) {
+        bankAccountForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(bankAccountForm);
+            try {
+                const response = await fetch('/treasury/api/bank-accounts/create/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('bankAccountModal')).hide();
+                    loadTreasuryData();
+                    bankAccountForm.reset();
+                } else {
+                    alert(res.message);
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+            }
+        });
+    }
+
+    // Handle Bank Movement Form
+    const bankMovementForm = document.getElementById('bankMovementForm');
+    if (bankMovementForm) {
+        bankMovementForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(bankMovementForm);
+            try {
+                const response = await fetch('/treasury/api/movements/create/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('bankMovementModal')).hide();
+                    loadTreasuryData();
+                    bankMovementForm.reset();
+                } else {
+                    alert(res.message);
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+            }
+        });
     }
 
     const chartElem = document.getElementById('cashflowChart');

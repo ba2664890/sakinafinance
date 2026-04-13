@@ -19,6 +19,7 @@ from .services import (
     aggregate_posted_movements,
     build_accounting_insight,
     build_balance_sheet_snapshot,
+    post_transaction,
 )
 
 @login_required
@@ -73,17 +74,39 @@ def api_accounting_data(request):
     pending_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.PENDING)
 
     revenue = ZERO
-    expenses = ZERO
+    ebitda = ZERO
+    ebit = ZERO
+    financial_result = ZERO
+    tax = ZERO
+    
     for account_id, movement in period_movements.items():
         account = period_accounts.get(account_id)
         if not account:
             continue
+            
+        # Classe 7: Produits
         if account.account_class == Account.AccountClass.CLASS_7:
             revenue += movement['credit'] - movement['debit']
+            
+        # Classe 6: Charges
         elif account.account_class == Account.AccountClass.CLASS_6:
-            expenses += movement['debit'] - movement['credit']
+            # Séparation simplifiée pour EBITDA/EBIT
+            # 60-65: Exploitation (Approximatif)
+            # 67: Financement
+            # 68: Dotations
+            # 69: Impôts
+            if account.code.startswith('67'):
+                financial_result -= (movement['debit'] - movement['credit'])
+            elif account.code.startswith('68'):
+                ebit -= (movement['debit'] - movement['credit'])
+            elif account.code.startswith('69'):
+                tax += (movement['debit'] - movement['credit'])
+            else:
+                ebitda -= (movement['debit'] - movement['credit'])
 
-    net_income = revenue - expenses
+    ebitda += revenue
+    ebit += ebitda
+    net_income = ebit + financial_result - tax
     total_assets = balance_sheet['total_assets']
     total_liabilities = balance_sheet['total_liabilities']
     equity = balance_sheet['total_equity']
@@ -254,6 +277,31 @@ def api_create_transaction(request):
             'transaction_id': str(tx.id)
         })
         
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+@require_POST
+def api_post_transaction(request, transaction_id):
+    """
+    Valide une transaction en attente.
+    """
+    try:
+        company = _get_company(request)
+        tx = Transaction.objects.get(id=transaction_id, company=company)
+        
+        if tx.status != Transaction.TransactionStatus.PENDING:
+            return JsonResponse({'status': 'error', 'message': 'Seules les transactions en attente peuvent être validées.'}, status=400)
+            
+        post_transaction(tx, user=request.user)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Transaction validée avec succès et soldes mis à jour.'
+        })
+    except Transaction.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Transaction non trouvée.'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 @login_required

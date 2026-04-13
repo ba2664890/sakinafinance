@@ -8,6 +8,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class SupplierCategory(models.Model):
@@ -372,6 +373,10 @@ class StockTransaction(models.Model):
             if self.transaction_type in ['in', 'return']:
                 item.current_stock += self.quantity
             else:
+                if item.current_stock < self.quantity:
+                    raise DjangoValidationError(
+                        f"Stock insuffisant pour {item.name}. Disponible: {item.current_stock}, Demandé: {self.quantity}"
+                    )
                 item.current_stock -= self.quantity
             item.save(update_fields=['current_stock'])
         super().save(*args, **kwargs)

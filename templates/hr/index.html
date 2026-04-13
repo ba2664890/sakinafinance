@@ -157,7 +157,10 @@
             <div class="hr-panel">
                 <div class="hr-panel-header">
                     <h6>Historique des Paies (Payroll)</h6>
-                    <a href="{% url 'employee_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-person-plus me-1"></i> Recruter</a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#payrollConfigModal"><i class="bi bi-gear me-1"></i> Paramètres</button>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#recruitModal"><i class="bi bi-person-plus me-1"></i> Recruter</button>
+                    </div>
                 </div>
                 <div class="hr-panel-content p-0">
                     <table class="payroll-table">
@@ -237,6 +240,87 @@
                     </div>
                     <button class="btn btn-outline-primary w-100 btn-sm mt-2">Gérer le portail carrière</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Recruitment (Nouveau Employé) -->
+<div class="modal fade" id="recruitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-24 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Nouveau Recrutement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="recruitForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Titre du Poste</label>
+                        <input type="text" class="form-control rounded-12" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Département</label>
+                        <select class="form-select rounded-12" name="department" id="recruitDeptSelect"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Description</label>
+                        <textarea class="form-control rounded-12" name="description" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Publier l'offre</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Payroll Config -->
+<div class="modal fade" id="payrollConfigModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-24 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Paramétrage de la Paie (OHADA/Sénégal)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="payrollConfigForm">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold small text-primary uppercase mb-3">Cotisations Sociales (%)</h6>
+                            <div class="mb-2">
+                                <label class="form-label small">CNSS Employé</label>
+                                <input type="number" step="0.01" class="form-control" name="cnss_employee_rate" value="7.00">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">CNSS Employeur</label>
+                                <input type="number" step="0.01" class="form-control" name="cnss_employer_rate" value="14.00">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">IPRES Employé</label>
+                                <input type="number" step="0.01" class="form-control" name="ipres_employee_rate" value="5.60">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">IPRES Employeur</label>
+                                <input type="number" step="0.01" class="form-control" name="ipres_employer_rate" value="8.40">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold small text-primary uppercase mb-3">Fiscalité (IRPP)</h6>
+                            <div class="mb-2">
+                                <label class="form-label small">Taux Estimé IRPP (%)</label>
+                                <input type="number" step="0.01" class="form-control" name="irpp_estimated_rate" value="15.00">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Seuil d'imposition (XOF)</label>
+                                <input type="number" class="form-control" name="irpp_threshold" value="250000">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Sauvegarder les paramètres</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -348,9 +432,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            // Populate Department Select in Recruitment Modal
+            const deptSelect = document.getElementById('recruitDeptSelect');
+            if (deptSelect && data.departments_list) {
+                deptSelect.innerHTML = '<option value="">Choisir un département</option>' + 
+                    data.departments_list.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            }
+
         } catch (error) {
             console.error('Error loading HR data:', error);
         }
+    }
+
+    // Handle Recruitment Form
+    const recruitForm = document.getElementById('recruitForm');
+    if (recruitForm) {
+        recruitForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(recruitForm);
+            try {
+                const response = await fetch('/hr/api/recruit/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('recruitModal')).hide();
+                    loadData(); // Refresh dashboard
+                    recruitForm.reset();
+                } else {
+                    alert(res.message);
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+            }
+        });
+    }
+
+    // Handle Payroll Config Form
+    const payrollConfigForm = document.getElementById('payrollConfigForm');
+    if (payrollConfigForm) {
+        payrollConfigForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(payrollConfigForm);
+            try {
+                const response = await fetch('/hr/api/payroll-config/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('payrollConfigModal')).hide();
+                    alert('Configuration sauvegardée avec succès');
+                    loadData();
+                } else {
+                    alert(res.message);
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+            }
+        });
     }
 });
 </script>

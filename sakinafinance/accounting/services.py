@@ -5,6 +5,7 @@ Accounting services shared across dashboards and reporting endpoints.
 from decimal import Decimal
 
 from django.db.models import Sum
+from django.utils import timezone
 
 from .models import Account, Transaction, TransactionLine
 
@@ -184,3 +185,24 @@ def build_accounting_insight(has_posted_entries, total_assets, total_liabilities
         messages.append("Les écritures validées existent, mais les indicateurs restent partiels tant que le mapping OHADA détaillé n'est pas finalisé.")
 
     return ' '.join(messages)
+
+
+def post_transaction(transaction, user=None):
+    """
+    Valide officiellement une transaction :
+    - Change le statut à 'posted'
+    - Enregistre qui a validé et quand
+    - Déclenche la mise à jour des soldes de tous les comptes affectés
+    """
+    if transaction.status == Transaction.TransactionStatus.POSTED:
+        return transaction
+
+    transaction.status = Transaction.TransactionStatus.POSTED
+    transaction.posted_by = user
+    transaction.posted_at = timezone.now()
+    transaction.save()
+
+    # Déclencher la mise à jour des soldes pour la société
+    refresh_current_balances(transaction.company)
+
+    return transaction

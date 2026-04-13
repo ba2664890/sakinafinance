@@ -138,7 +138,7 @@
             <div class="procurement-panel">
                 <div class="p-panel-header">
                     <h6>Commandes d'Achats en Cours (PO)</h6>
-                    <a href="{% url 'purchase_order_create' %}" class="btn btn-sm btn-primary">Créer un Bon de Commande</a>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#poModal">Créer un Bon de Commande</button>
                 </div>
                 <div class="p-panel-content p-0">
                     <table class="po-table">
@@ -197,6 +197,78 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: New Purchase Order -->
+<div class="modal fade" id="poModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-24 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Nouveau Bon de Commande (PO)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="poForm">
+                    {% csrf_token %}
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Fournisseur</label>
+                            <select class="form-select rounded-12" name="supplier" id="poSupplierSelect" required></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Date de commande</label>
+                            <input type="date" class="form-control rounded-12" name="date" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Articles / Lignes de commande</label>
+                        <div id="po-lines-container">
+                            <div class="row g-2 mb-2 po-line">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm rounded-8" name="product[]" placeholder="Article / Service" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" class="form-control form-control-sm rounded-8" name="quantity[]" placeholder="Qté" value="1" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" class="form-control form-control-sm rounded-8" name="unit_price[]" placeholder="Prix Unitaire" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-light border w-100 mt-2 rounded-8" onclick="addPoLine()">+ Ajouter une ligne</button>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Notes / Instructions</label>
+                        <textarea class="form-control rounded-12" name="notes" rows="2"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <h5 class="fw-bold mb-0">Total: <span id="po-total-display">0</span> $</h5>
+                        <button type="submit" class="btn btn-primary rounded-12 px-4 py-2 fw-bold">Valider la commande</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addPoLine() {
+    const container = document.getElementById('po-lines-container');
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-2 po-line';
+    div.innerHTML = `
+        <div class="col-md-6">
+            <input type="text" class="form-control form-control-sm rounded-8" name="product[]" placeholder="Article / Service" required>
+        </div>
+        <div class="col-md-2">
+            <input type="number" class="form-control form-control-sm rounded-8" name="quantity[]" placeholder="Qté" value="1" required>
+        </div>
+        <div class="col-md-4">
+            <input type="number" class="form-control form-control-sm rounded-8" name="unit_price[]" placeholder="Prix Unitaire" required>
+        </div>
+    `;
+    container.appendChild(div);
+}
+</script>
 {% endblock %}
 
 {% block extra_js %}
@@ -268,9 +340,44 @@ document.addEventListener('DOMContentLoaded', function() {
             // Chart
             initSpendChart(data.categories);
 
+            // Populate Supplier Select in PO Modal
+            const supplierSelect = document.getElementById('poSupplierSelect');
+            if (supplierSelect && data.suppliers_list) {
+                supplierSelect.innerHTML = '<option value="">Choisir un fournisseur</option>' + 
+                    data.suppliers_list.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            }
+
         } catch (error) {
             console.error('Error loading procurement data:', error);
         }
+    }
+
+    // Handle PO Form
+    const poForm = document.getElementById('poForm');
+    if (poForm) {
+        poForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(poForm);
+            try {
+                const response = await fetch('/procurement/api/po/create/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('poModal')).hide();
+                    loadProcurementData();
+                    poForm.reset();
+                    document.getElementById('po-lines-container').innerHTML = ''; // Clear lines
+                    addPoLine(); // Add one default line
+                } else {
+                    alert(res.message);
+                }
+            } catch (err) {
+                console.error('Submit error:', err);
+            }
+        });
     }
 
     function initSpendChart(cats) {

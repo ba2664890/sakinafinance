@@ -12,8 +12,9 @@ from .forms import EmployeeForm, LeaveRequestForm
 
 from .models import (
     Employee, Department, PayrollPeriod, Payslip,
-    LeaveRequest, Recruitment, LeaveType
+    LeaveRequest, Recruitment, LeaveType, PayrollConfig
 )
+from django.views.decorators.http import require_POST
 from decimal import Decimal
 
 
@@ -115,6 +116,7 @@ def api_hr_data(request):
         'pending_leaves': pending_leaves,
         'approved_leaves': approved_leaves,
         'ongoing_leaves': ongoing_leaves,
+        'departments_list': list(departments.values('id', 'name')),
     }
     return JsonResponse(data)
 
@@ -215,3 +217,54 @@ def leave_request_create(request):
         'page_title': 'Demande de Congé',
         'action': 'Soumettre'
     })
+
+
+@require_POST
+@login_required
+def api_hr_recruit(request):
+    """API: Créer une offre de recrutement"""
+    company = _get_company(request)
+    title = request.POST.get('title')
+    dept_id = request.POST.get('department')
+    description = request.POST.get('description')
+    
+    if not title:
+        return JsonResponse({'status': 'error', 'message': 'Titre requis'}, status=400)
+    
+    dept = None
+    if dept_id:
+        dept = Department.objects.filter(id=dept_id, company=company).first()
+        
+    recruit = Recruitment.objects.create(
+        company=company,
+        title=title,
+        department=dept,
+        description=description,
+        created_by=request.user
+    )
+    
+    return JsonResponse({
+        'status': 'success', 
+        'message': 'Offre publiée',
+        'recruit': {'id': str(recruit.id), 'title': recruit.title}
+    })
+
+
+@require_POST
+@login_required
+def api_hr_payroll_config(request):
+    """API: Configurer les taux de paie"""
+    company = _get_company(request)
+    config, _ = PayrollConfig.objects.get_or_create(company=company)
+    
+    try:
+        config.cnss_employee_rate = Decimal(request.POST.get('cnss_employee_rate', 7.0))
+        config.cnss_employer_rate = Decimal(request.POST.get('cnss_employer_rate', 14.0))
+        config.ipres_employee_rate = Decimal(request.POST.get('ipres_employee_rate', 5.6))
+        config.ipres_employer_rate = Decimal(request.POST.get('ipres_employer_rate', 8.4))
+        config.irpp_estimated_rate = Decimal(request.POST.get('irpp_estimated_rate', 15.0))
+        config.irpp_threshold = Decimal(request.POST.get('irpp_threshold', 250000))
+        config.save()
+        return JsonResponse({'status': 'success', 'message': 'Configuration sauvegardée'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

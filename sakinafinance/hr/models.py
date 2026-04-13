@@ -217,6 +217,22 @@ class LeaveRequest(models.Model):
         return f"{self.employee} — {self.leave_type} ({self.start_date} → {self.end_date})"
 
 
+class PayrollConfig(models.Model):
+    """Configuration des taux de paie par société"""
+    company = models.OneToOneField(
+        'accounts.Company', on_delete=models.CASCADE, related_name='payroll_config'
+    )
+    cnss_employee_rate = models.DecimalField(max_digits=5, decimal_places=2, default=7.0)
+    cnss_employer_rate = models.DecimalField(max_digits=5, decimal_places=2, default=14.0)
+    ipres_employee_rate = models.DecimalField(max_digits=5, decimal_places=2, default=5.6)
+    ipres_employer_rate = models.DecimalField(max_digits=5, decimal_places=2, default=8.4)
+    irpp_estimated_rate = models.DecimalField(max_digits=5, decimal_places=2, default=15.0)
+    irpp_threshold = models.DecimalField(max_digits=12, decimal_places=2, default=250000.0)
+
+    def __str__(self):
+        return f"Config Paie — {self.company.name}"
+
+
 class PayrollPeriod(models.Model):
     """Période de paie"""
 
@@ -309,17 +325,26 @@ class Payslip(models.Model):
         return f"Bulletin {self.employee.get_full_name()} — {self.period.name}"
 
     def compute(self):
-        """Calcule la paie selon les règles OHADA/CFAE/IPRES sénégalaises"""
+        """Calcule la paie selon les règles OHADA/CFAE/IPRES sénégalaises paramétrées"""
+        try:
+            config = self.employee.company.payroll_config
+        except PayrollConfig.DoesNotExist:
+            # Fallback aux taux par défaut si non configuré
+            config = PayrollConfig(company=self.employee.company)
+
         self.gross_salary = self.base_salary + self.allowances + self.overtime + self.bonuses
-        # CNSS Sénégal: 7% employé, 14% employeur
-        self.cnss_employee = round(self.gross_salary * 0.07, 2)
-        self.cnss_employer = round(self.gross_salary * 0.14, 2)
-        # IPRES (retraite): 5.6% employé, 8.4% employeur
-        self.ipres_employee = round(self.gross_salary * 0.056, 2)
-        self.ipres_employer = round(self.gross_salary * 0.084, 2)
-        # IRPP simplifié (estimation 15% sur revenu imposable)
+        
+        # Utilisation des taux configurés
+        self.cnss_employee = round(self.gross_salary * (config.cnss_employee_rate / 100), 2)
+        self.cnss_employer = round(self.gross_salary * (config.cnss_employer_rate / 100), 2)
+        
+        self.ipres_employee = round(self.gross_salary * (config.ipres_employee_rate / 100), 2)
+        self.ipres_employer = round(self.gross_salary * (config.ipres_employer_rate / 100), 2)
+        
+        # IRPP simplifié avec seuil paramétrable
         taxable = self.gross_salary - self.cnss_employee - self.ipres_employee
-        self.income_tax = round(max(taxable * 0.15 - 250_000, 0), 2)
+        self.income_tax = round(max(taxable * (config.irpp_estimated_rate / 100) - config.irpp_threshold, 0), 2)
+        
         self.total_deductions = (
             self.cnss_employee + self.ipres_employee + self.income_tax + self.other_deductions
         )
