@@ -38,8 +38,13 @@
         }
     }
 
+    function escapeRegex(value) {
+        return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     function getCookie(name) {
-        var pattern = new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\\[\\]\\/+^])/g, '\\$1') + '=([^;]*)');
+        var safeName = escapeRegex(name);
+        var pattern = new RegExp('(?:^|; )' + safeName + '=([^;]*)');
         var match = document.cookie.match(pattern);
         return match ? decodeURIComponent(match[1]) : null;
     }

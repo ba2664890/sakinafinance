@@ -420,6 +420,7 @@ JAZZMIN_SETTINGS = {
     "copyright": "SakinaFinance Ltd",
     "search_model": "accounts.User",
     "user_avatar": "avatar",
+    "default_theme_mode": "auto",
     "topmenu_links": [
         {"name": "Accueil", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"model": "accounts.User", "label": "Utilisateurs"},
@@ -501,7 +502,6 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "flatly",
-    "dark_mode_theme": "darkly",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
