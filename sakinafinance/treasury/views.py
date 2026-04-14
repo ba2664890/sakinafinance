@@ -12,7 +12,7 @@ from decimal import Decimal
 from sakinafinance.accounting.models import Transaction, TransactionLine, Account
 from sakinafinance.accounts.models import Entity
 from sakinafinance.ai_engine.services import AIService
-from .models import BankAccount, BankStatementLine
+from .models import BankAccount, BankStatement, BankStatementLine
 from django.views.decorators.http import require_POST
 
 logger = logging.getLogger('sakinafinance')
@@ -426,8 +426,18 @@ def api_bank_movement_create(request):
     bank_account = get_object_or_404(BankAccount, id=account_id, company=company)
     
     signed_amount = amount if mv_type == 'IN' else -amount
-    movement = BankStatementLine.objects.create(
+    # BankStatementLine expects a statement; create a minimal manual statement when needed.
+    statement = BankStatement.objects.create(
         bank_account=bank_account,
+        reference=f"MAN-{timezone.now().strftime('%Y%m%d')}",
+        start_date=date,
+        end_date=date,
+        opening_balance=Decimal('0'),
+        closing_balance=Decimal('0'),
+        is_imported=False
+    )
+    movement = BankStatementLine.objects.create(
+        statement=statement,
         date=date,
         description=description,
         amount=signed_amount,
