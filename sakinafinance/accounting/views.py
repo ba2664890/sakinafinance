@@ -31,8 +31,7 @@ def accounting_view(request):
 @login_required
 def api_accounting_data(request):
     """API: Get accounting metrics based on posted entries and opening balances."""
-    user = request.user
-    company = user.company
+    company = _get_company(request)
 
     data = {
         'total_assets': 0.0,
@@ -67,9 +66,14 @@ def api_accounting_data(request):
 
     today = timezone.now().date()
     year_start = today.replace(month=1, day=1)
+    try:
+        last_year_end = today.replace(year=today.year - 1)
+    except ValueError:
+        last_year_end = today.replace(year=today.year - 1, day=28)
     period_movements = aggregate_posted_movements(company, start_date=year_start, end_date=today)
     period_accounts = Account.objects.in_bulk(period_movements.keys())
     balance_sheet = build_balance_sheet_snapshot(company, end_date=today)
+    previous_balance_sheet = build_balance_sheet_snapshot(company, end_date=last_year_end)
     posted_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.POSTED)
     pending_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.PENDING)
 
@@ -112,10 +116,14 @@ def api_accounting_data(request):
     equity = balance_sheet['total_equity']
     current_assets = balance_sheet['current_assets']
     current_liabilities = balance_sheet['current_liabilities']
+    prev_total_assets = previous_balance_sheet['total_assets']
 
     liquidity_ratio = float(current_assets / current_liabilities) if current_liabilities > ZERO else None
     solvability_ratio = float(equity / total_assets) if total_assets > ZERO else None
     net_income_margin = float((net_income / revenue) * 100) if revenue > ZERO else None
+    total_assets_growth = None
+    if prev_total_assets and prev_total_assets > ZERO:
+        total_assets_growth = float(((total_assets - prev_total_assets) / prev_total_assets) * 100)
 
     last_entries = []
     for tx in posted_transactions.select_related('journal').prefetch_related('lines__account').order_by('-date', '-created_at')[:6]:
@@ -129,15 +137,28 @@ def api_accounting_data(request):
             'compte': 'MULT' if tx.lines.count() > 2 else first_line.account.code if first_line else 'N/A',
         })
 
+    posted_lines_totals = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status=Transaction.TransactionStatus.POSTED,
+    ).aggregate(total_debit=Sum('debit'), total_credit=Sum('credit'))
+    total_posted_debit = posted_lines_totals['total_debit'] or ZERO
+    total_posted_credit = posted_lines_totals['total_credit'] or ZERO
+    trial_balance_gap = total_posted_debit - total_posted_credit
+    balance_sheet_gap = total_assets - (total_liabilities + equity)
+
     is_reliable = posted_transactions.exists()
+    checks_ok = abs(trial_balance_gap) < Decimal('0.01') and abs(balance_sheet_gap) < Decimal('0.01')
     quality_message = (
         "Vue calculée à partir des écritures validées et des soldes d'ouverture. Le mapping détaillé des états OHADA reste encore simplifié."
         if is_reliable
         else "Aucune écriture validée n'alimente encore cette vue. Les rubriques restent limitées aux soldes d'ouverture éventuels."
     )
+    if is_reliable and not checks_ok:
+        quality_message += " Un ecart de controle est detecte sur la balance ou le bilan."
 
     data.update({
         'total_assets': float(total_assets),
+        'total_assets_growth': round(total_assets_growth, 1) if total_assets_growth is not None else None,
         'total_liabilities': float(total_liabilities),
         'equity': float(equity),
         'equity_ratio': round(solvability_ratio * 100, 1) if solvability_ratio is not None else None,
@@ -157,17 +178,32 @@ def api_accounting_data(request):
             'actif': balance_sheet['actif'],
             'passif': balance_sheet['passif'],
         },
+        'balance_sheet_meta': {
+            'current_assets': float(balance_sheet['current_assets']),
+            'current_liabilities': float(balance_sheet['current_liabilities']),
+            'cash': float(balance_sheet['cash']),
+            'stocks': float(balance_sheet['stocks']),
+        },
         'ratios': {
             'liquidity_ratio': round(liquidity_ratio, 2) if liquidity_ratio is not None else None,
             'solvability_ratio': round(solvability_ratio, 2) if solvability_ratio is not None else None,
         },
         'quality': {
-            'level': 'info' if is_reliable else 'warning',
-            'title': 'Base comptable contrôlée' if is_reliable else 'Données comptables partielles',
+            'level': 'info' if (is_reliable and checks_ok) else ('danger' if is_reliable else 'warning'),
+            'title': 'Base comptable contrôlée' if (is_reliable and checks_ok) else ('Contrôles à vérifier' if is_reliable else 'Données comptables partielles'),
             'message': quality_message,
             'is_reliable': is_reliable,
         },
         'journals': list(Journal.objects.filter(company=company, is_active=True).values('id', 'name', 'code')),
+        'accounts': list(Account.objects.filter(company=company, is_active=True).order_by('code').values('id', 'code', 'name')[:200]),
+        'checks': {
+            'trial_balance_gap': float(trial_balance_gap),
+            'balance_sheet_gap': float(balance_sheet_gap),
+            'total_posted_debit': float(total_posted_debit),
+            'total_posted_credit': float(total_posted_credit),
+            'is_trial_balanced': abs(trial_balance_gap) < Decimal('0.01'),
+            'is_balance_sheet_balanced': abs(balance_sheet_gap) < Decimal('0.01'),
+        },
     })
 
     return JsonResponse(data)
@@ -318,14 +354,14 @@ def api_trial_balance(request):
     # We aggregate debits and credits from TransactionLine for validated transactions
     movements = TransactionLine.objects.filter(
         transaction__company=company,
-        transaction__status='posted'
+        transaction__status=Transaction.TransactionStatus.POSTED
     ).values('account_id').annotate(
         total_debit=Sum('debit'),
         total_credit=Sum('credit')
     )
     
     # Map movements for quick access
-    movements_dict = {m['account_id']: (m['total_debit'] or 0, m['total_credit'] or 0) for m in movements}
+    movements_dict = {m['account_id']: (m['total_debit'] or ZERO, m['total_credit'] or ZERO) for m in movements}
     
     trial_balance = []
     total_initial_debit = Decimal('0')
@@ -345,7 +381,7 @@ def api_trial_balance(request):
         initial_credit = Decimal('0')
         
         # Simple heuristic for trial balance display:
-        if acc.account_type in ['asset', 'expense']:
+        if acc.account_type in [Account.AccountType.ASSET, Account.AccountType.EXPENSE]:
             if acc.opening_balance >= 0:
                 initial_debit = acc.opening_balance
             else:

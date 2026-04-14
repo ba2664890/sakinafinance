@@ -97,6 +97,48 @@
         padding: 0.25rem 0.6rem;
         border-radius: 20px;
     }
+
+    .control-card {
+        background: #0f172a;
+        color: white;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+    }
+    .control-card h6 { font-weight: 800; margin-bottom: 0.4rem; }
+    .control-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.15);
+    }
+    .control-card.light {
+        background: #ffffff;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .line-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .line-actions button {
+        border-radius: 8px;
+        border: 1px dashed var(--border-color);
+        background: #fff;
+        padding: 0.35rem 0.55rem;
+    }
+    .line-actions button:hover {
+        border-style: solid;
+    }
 </style>
 {% endblock %}
 
@@ -160,6 +202,45 @@
                 <div class="kpi-value text-success" id="acc-net-income">0 <small class="fs-6">XOF</small></div>
                 <div class="mt-2 text-primary small fw-bold" id="acc-income-margin">
                     <i class="bi bi-graph-up me-1"></i>0% Marge Net
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-4">
+            <div class="control-card">
+                <h6>Equilibre du Bilan</h6>
+                <div class="small opacity-75">Actif = Passif + Capitaux propres</div>
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <span class="control-chip" id="acc-balance-status"><i class="bi bi-hourglass-split"></i>En attente</span>
+                    <span class="fw-bold" id="acc-balance-gap">0 XOF</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="control-card">
+                <h6>Balance Débit / Crédit</h6>
+                <div class="small opacity-75">Total lignes validées</div>
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <span class="control-chip" id="acc-trial-status"><i class="bi bi-hourglass-split"></i>En attente</span>
+                    <span class="fw-bold" id="acc-trial-gap">0 XOF</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="control-card light">
+                <h6>Trésorerie & BFR</h6>
+                <div class="small text-secondary">Liquidité disponible et besoin court terme</div>
+                <div class="mt-3 d-flex justify-content-between">
+                    <div>
+                        <div class="small text-secondary">Cash</div>
+                        <div class="fw-bold" id="acc-cash">0 XOF</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-secondary">BFR</div>
+                        <div class="fw-bold" id="acc-working-capital">0 XOF</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -362,39 +443,61 @@
                         <textarea class="form-control rounded-8" name="description" rows="2" placeholder="Description détaillée..." required></textarea>
                     </div>
 
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-bold text-secondary mb-0">Lignes d'écriture</label>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-line-btn">
+                            <i class="bi bi-plus-lg me-1"></i>Ajouter une ligne
+                        </button>
+                    </div>
                     <div id="lines-container">
                         <div class="row g-2 mb-2 line-row">
                             <div class="col-md-6">
                                 <label class="form-label small text-muted">Compte</label>
-                                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" placeholder="Code compte" required>
+                                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" list="account-list" placeholder="Code compte" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label small text-muted">Débit</label>
-                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0">
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0" min="0" step="0.01">
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted">Crédit</label>
-                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0">
+                            <div class="col-md-3 d-flex align-items-center gap-2">
+                                <div class="flex-grow-1">
+                                    <label class="form-label small text-muted">Crédit</label>
+                                    <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0" min="0" step="0.01">
+                                </div>
+                                <div class="line-actions mt-4">
+                                    <button type="button" class="btn btn-light btn-sm remove-line-btn" title="Retirer la ligne">
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="row g-2 mb-2 line-row">
                             <div class="col-md-6">
-                                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" placeholder="Contrepartie" required>
+                                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" list="account-list" placeholder="Contrepartie" required>
                             </div>
                             <div class="col-md-3">
-                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0">
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0" min="0" step="0.01">
                             </div>
-                            <div class="col-md-3">
-                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0">
+                            <div class="col-md-3 d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0" min="0" step="0.01">
+                                <div class="line-actions">
+                                    <button type="button" class="btn btn-light btn-sm remove-line-btn" title="Retirer la ligne">
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <datalist id="account-list"></datalist>
                     
-                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div class="small fw-bold text-secondary">
                             Total: <span id="total-debit" class="text-primary">0</span> / <span id="total-credit" class="text-danger">0</span>
                         </div>
-                        <button type="submit" class="btn-premium px-5">Valider l'écriture</button>
+                        <div class="small fw-bold text-secondary">
+                            Ecart: <span id="entry-diff" class="text-muted">0</span>
+                        </div>
+                        <button type="submit" class="btn-premium px-5" id="submit-entry">Valider l'écriture</button>
                     </div>
                 </form>
             </div>
@@ -423,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             document.getElementById('acc-assets-trend').innerHTML = data.total_assets_growth === null
                 ? `<i class="bi bi-info-circle me-1"></i>Comparatif N-1 indisponible`
-                : `<i class="bi bi-arrow-up-right me-1"></i>+${data.total_assets_growth}% vs N-1`;
+                : `${data.total_assets_growth >= 0 ? '<i class="bi bi-arrow-up-right me-1"></i>+' : '<i class="bi bi-arrow-down-right me-1"></i>'}${data.total_assets_growth}% vs N-1`;
             document.getElementById('acc-equity-ratio').textContent = data.equity_ratio === null
                 ? 'Structure du bilan indisponible'
                 : `${data.equity_ratio}% du bilan`;
@@ -442,6 +545,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             document.getElementById('acc-liquidity-badge').textContent = `Liquidité: ${data.ratios.liquidity_ratio ?? 'N/A'}`;
             document.getElementById('acc-solvency-badge').textContent = `Solvabilité: ${data.ratios.solvability_ratio ?? 'N/A'}`;
+
+            // Controls checks
+            const balanceGap = data.checks?.balance_sheet_gap ?? 0;
+            const trialGap = data.checks?.trial_balance_gap ?? 0;
+            const balanceOk = data.checks?.is_balance_sheet_balanced;
+            const trialOk = data.checks?.is_trial_balanced;
+            document.getElementById('acc-balance-gap').textContent = `${fmt(Math.abs(balanceGap))} XOF`;
+            document.getElementById('acc-trial-gap').textContent = `${fmt(Math.abs(trialGap))} XOF`;
+            document.getElementById('acc-balance-status').innerHTML = balanceOk
+                ? '<i class="bi bi-check-circle"></i>OK'
+                : '<i class="bi bi-exclamation-triangle"></i>Ecart';
+            document.getElementById('acc-trial-status').innerHTML = trialOk
+                ? '<i class="bi bi-check-circle"></i>OK'
+                : '<i class="bi bi-exclamation-triangle"></i>Ecart';
+            document.getElementById('acc-balance-status').className = `control-chip ${balanceOk ? '' : 'text-warning'}`;
+            document.getElementById('acc-trial-status').className = `control-chip ${trialOk ? '' : 'text-warning'}`;
+
+            const meta = data.balance_sheet_meta || {};
+            const workingCapital = (meta.current_assets ?? 0) - (meta.current_liabilities ?? 0);
+            document.getElementById('acc-cash').textContent = `${fmtM(meta.cash ?? 0)} XOF`;
+            document.getElementById('acc-working-capital').textContent = `${fmtM(workingCapital)} XOF`;
 
             // Balance Sheet Breakdown
             const assetsBreakdown = document.getElementById('acc-assets-breakdown');
@@ -505,6 +629,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentVal = journalSelect.value;
                 journalSelect.innerHTML = '<option value="">Sélectionner un journal</option>' + 
                     data.journals.map(j => `<option value="${j.id}" ${currentVal == j.id ? 'selected' : ''}>${j.code} - ${j.name}</option>`).join('');
+            }
+
+            // Populate account datalist
+            const accountList = document.getElementById('account-list');
+            if (accountList && data.accounts) {
+                accountList.innerHTML = data.accounts.map(acc => `<option value="${acc.code}">${acc.code} - ${acc.name}</option>`).join('');
             }
 
         } catch (error) {
@@ -597,19 +727,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal Calculation Logic
     const form = document.getElementById('manualEntryForm');
-    if (form) {
-        form.addEventListener('input', function() {
-            let totalDebit = 0;
-            let totalCredit = 0;
-            const debits = form.querySelectorAll('input[name="debit[]"]');
-            const credits = form.querySelectorAll('input[name="credit[]"]');
-            
-            debits.forEach(d => totalDebit += parseFloat(d.value || 0));
-            credits.forEach(c => totalCredit += parseFloat(c.value || 0));
-            
-            document.getElementById('total-debit').textContent = fmt(totalDebit);
-            document.getElementById('total-credit').textContent = fmt(totalCredit);
+    const updateEntryTotals = () => {
+        let totalDebit = 0;
+        let totalCredit = 0;
+        const debits = form.querySelectorAll('input[name="debit[]"]');
+        const credits = form.querySelectorAll('input[name="credit[]"]');
+        debits.forEach(d => totalDebit += parseFloat(d.value || 0));
+        credits.forEach(c => totalCredit += parseFloat(c.value || 0));
+        const diff = totalDebit - totalCredit;
+        document.getElementById('total-debit').textContent = fmt(totalDebit);
+        document.getElementById('total-credit').textContent = fmt(totalCredit);
+        const diffEl = document.getElementById('entry-diff');
+        diffEl.textContent = fmt(Math.abs(diff));
+        diffEl.className = diff === 0 ? 'text-success' : 'text-danger';
+        const submitBtn = document.getElementById('submit-entry');
+        if (submitBtn) {
+            submitBtn.disabled = totalDebit === 0 || totalCredit === 0 || diff !== 0;
+        }
+    };
+
+    const bindRemoveButtons = () => {
+        const rows = form.querySelectorAll('.line-row');
+        rows.forEach((row) => {
+            const removeBtn = row.querySelector('.remove-line-btn');
+            if (removeBtn) {
+                removeBtn.onclick = () => {
+                    if (form.querySelectorAll('.line-row').length > 2) {
+                        row.remove();
+                        updateEntryTotals();
+                    }
+                };
+            }
         });
+    };
+
+    const addLineRow = () => {
+        const container = document.getElementById('lines-container');
+        const row = document.createElement('div');
+        row.className = 'row g-2 mb-2 line-row';
+        row.innerHTML = `
+            <div class="col-md-6">
+                <input type="text" class="form-control form-control-sm rounded-8" name="account[]" list="account-list" placeholder="Compte" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="debit[]" value="0" min="0" step="0.01">
+            </div>
+            <div class="col-md-3 d-flex align-items-center gap-2">
+                <input type="number" class="form-control form-control-sm rounded-8 text-end" name="credit[]" value="0" min="0" step="0.01">
+                <div class="line-actions">
+                    <button type="button" class="btn btn-light btn-sm remove-line-btn" title="Retirer la ligne">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(row);
+        bindRemoveButtons();
+    };
+
+    if (form) {
+        form.addEventListener('input', updateEntryTotals);
+        const addLineBtn = document.getElementById('add-line-btn');
+        if (addLineBtn) {
+            addLineBtn.addEventListener('click', addLineRow);
+        }
+        bindRemoveButtons();
+        updateEntryTotals();
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
