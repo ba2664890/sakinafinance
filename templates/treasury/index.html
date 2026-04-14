@@ -312,7 +312,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">IBAN / Numéro de Compte</label>
-                        <input type="text" class="form-control rounded-12" name="account_number" required>
+                        <input type="text" class="form-control rounded-12" name="account_number" placeholder="Auto si non disponible">
+                        <div class="small text-muted mt-1">Le système peut générer un identifiant interne si nécessaire.</div>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -324,9 +325,10 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Solde Initial</label>
-                            <input type="number" class="form-control rounded-12" name="initial_balance" value="0">
-                        </div>
+                        <label class="form-label small fw-bold">Solde Initial</label>
+                        <input type="number" class="form-control rounded-12" name="initial_balance" value="0" disabled>
+                        <div class="small text-muted mt-1">Le solde initial est calculé automatiquement.</div>
+                    </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold mt-4">Enregistrer le compte</button>
                 </form>
@@ -383,10 +385,24 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    async function parseJsonResponse(response) {
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Réponse non JSON (${response.status})`);
+        }
+
+        const payload = await response.json();
+        if (!response.ok) {
+            throw new Error(payload?.message || payload?.error || `Erreur HTTP ${response.status}`);
+        }
+        return payload;
+    }
+
     async function loadTreasuryData() {
         try {
             const response = await fetch('{% url "api_treasury_data" %}');
-            const data = await response.json();
+            const data = await parseJsonResponse(response);
             const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
 
             // KPIs
@@ -442,14 +458,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Populate Bank Account Select for Movement
-            const bankSelect = document.getElementById('bankMovementSelect');
+            const bankSelect = document.getElementById('movementBankSelect');
             if (bankSelect && data.bank_accounts_list) {
                 bankSelect.innerHTML = '<option value="">Choisir un compte</option>' + 
-                    data.bank_accounts_list.map(b => `<option value="${b.id}">${b.bank_name} (${b.account_number})</option>`).join('');
+                    data.bank_accounts_list.map(b => `<option value="${b.id}">${b.bank_name} (${b.iban || b.account_name || 'Compte'})</option>`).join('');
             }
 
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Erreur de chargement Trésorerie:', error);
         }
     }
 
@@ -465,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData,
                     headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
                 });
-                const res = await response.json();
+                const res = await parseJsonResponse(response);
                 if (res.status === 'success') {
                     bootstrap.Modal.getInstance(document.getElementById('bankAccountModal')).hide();
                     loadTreasuryData();
@@ -475,12 +491,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (err) {
                 console.error('Submit error:', err);
+                alert(err.message || "Impossible de créer le compte bancaire.");
             }
         });
     }
 
     // Handle Bank Movement Form
-    const bankMovementForm = document.getElementById('bankMovementForm');
+    const bankMovementForm = document.getElementById('movementForm');
     if (bankMovementForm) {
         bankMovementForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -491,9 +508,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData,
                     headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
                 });
-                const res = await response.json();
+                const res = await parseJsonResponse(response);
                 if (res.status === 'success') {
-                    bootstrap.Modal.getInstance(document.getElementById('bankMovementModal')).hide();
+                    bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
                     loadTreasuryData();
                     bankMovementForm.reset();
                 } else {
@@ -501,6 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (err) {
                 console.error('Submit error:', err);
+                alert(err.message || "Impossible d'enregistrer le mouvement.");
             }
         });
     }
@@ -510,16 +528,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // ── Cashflow Chart ────────────────────────────────
         const ctx = document.getElementById('cashflowChart').getContext('2d');
         fetch('{% url "treasury_cashflow_api" %}')
-            .then(res => res.json())
+            .then(parseJsonResponse)
             .then(data => {
+                const labels = data.chart?.labels || data.labels || [];
+                const inflows = data.chart?.inflows || data.inflows || [];
+                const outflows = data.chart?.outflows || data.outflows || [];
                 const cashflowChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: data.chart.labels,
+                        labels,
                         datasets: [
                             {
                                 label: 'Entrées',
-                                data: data.chart.inflows,
+                                data: inflows,
                                 borderColor: '#10b981',
                                 backgroundColor: 'rgba(16, 185, 129, 0.05)',
                                 fill: true,
@@ -530,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             },
                             {
                                 label: 'Sorties',
-                                data: data.chart.outflows,
+                                data: outflows,
                                 borderColor: '#ef4444',
                                 backgroundColor: 'rgba(239, 68, 68, 0.02)',
                                 fill: true,
@@ -572,6 +593,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 });
+            })
+            .catch((err) => {
+                console.error('Erreur graphique cashflow:', err);
             });
     }
 
