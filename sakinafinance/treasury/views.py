@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 
+from django.db import connection
 from django.db.models import Sum, Q
 from decimal import Decimal
 from sakinafinance.accounting.models import Transaction, TransactionLine, Account
@@ -85,103 +86,181 @@ def _ensure_treasury_account(company, entity):
 
     raise ValueError("Impossible de générer un code de compte de trésorerie unique.")
 
+
+def _safe_bank_accounts_list(company):
+    """
+    Lecture robuste des comptes bancaires.
+    Compatible avec des schémas legacy (ex: account_number au lieu de iban/account_name)
+    pour éviter un 500 sur /treasury/api/data.
+    """
+    try:
+        return list(
+            BankAccount.objects.filter(company=company).values(
+                'id', 'bank_name', 'account_name', 'iban', 'currency'
+            )
+        )
+    except Exception as exc:
+        logger.warning("Fallback bank account list (ORM) company=%s: %s", company.pk, exc)
+
+    # Fallback SQL brut, utile si la DB prod n'est pas alignée avec le modèle actuel.
+    try:
+        table_name = BankAccount._meta.db_table
+        with connection.cursor() as cursor:
+            description = connection.introspection.get_table_description(cursor, table_name)
+            columns = {col.name for col in description}
+            company_column = 'company_id' if 'company_id' in columns else ('company' if 'company' in columns else None)
+            if not company_column:
+                return []
+
+            qn = connection.ops.quote_name
+            select_parts = []
+
+            if 'id' in columns:
+                select_parts.append(f"{qn('id')} AS id")
+            if 'bank_name' in columns:
+                select_parts.append(f"{qn('bank_name')} AS bank_name")
+            else:
+                return []
+
+            if 'account_name' in columns:
+                select_parts.append(f"{qn('account_name')} AS account_name")
+            elif 'account_number' in columns:
+                select_parts.append(f"{qn('account_number')} AS account_name")
+
+            if 'iban' in columns:
+                select_parts.append(f"{qn('iban')} AS iban")
+            elif 'account_number' in columns:
+                select_parts.append(f"{qn('account_number')} AS iban")
+
+            if 'currency' in columns:
+                select_parts.append(f"{qn('currency')} AS currency")
+
+            sql = (
+                f"SELECT {', '.join(select_parts)} "
+                f"FROM {qn(table_name)} "
+                f"WHERE {qn(company_column)} = %s"
+            )
+            cursor.execute(sql, [str(company.pk)])
+            rows = cursor.fetchall()
+            keys = [col[0] for col in cursor.description]
+
+        normalized = []
+        for row in rows:
+            item = dict(zip(keys, row))
+            normalized.append({
+                'id': item.get('id'),
+                'bank_name': item.get('bank_name') or 'Banque',
+                'account_name': item.get('account_name') or '',
+                'iban': item.get('iban') or '',
+                'currency': item.get('currency') or 'XOF',
+            })
+        return normalized
+    except Exception as exc:
+        logger.exception("Fallback bank account list (SQL) failed company=%s: %s", company.pk, exc)
+        return []
+
 @login_required
 def api_treasury_data(request):
     """API: Récupération des données de trésorerie réelles"""
     company = _get_company(request)
     if not company:
         return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
-    
-    # 1. Liquidité Totale (Classe 5*)
-    liquidity = TransactionLine.objects.filter(
-        transaction__company=company,
-        transaction__status=Transaction.TransactionStatus.POSTED,
-        account__account_class='5'
-    ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
 
-    # 2. DSO (Days Sales Outstanding) - Simplifié pour l'exemple : Solde Client / (CA/30)
-    receivables = TransactionLine.objects.filter(
-        transaction__company=company,
-        transaction__status=Transaction.TransactionStatus.POSTED,
-        account__account_class='4',
-        account__code__startswith='411'
-    ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
-    
-    monthly_rev = TransactionLine.objects.filter(
-        transaction__company=company,
-        transaction__status=Transaction.TransactionStatus.POSTED,
-        account__account_class='7'
-    ).aggregate(bal=Sum('credit') - Sum('debit'))['bal'] or Decimal('1') # Avoid div by zero
-    
-    dso = int((receivables / (monthly_rev / Decimal('30'))).quantize(Decimal('1'))) if monthly_rev > 0 else 0
-
-    # 3. DIO (Days Inventory Outstanding) : (Stock / Achats_Moyen_Journalier)
-    # On utilise le coût des ventes (Classe 60)
-    inventory_value = TransactionLine.objects.filter(
-        transaction__company=company,
-        transaction__status=Transaction.TransactionStatus.POSTED,
-        account__code__startswith='3' # Classe 3: Stocks
-    ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
-    
-    cost_of_sales = TransactionLine.objects.filter(
-        transaction__company=company,
-        transaction__status=Transaction.TransactionStatus.POSTED,
-        account__code__startswith='60' # Classe 60: Achats
-    ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('1')
-    
-    dio = int((inventory_value / (cost_of_sales / Decimal('30'))).quantize(Decimal('1'))) if cost_of_sales > 0 else 0
-
-    # 4. DPO (Days Payables Outstanding) : (Fournisseurs / Achats_Moyen_Journalier)
-    payables = TransactionLine.objects.filter(
-        transaction__company=company,
-        transaction__status=Transaction.TransactionStatus.POSTED,
-        account__code__startswith='401' # Classe 401: Fournisseurs
-    ).aggregate(bal=Sum('credit') - Sum('debit'))['bal'] or Decimal('0')
-    
-    dpo = int((payables / (cost_of_sales / Decimal('30'))).quantize(Decimal('1'))) if cost_of_sales > 0 else 0
-
-    # 5. Cash Cycle
-    cash_cycle = dso + dio - dpo
-
-    # 6. Comptes Bancaires
-    entities = company.entities.all()
-    bank_accounts = []
-    # ... (code précédent pour bank_accounts reste similaire)
-    for ent in entities:
-        ent_liquid = TransactionLine.objects.filter(
-            transaction__entity=ent,
+    try:
+        # 1. Liquidité Totale (Classe 5*)
+        liquidity = TransactionLine.objects.filter(
+            transaction__company=company,
             transaction__status=Transaction.TransactionStatus.POSTED,
             account__account_class='5'
         ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
-        
-        bank_accounts.append({
-            'entity': ent.name,
-            'bank': 'Compte Principal',
-            'balance': float(ent_liquid),
-            'currency': 'XOF',
-            'status': 'active'
-        })
 
-    data = {
-        'total_liquidity': float(liquidity),
-        'liquidity_growth': 5.4, 
-        'net_cashflow_30d': float(liquidity * Decimal('0.15')), 
-        'cashflow_growth': 2.1,
-        'dso_days': dso,
-        'dso_target': 35,
-        'ml_confidence': 96.8,
-        'cash_cycle_days': cash_cycle,
-        'bank_accounts': bank_accounts,
-        'bank_accounts_list': list(BankAccount.objects.filter(company=company).values('id', 'bank_name', 'account_name', 'iban', 'currency')),
-        'entities_list': list(company.entities.values('id', 'name', 'code', 'entity_type').order_by('code', 'name')),
-        'currency_exposure': [
-            {'currency': 'XOF', 'amount': f"{float(liquidity)/1e6:.1f}M", 'risk': 'STABLE', 'risk_class': 'success'},
-        ],
-        'dio_days': dio,
-        'dpo_days': dpo,
-    }
+        # 2. DSO (Days Sales Outstanding) - Simplifié : Solde Client / (CA/30)
+        receivables = TransactionLine.objects.filter(
+            transaction__company=company,
+            transaction__status=Transaction.TransactionStatus.POSTED,
+            account__account_class='4',
+            account__code__startswith='411'
+        ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
 
-    # 4. Generate AI Insights (non bloquant)
+        monthly_rev = TransactionLine.objects.filter(
+            transaction__company=company,
+            transaction__status=Transaction.TransactionStatus.POSTED,
+            account__account_class='7'
+        ).aggregate(bal=Sum('credit') - Sum('debit'))['bal'] or Decimal('1')
+
+        dso = int((receivables / (monthly_rev / Decimal('30'))).quantize(Decimal('1'))) if monthly_rev > 0 else 0
+
+        # 3. DIO (Days Inventory Outstanding)
+        inventory_value = TransactionLine.objects.filter(
+            transaction__company=company,
+            transaction__status=Transaction.TransactionStatus.POSTED,
+            account__code__startswith='3'
+        ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
+
+        cost_of_sales = TransactionLine.objects.filter(
+            transaction__company=company,
+            transaction__status=Transaction.TransactionStatus.POSTED,
+            account__code__startswith='60'
+        ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('1')
+
+        dio = int((inventory_value / (cost_of_sales / Decimal('30'))).quantize(Decimal('1'))) if cost_of_sales > 0 else 0
+
+        # 4. DPO (Days Payables Outstanding)
+        payables = TransactionLine.objects.filter(
+            transaction__company=company,
+            transaction__status=Transaction.TransactionStatus.POSTED,
+            account__code__startswith='401'
+        ).aggregate(bal=Sum('credit') - Sum('debit'))['bal'] or Decimal('0')
+
+        dpo = int((payables / (cost_of_sales / Decimal('30'))).quantize(Decimal('1'))) if cost_of_sales > 0 else 0
+
+        # 5. Cash Cycle
+        cash_cycle = dso + dio - dpo
+
+        # 6. Comptes Bancaires
+        entities = company.entities.all()
+        bank_accounts = []
+        for ent in entities:
+            ent_liquid = TransactionLine.objects.filter(
+                transaction__entity=ent,
+                transaction__status=Transaction.TransactionStatus.POSTED,
+                account__account_class='5'
+            ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
+
+            bank_accounts.append({
+                'entity': ent.name,
+                'bank': 'Compte Principal',
+                'balance': float(ent_liquid),
+                'currency': 'XOF',
+                'status': 'active'
+            })
+
+        data = {
+            'total_liquidity': float(liquidity),
+            'liquidity_growth': 5.4,
+            'net_cashflow_30d': float(liquidity * Decimal('0.15')),
+            'cashflow_growth': 2.1,
+            'dso_days': dso,
+            'dso_target': 35,
+            'ml_confidence': 96.8,
+            'cash_cycle_days': cash_cycle,
+            'bank_accounts': bank_accounts,
+            'bank_accounts_list': _safe_bank_accounts_list(company),
+            'entities_list': list(company.entities.values('id', 'name', 'code', 'entity_type').order_by('code', 'name')),
+            'currency_exposure': [
+                {'currency': 'XOF', 'amount': f"{float(liquidity)/1e6:.1f}M", 'risk': 'STABLE', 'risk_class': 'success'},
+            ],
+            'dio_days': dio,
+            'dpo_days': dpo,
+        }
+    except Exception as exc:
+        logger.exception("Erreur api_treasury_data company=%s user=%s: %s", company.pk, request.user.pk, exc)
+        return JsonResponse(
+            {'status': 'error', 'message': "Erreur interne Trésorerie. Vérifiez les logs serveur (Render)."},
+            status=500
+        )
+
+    # Insights IA non bloquants
     try:
         ai_service = AIService()
         data['ai_insight'] = ai_service.generate_treasury_insights(data)
