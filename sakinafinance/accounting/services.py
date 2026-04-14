@@ -16,6 +16,41 @@ DEBIT_NORMAL_ACCOUNT_TYPES = {
     Account.AccountType.EXPENSE,
 }
 
+SYSCOHADA_CLASS_ACCOUNT_TYPES = {
+    '1': {Account.AccountType.LIABILITY, Account.AccountType.EQUITY},
+    '2': {Account.AccountType.ASSET},
+    '3': {Account.AccountType.ASSET},
+    '4': {Account.AccountType.ASSET, Account.AccountType.LIABILITY},
+    '5': {Account.AccountType.ASSET, Account.AccountType.LIABILITY},
+    '6': {Account.AccountType.EXPENSE},
+    '7': {Account.AccountType.INCOME},
+    '8': {Account.AccountType.EXPENSE, Account.AccountType.INCOME},
+}
+
+
+def syscohada_account_compliance(company):
+    issues = []
+    accounts = Account.objects.filter(company=company, is_active=True).order_by('code')
+    for account in accounts:
+        code = (account.code or '').strip()
+        if not code:
+            issues.append((account, "Code manquant."))
+            continue
+
+        class_digit = code[0]
+        if class_digit not in SYSCOHADA_CLASS_ACCOUNT_TYPES:
+            issues.append((account, "Le code doit commencer par une classe SYSCOHADA (1 a 8)."))
+            continue
+
+        if account.account_class != class_digit:
+            issues.append((account, f"Classe '{account.account_class}' incoherente avec le code {code}."))
+
+        expected_types = SYSCOHADA_CLASS_ACCOUNT_TYPES[class_digit]
+        if account.account_type not in expected_types:
+            issues.append((account, f"Type '{account.account_type}' incoherent pour la classe {class_digit}."))
+
+    return accounts.count(), issues
+
 
 def posted_lines_queryset(company, start_date=None, end_date=None):
     queryset = TransactionLine.objects.filter(

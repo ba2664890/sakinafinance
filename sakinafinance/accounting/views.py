@@ -20,6 +20,7 @@ from .services import (
     build_accounting_insight,
     build_balance_sheet_snapshot,
     post_transaction,
+    syscohada_account_compliance,
 )
 
 @login_required
@@ -59,6 +60,11 @@ def api_accounting_data(request):
             'is_reliable': False,
         },
         'journals': [],
+        'compliance': {
+            'total_accounts': 0,
+            'issues_count': 0,
+            'issues': [],
+        },
     }
 
     if not company:
@@ -156,6 +162,11 @@ def api_accounting_data(request):
     if is_reliable and not checks_ok:
         quality_message += " Un ecart de controle est detecte sur la balance ou le bilan."
 
+    compliance_total = 0
+    compliance_issues = []
+    if company.accounting_standard == 'syscohada':
+        compliance_total, compliance_issues = syscohada_account_compliance(company)
+
     data.update({
         'total_assets': float(total_assets),
         'total_assets_growth': round(total_assets_growth, 1) if total_assets_growth is not None else None,
@@ -203,6 +214,18 @@ def api_accounting_data(request):
             'total_posted_credit': float(total_posted_credit),
             'is_trial_balanced': abs(trial_balance_gap) < Decimal('0.01'),
             'is_balance_sheet_balanced': abs(balance_sheet_gap) < Decimal('0.01'),
+        },
+        'compliance': {
+            'total_accounts': compliance_total,
+            'issues_count': len(compliance_issues),
+            'issues': [
+                {
+                    'code': issue[0].code,
+                    'name': issue[0].name,
+                    'message': issue[1],
+                }
+                for issue in compliance_issues[:8]
+            ],
         },
     })
 
