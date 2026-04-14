@@ -4,11 +4,12 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from datetime import timedelta
 
 from django.db import connection
 from django.db.models import Sum, Q
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from sakinafinance.accounting.models import Transaction, TransactionLine, Account
 from sakinafinance.accounts.models import Entity
 from sakinafinance.ai_engine.services import AIService
@@ -416,37 +417,68 @@ def api_bank_movement_create(request):
     company = _get_company(request)
     if not company:
         return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
-    
+
     account_id = request.POST.get('bank_account')
-    mv_type = (request.POST.get('type') or '').upper() # IN or OUT
-    amount = Decimal(request.POST.get('amount', '0'))
-    description = request.POST.get('description')
-    date = request.POST.get('date') or timezone.now().date()
-    
+    mv_type = (request.POST.get('type') or '').upper()  # IN or OUT
+    amount_raw = (request.POST.get('amount') or '').strip()
+    description = (request.POST.get('description') or '').strip() or 'Mouvement manuel'
+    date_raw = (request.POST.get('date') or '').strip()
+
+    if not account_id:
+        return JsonResponse({'status': 'error', 'message': 'Compte bancaire requis.'}, status=400)
+    if mv_type not in {'IN', 'OUT'}:
+        return JsonResponse({'status': 'error', 'message': "Type de mouvement invalide (IN/OUT)."}, status=400)
+
+    normalized_amount = amount_raw.replace(' ', '').replace(',', '.')
+    try:
+        amount = Decimal(normalized_amount)
+    except (InvalidOperation, TypeError):
+        return JsonResponse({'status': 'error', 'message': 'Montant invalide.'}, status=400)
+    if amount <= 0:
+        return JsonResponse({'status': 'error', 'message': 'Le montant doit être strictement positif.'}, status=400)
+
+    movement_date = parse_date(date_raw) if date_raw else timezone.now().date()
+    if not movement_date:
+        return JsonResponse({'status': 'error', 'message': 'Date invalide.'}, status=400)
+
     bank_account = get_object_or_404(BankAccount, id=account_id, company=company)
-    
+
     signed_amount = amount if mv_type == 'IN' else -amount
-    # BankStatementLine expects a statement; create a minimal manual statement when needed.
-    statement = BankStatement.objects.create(
+    statement_ref = f"MAN-{movement_date.strftime('%Y%m%d')}"
+    # BankStatementLine expects a statement; reuse manual day statement to keep balances coherent.
+    statement, _ = BankStatement.objects.get_or_create(
         bank_account=bank_account,
-        reference=f"MAN-{timezone.now().strftime('%Y%m%d')}",
-        start_date=date,
-        end_date=date,
-        opening_balance=Decimal('0'),
-        closing_balance=Decimal('0'),
-        is_imported=False
+        reference=statement_ref,
+        defaults={
+            'start_date': movement_date,
+            'end_date': movement_date,
+            'opening_balance': Decimal('0'),
+            'closing_balance': Decimal('0'),
+            'is_imported': False,
+        }
     )
-    movement = BankStatementLine.objects.create(
+    BankStatementLine.objects.create(
         statement=statement,
-        date=date,
+        date=movement_date,
         description=description,
         amount=signed_amount,
-        reference=f"MAN-{timezone.now().strftime('%Y%m%d%H%M')}",
+        reference=f"MAN-{timezone.now().strftime('%Y%m%d%H%M%S')}",
         is_reconciled=False
     )
-    
+
+    statement_delta = statement.lines.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    statement.closing_balance = (statement.opening_balance or Decimal('0')) + statement_delta
+    statement.save(update_fields=['closing_balance'])
+
+    statement_balance = BankStatementLine.objects.filter(
+        statement__bank_account=bank_account
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    accounting_balance = getattr(bank_account.accounting_account, 'current_balance', Decimal('0')) or Decimal('0')
+
     return JsonResponse({
         'status': 'success',
         'message': 'Mouvement enregistré',
-        'balance': float(getattr(bank_account.accounting_account, 'current_balance', 0))
+        'balance': float(statement_balance),
+        'accounting_balance': float(accounting_balance),
+        'movement_amount': float(signed_amount),
     })
