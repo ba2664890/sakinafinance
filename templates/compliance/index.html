@@ -266,52 +266,84 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             // KPIs
-            document.getElementById('comp-score').textContent = `${data.compliance_score}%`;
-            document.getElementById('comp-risks').textContent = data.open_risks_count;
-            document.getElementById('comp-upcoming').textContent = data.calendar.length;
+            const setText = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            };
+            const formatAmount = (amount) => Number(amount || 0).toLocaleString('fr-FR');
+
+            setText('comp-score', `${data.compliance_score || 0}%`);
+            setText('comp-risks', data.open_risks_count || 0);
+            setText('comp-pending', data.declarations_pending || 0);
+            setText('comp-provision', `${formatAmount(data.tax_provision)} XOF`);
+            setText('comp-deadline', `${data.next_deadline_days || 0} Jrs`);
 
             // Calendar
-            const calendarBody = document.getElementById('compliance_calendar_body');
-            calendarBody.innerHTML = data.calendar.length ? data.calendar.map(item => `
+            const calendarItems = data.tax_calendar || [];
+            const calendarBody = document.getElementById('tax_calendar_body') || document.getElementById('compliance_calendar_body');
+            if (calendarBody) {
+                calendarBody.innerHTML = calendarItems.length ? calendarItems.map(item => `
                 <tr>
-                    <td><span class="badge-deadline ${item.is_urgent ? 'deadline-urgent' : 'deadline-normal'}">${item.deadline}</span></td>
+                    <td><span class="badge-deadline ${item.urgent ? 'deadline-urgent' : 'deadline-normal'}">${item.deadline || '-'}</span></td>
                     <td>
-                        <div class="fw-bold">${item.tax_name}</div>
-                        <div class="small text-muted">${item.tax_code}</div>
+                        <div class="fw-bold">${item.tax || '-'}</div>
+                        <div class="small text-muted">${item.days_left ?? 0} jours restants</div>
                     </td>
-                    <td>${item.entity}</td>
-                    <td class="fw-bold">${item.amount.toLocaleString()} XOF</td>
-                    <td><span class="badge bg-light text-dark border">${item.status}</span></td>
+                    <td>${item.entity || '-'}</td>
+                    <td class="fw-bold">${formatAmount(item.amount)} XOF</td>
+                    <td><span class="badge bg-light text-dark border">${item.status || '-'}</span></td>
                 </tr>
-            `).join('') : '<tr><td colspan="5" class="text-center py-4">Aucune déclaration à venir</td></tr>';
+                `).join('') : '<tr><td colspan="5" class="text-center py-4">Aucune déclaration à venir</td></tr>';
+            }
+
+            // Filed declarations
+            const filedDeclarations = data.filed_declarations || [];
+            const filedBody = document.getElementById('filed_declarations_body');
+            if (filedBody) {
+                filedBody.innerHTML = filedDeclarations.length ? filedDeclarations.map(doc => `
+                <tr>
+                    <td>${doc.period || '-'}</td>
+                    <td>${doc.tax || '-'}</td>
+                    <td>${doc.entity || '-'}</td>
+                    <td class="fw-bold">${formatAmount(doc.amount)} XOF</td>
+                    <td>${doc.filed || '-'}</td>
+                    <td class="text-mono small">${doc.receipt || 'N/A'}</td>
+                </tr>
+                `).join('') : '<tr><td colspan="6" class="text-center py-4">Aucun dépôt validé</td></tr>';
+            }
 
             // Risks
-            const risksContainer = document.getElementById('compliance_risks_container');
-            risksContainer.innerHTML = data.history.length ? data.history.map(risk => `
+            const risks = data.risks || [];
+            const risksContainer = document.getElementById('compliance_risks_container') || document.getElementById('risk_container');
+            if (risksContainer) {
+                risksContainer.innerHTML = risks.length ? risks.map(risk => `
                 <div class="risk-item risk-item-${risk.level}">
-                    <div class="risk-title">${risk.title}</div>
+                    <div class="risk-title">${risk.description || 'Risque de conformité'}</div>
                     <div class="risk-meta">
-                    <td>${doc.tax}</td>
-                    <td>${doc.entity}</td>
-                    <td class="fw-bold">${doc.amount.toLocaleString()}</td>
-                    <td>${doc.filed}</td>
-                    <td class="text-mono small">${doc.receipt}</td>
-                </tr>
-            `).join('');
+                        <span>Impact: ${risk.impact || 'N/A'}</span>
+                        <span>Probabilité: ${risk.probability || 'N/A'}</span>
+                        <span>Statut: ${risk.status || 'N/A'}</span>
+                    </div>
+                </div>
+                `).join('') : '<div class="text-center text-muted py-3">Aucun risque ouvert.</div>';
+            }
 
             // Entities
-            const entityContainer = document.getElementById('entity_container');
-            entityContainer.innerHTML = data.entities.map(ent => `
+            const entities = data.entities || [];
+            const entityContainer = document.getElementById('compliance_entities_container');
+            if (entityContainer) {
+                entityContainer.innerHTML = entities.length ? entities.map(ent => `
                 <div class="p-3 mb-3 border rounded shadow-sm">
                     <div class="d-flex justify-content-between mb-2">
-                        <h6 class="m-0 fw-bold">${ent.name}</h6>
-                        <span class="badge bg-success">${ent.status}</span>
+                        <h6 class="m-0 fw-bold">${ent.name || '-'}</h6>
+                        <span class="badge bg-success">${ent.status || '-'}</span>
                     </div>
-                    <div class="small text-muted mb-1">Pays: ${ent.country}</div>
-                    <div class="small fw-bold">NIF/TIN: ${ent.tin}</div>
-                    <div class="small">TVA: ${ent.vat_reg}</div>
+                    <div class="small text-muted mb-1">Pays: ${ent.country || '-'}</div>
+                    <div class="small fw-bold">NIF/TIN: ${ent.tin || '-'}</div>
+                    <div class="small">TVA: ${ent.vat_reg || '-'}</div>
                 </div>
-            `).join('');
+                `).join('') : '<div class="text-center text-muted py-3">Aucune entité enregistrée.</div>';
+            }
 
         } catch (error) {
             console.error('Error loading Compliance data:', error);
