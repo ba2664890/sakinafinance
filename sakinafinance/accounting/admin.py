@@ -5,7 +5,7 @@ Admin configuration for Accounting Module
 from django.contrib import admin
 from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
-    Account, Journal, Transaction, TransactionLine,
+    Account, AccountTemplate, Journal, Transaction, TransactionLine,
     Invoice, InvoiceLine, FinancialStatement, TaxDeclaration,
     AssetCategory, FixedAsset, AssetDepreciation,
     InterCompanyElimination, ConsolidationReport
@@ -24,8 +24,15 @@ class InvoiceLineInline(admin.TabularInline):
 
 @admin.register(Account)
 class AccountAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
-    list_display = ['code', 'name', 'account_class', 'account_type', 'company', 'current_balance', 'is_active']
-    list_filter = ['account_class', 'account_type', 'company', 'is_active']
+    list_display = ['code', 'name', 'account_class', 'account_type', 'company', 'template', 'current_balance', 'is_active']
+    list_filter = ['account_class', 'account_type', 'company', 'is_active', 'template']
+    search_fields = ['code', 'name', 'template__code', 'template__name']
+
+
+@admin.register(AccountTemplate)
+class AccountTemplateAdmin(admin.ModelAdmin):
+    list_display = ['code', 'name', 'accounting_standard', 'account_class', 'account_type', 'is_active']
+    list_filter = ['accounting_standard', 'account_class', 'account_type', 'is_active']
     search_fields = ['code', 'name']
 
 

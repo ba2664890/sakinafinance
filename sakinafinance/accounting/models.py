@@ -42,6 +42,13 @@ class Account(models.Model):
         null=True,
         blank=True
     )
+    template = models.ForeignKey(
+        'AccountTemplate',
+        on_delete=models.SET_NULL,
+        related_name='company_accounts',
+        null=True,
+        blank=True
+    )
     
     # Account Details
     code = models.CharField(max_length=20)
@@ -84,6 +91,50 @@ class Account(models.Model):
     
     def get_full_code(self):
         return self.code
+
+
+class AccountTemplate(models.Model):
+    """Référentiel global du plan comptable par norme."""
+
+    class AccountingStandard(models.TextChoices):
+        SYSCOHADA = 'syscohada', _('SYSCOHADA Révisé')
+        OHADA = 'ohada', _('OHADA')
+        IFRS = 'ifrs', _('IFRS Complets')
+        IFRS_PME = 'ifrs_pme', _('IFRS PME')
+        PCGE_MAROC = 'pcge_maroc', _('PCGE Maroc')
+        SYSCOA = 'syscoa', _('SYSCOA UEMOA')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    accounting_standard = models.CharField(
+        max_length=20,
+        choices=AccountingStandard.choices,
+        default=AccountingStandard.SYSCOHADA,
+    )
+    code = models.CharField(max_length=20)
+    name = models.CharField(max_length=255)
+    name_en = models.CharField(max_length=255, blank=True)
+    account_class = models.CharField(max_length=1, choices=Account.AccountClass.choices)
+    account_type = models.CharField(max_length=20, choices=Account.AccountType.choices)
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='children'
+    )
+    level = models.IntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    is_system = models.BooleanField(default=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['accounting_standard', 'code']
+        ordering = ['accounting_standard', 'code']
+
+    def __str__(self):
+        return f"{self.accounting_standard}:{self.code} - {self.name}"
 
 
 class Journal(models.Model):

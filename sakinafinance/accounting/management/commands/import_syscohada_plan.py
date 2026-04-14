@@ -7,8 +7,7 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from sakinafinance.accounting.models import Account
-from sakinafinance.accounts.models import Company
+from sakinafinance.accounting.models import Account, AccountTemplate
 
 
 CODE_LINE_RE = re.compile(r'^\s*(\d{2,4})\s+(.+?)\s*$')
@@ -106,11 +105,15 @@ def build_parent_map(accounts):
 
 
 class Command(BaseCommand):
-    help = "Importe le plan SYSCOHADA depuis un PDF et met a jour les comptes."
+    help = "Importe le plan SYSCOHADA dans le référentiel global du plan comptable."
 
     def add_arguments(self, parser):
         parser.add_argument('--pdf', default='Ohada_syscohada_plan_comptable.pdf')
-        parser.add_argument('--company-id', default=None)
+        parser.add_argument(
+            '--accounting-standard',
+            default=AccountTemplate.AccountingStandard.SYSCOHADA,
+            choices=[choice[0] for choice in AccountTemplate.AccountingStandard.choices],
+        )
         parser.add_argument('--dry-run', action='store_true')
         parser.add_argument('--update-existing', action='store_true')
 
@@ -136,61 +139,53 @@ class Command(BaseCommand):
         if not accounts:
             raise CommandError("Aucun compte detecte dans le PDF.")
 
-        company_qs = Company.objects.all()
-        if options['company_id']:
-            company_qs = company_qs.filter(id=options['company_id'])
-
-        companies = list(company_qs)
-        if not companies:
-            raise CommandError("Aucune entreprise cible a traiter.")
-
+        accounting_standard = options['accounting_standard']
         self.stdout.write(self.style.NOTICE(f"Comptes detectes: {len(accounts)}"))
+        self.stdout.write(self.style.NOTICE(f"Norme cible: {accounting_standard}"))
+        if options['dry_run']:
+            return
 
-        for company in companies:
-            self.stdout.write(self.style.NOTICE(f"Traitement: {company.name}"))
-            if options['dry_run']:
-                continue
+        with transaction.atomic():
+            existing = {
+                acc.code: acc
+                for acc in AccountTemplate.objects.filter(accounting_standard=accounting_standard)
+            }
 
-            with transaction.atomic():
-                existing = {acc.code: acc for acc in Account.objects.filter(company=company)}
+            for acc in sorted(accounts, key=lambda a: len(a['code'])):
+                code = acc['code']
+                name = acc['name']
+                class_digit = code[0]
+                account_class = class_digit
+                account_type = detect_account_type(class_digit, name)
+                level = acc['level']
+                parent = None
+                if acc['parent_code']:
+                    parent = existing.get(acc['parent_code'])
 
-                # Create or update accounts sorted by length to ensure parents exist
-                for acc in sorted(accounts, key=lambda a: len(a['code'])):
-                    code = acc['code']
-                    name = acc['name']
-                    class_digit = code[0]
-                    account_class = class_digit
-                    account_type = detect_account_type(class_digit, name)
-                    level = acc['level']
-                    parent = None
-                    if acc['parent_code']:
-                        parent = existing.get(acc['parent_code'])
+                if code in existing:
+                    if options['update_existing']:
+                        existing_acc = existing[code]
+                        existing_acc.name = name
+                        existing_acc.account_class = account_class
+                        existing_acc.account_type = account_type
+                        existing_acc.level = level
+                        existing_acc.parent = parent
+                        existing_acc.is_system = True
+                        existing_acc.is_active = True
+                        existing_acc.save(update_fields=['name', 'account_class', 'account_type', 'level', 'parent', 'is_system', 'is_active', 'updated_at'])
+                    continue
 
-                    if code in existing:
-                        if options['update_existing']:
-                            existing_acc = existing[code]
-                            existing_acc.name = name
-                            existing_acc.account_class = account_class
-                            existing_acc.account_type = account_type
-                            existing_acc.level = level
-                            existing_acc.parent = parent
-                            existing_acc.is_system = True
-                            existing_acc.save(update_fields=['name', 'account_class', 'account_type', 'level', 'parent', 'is_system', 'updated_at'])
-                        continue
+                new_acc = AccountTemplate.objects.create(
+                    accounting_standard=accounting_standard,
+                    code=code,
+                    name=name,
+                    account_class=account_class,
+                    account_type=account_type,
+                    parent=parent,
+                    level=level,
+                    is_system=True,
+                    is_active=True,
+                )
+                existing[code] = new_acc
 
-                    new_acc = Account.objects.create(
-                        company=company,
-                        code=code,
-                        name=name,
-                        account_class=account_class,
-                        account_type=account_type,
-                        parent=parent,
-                        level=level,
-                        is_system=True,
-                        is_active=True,
-                        opening_balance=Decimal('0'),
-                        current_balance=Decimal('0'),
-                    )
-                    existing[code] = new_acc
-
-        self.stdout.write(self.style.SUCCESS("Import SYSCOHADA termine."))
+        self.stdout.write(self.style.SUCCESS("Import du référentiel SYSCOHADA termine."))

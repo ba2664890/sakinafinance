@@ -1,11 +1,15 @@
 import json
+import subprocess
+import tempfile
 from decimal import Decimal
+from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from sakinafinance.accounting.models import Account, Journal, Transaction, TransactionLine
-from sakinafinance.accounting.services import build_balance_sheet_snapshot
+from sakinafinance.accounting.models import Account, AccountTemplate, Journal, Transaction, TransactionLine
+from sakinafinance.accounting.services import build_balance_sheet_snapshot, materialize_account_from_template
 from sakinafinance.accounts.models import Company, User
 
 
@@ -194,6 +198,64 @@ class AccountingBalanceSheetDisplayTests(TestCase):
         self.assertIn('data-balance-filter="all"', content)
         self.assertIn('data-balance-filter="actif"', content)
         self.assertIn('data-balance-filter="passif"', content)
+
+
+class AccountingTemplateCatalogTests(TestCase):
+    def setUp(self):
+        self.company = Company.objects.create(name='TemplateCo')
+        self.other_company = Company.objects.create(name='TemplateCo 2')
+
+        self.parent_template = AccountTemplate.objects.create(
+            accounting_standard=AccountTemplate.AccountingStandard.SYSCOHADA,
+            code='52',
+            name='Trésorerie',
+            account_class=Account.AccountClass.CLASS_5,
+            account_type=Account.AccountType.ASSET,
+            level=1,
+        )
+        self.bank_template = AccountTemplate.objects.create(
+            accounting_standard=AccountTemplate.AccountingStandard.SYSCOHADA,
+            code='521',
+            name='Banques',
+            account_class=Account.AccountClass.CLASS_5,
+            account_type=Account.AccountType.ASSET,
+            parent=self.parent_template,
+            level=2,
+        )
+
+    def test_materialize_account_from_template_creates_company_account_on_demand(self):
+        account = materialize_account_from_template(self.company, code='521')
+
+        self.assertIsNotNone(account)
+        self.assertEqual(account.company, self.company)
+        self.assertEqual(account.code, '521')
+        self.assertEqual(account.template, self.bank_template)
+        self.assertEqual(Account.objects.filter(company=self.company).count(), 2)
+        self.assertEqual(Account.objects.filter(company=self.other_company).count(), 0)
+
+
+class SyscohadaTemplateImportCommandTests(TestCase):
+    def test_import_command_populates_global_catalog_only(self):
+        Company.objects.create(name='Alpha Import')
+        Company.objects.create(name='Beta Import')
+
+        with tempfile.NamedTemporaryFile(suffix='.pdf') as temp_pdf:
+            with patch('sakinafinance.accounting.management.commands.import_syscohada_plan.subprocess.run') as mocked_run:
+                mocked_run.return_value = subprocess.CompletedProcess(
+                    args=['pdftotext'],
+                    returncode=0,
+                    stdout='10 Capital\n101 Capital social\n521 Banques\n',
+                    stderr='',
+                )
+
+                call_command('import_syscohada_plan', pdf=temp_pdf.name)
+
+        self.assertEqual(AccountTemplate.objects.count(), 3)
+        self.assertEqual(Account.objects.count(), 0)
+        self.assertEqual(
+            list(AccountTemplate.objects.values_list('code', flat=True)),
+            ['10', '101', '521'],
+        )
 
 
 class ReportingDataTests(TestCase):

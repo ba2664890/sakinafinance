@@ -7,7 +7,7 @@ from decimal import Decimal
 from django.db.models import Sum
 from django.utils import timezone
 
-from .models import Account, Transaction, TransactionLine
+from .models import Account, AccountTemplate, Transaction, TransactionLine
 
 
 ZERO = Decimal('0')
@@ -63,6 +63,74 @@ def syscohada_account_compliance(company):
             issues.append((account, f"Type '{account.account_type}' incoherent pour la classe {class_digit}."))
 
     return accounts.count(), issues
+
+
+def get_account_template_for_company(company, code):
+    if not company or not code:
+        return None
+
+    accounting_standard = getattr(company, 'accounting_standard', AccountTemplate.AccountingStandard.SYSCOHADA)
+    template = AccountTemplate.objects.filter(
+        accounting_standard=accounting_standard,
+        code=code,
+        is_active=True,
+    ).select_related('parent').first()
+
+    if template:
+        return template
+
+    if accounting_standard != AccountTemplate.AccountingStandard.SYSCOHADA:
+        return AccountTemplate.objects.filter(
+            accounting_standard=AccountTemplate.AccountingStandard.SYSCOHADA,
+            code=code,
+            is_active=True,
+        ).select_related('parent').first()
+
+    return None
+
+
+def materialize_account_from_template(company, code=None, template=None, entity=None):
+    template = template or get_account_template_for_company(company, code)
+    if template is None:
+        return None
+
+    parent_account = None
+    if template.parent_id:
+        parent_account = materialize_account_from_template(company, template=template.parent, entity=entity)
+
+    account, created = Account.objects.get_or_create(
+        company=company,
+        code=template.code,
+        defaults={
+            'entity': entity,
+            'template': template,
+            'name': template.name,
+            'name_en': template.name_en,
+            'account_class': template.account_class,
+            'account_type': template.account_type,
+            'parent': parent_account,
+            'level': template.level,
+            'is_active': template.is_active,
+            'is_system': template.is_system,
+            'description': template.description,
+        },
+    )
+
+    updated_fields = []
+    if account.template_id != template.id:
+        account.template = template
+        updated_fields.append('template')
+    if parent_account and account.parent_id is None:
+        account.parent = parent_account
+        updated_fields.append('parent')
+    if entity and account.entity_id is None:
+        account.entity = entity
+        updated_fields.append('entity')
+
+    if updated_fields:
+        account.save(update_fields=[*updated_fields, 'updated_at'])
+
+    return account
 
 
 def posted_lines_queryset(company, start_date=None, end_date=None):

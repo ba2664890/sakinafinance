@@ -11,7 +11,7 @@ from django.db import connection, transaction as db_transaction
 from django.db.models import Sum, Q
 from decimal import Decimal, InvalidOperation
 from sakinafinance.accounting.models import Transaction, TransactionLine, Account, Journal
-from sakinafinance.accounting.services import post_transaction
+from sakinafinance.accounting.services import materialize_account_from_template, post_transaction
 from sakinafinance.accounts.models import Entity
 from sakinafinance.ai_engine.services import AIService
 from .models import BankAccount, BankStatement, BankStatementLine
@@ -76,6 +76,7 @@ def _ensure_treasury_account(company, entity):
         code = f"521{i:03d}"
         if Account.objects.filter(company=company, code=code).exists():
             continue
+        parent_account = materialize_account_from_template(company, code='521', entity=entity)
         return Account.objects.create(
             company=company,
             entity=entity,
@@ -83,6 +84,7 @@ def _ensure_treasury_account(company, entity):
             name='Banque - Compte principal',
             account_class='5',
             account_type=Account.AccountType.ASSET,
+            parent=parent_account,
             is_active=True,
         )
 
@@ -127,6 +129,7 @@ def _ensure_treasury_suspense_account(company, entity):
         code = f"471{i:03d}"
         if Account.objects.filter(company=company, code=code).exists():
             continue
+        parent_account = materialize_account_from_template(company, code='471', entity=entity)
         return Account.objects.create(
             company=company,
             entity=entity,
@@ -134,6 +137,7 @@ def _ensure_treasury_suspense_account(company, entity):
             name="Compte d'attente tresorerie",
             account_class='4',
             account_type=Account.AccountType.LIABILITY,
+            parent=parent_account,
             is_active=True,
         )
 

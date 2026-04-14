@@ -4,7 +4,7 @@ Serializers for Accounting Module
 
 from rest_framework import serializers
 from .models import Account, Journal, Transaction, TransactionLine, Invoice, InvoiceLine, FinancialStatement, TaxDeclaration
-from .services import SYSCOHADA_CLASS_ACCOUNT_TYPES
+from .services import SYSCOHADA_CLASS_ACCOUNT_TYPES, get_account_template_for_company, materialize_account_from_template
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -22,6 +22,9 @@ class AccountSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'current_balance']
         extra_kwargs = {
             'code': {'required': False, 'allow_blank': True},
+            'name': {'required': False},
+            'account_class': {'required': False},
+            'account_type': {'required': False},
         }
 
     def validate(self, attrs):
@@ -31,8 +34,25 @@ class AccountSerializer(serializers.ModelSerializer):
         if not company:
             raise serializers.ValidationError({'company': "Aucune entreprise n'est associée à cet utilisateur."})
 
+        code = (attrs.get('code') or '').strip()
+        template = get_account_template_for_company(company, code) if code else None
+        if template:
+            attrs.setdefault('name', template.name)
+            attrs.setdefault('name_en', template.name_en)
+            attrs.setdefault('account_class', template.account_class)
+            attrs.setdefault('account_type', template.account_type)
+            attrs.setdefault('level', template.level)
+            attrs['_matched_template'] = template
+
         account_class = attrs.get('account_class') or getattr(self.instance, 'account_class', None)
         account_type = attrs.get('account_type') or getattr(self.instance, 'account_type', None)
+        if not attrs.get('name') and not getattr(self.instance, 'name', None):
+            raise serializers.ValidationError({'name': "Le nom du compte est requis."})
+        if not account_class:
+            raise serializers.ValidationError({'account_class': "La classe du compte est requise."})
+        if not account_type:
+            raise serializers.ValidationError({'account_type': "Le type du compte est requis."})
+
         expected_types = SYSCOHADA_CLASS_ACCOUNT_TYPES.get(str(account_class or '').strip())
 
         if expected_types and account_type not in expected_types:
@@ -49,26 +69,36 @@ class AccountSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = getattr(request, 'user', None)
         company = getattr(user, 'company', None) or getattr(getattr(user, 'profile', None), 'company', None)
+        template = validated_data.pop('_matched_template', None)
         code = (validated_data.get('code') or '').strip()
         account_class = validated_data.get('account_class')
+
+        if code and template and company:
+            entity = validated_data.get('entity')
+            materialized = materialize_account_from_template(company, template=template, entity=entity)
+            if materialized:
+                return materialized
 
         if not code and company and account_class:
             prefix = str(account_class)[0]
             try:
-                start = int(prefix) * 100 + 1
+                start = int(prefix) * 100000 + 1
             except ValueError:
                 start = None
 
             if start is not None:
                 candidate = start
                 while True:
-                    code_candidate = f"{candidate}"
+                    code_candidate = f"{candidate:06d}"
                     if not Account.objects.filter(company=company, code=code_candidate).exists():
                         code = code_candidate
                         break
                     candidate += 1
 
-            validated_data['code'] = code or f"{account_class}01"
+            validated_data['code'] = code or f"{prefix}00001"
+
+        if template:
+            validated_data.setdefault('template', template)
 
         return super().create(validated_data)
 
