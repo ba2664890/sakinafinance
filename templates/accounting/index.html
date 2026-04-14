@@ -918,22 +918,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Modal Calculation Logic
     const form = document.getElementById('manualEntryForm');
+    const toAmount = (value) => {
+        const normalized = String(value ?? '')
+            .replace(/\s+/g, '')
+            .replace(',', '.');
+        const amount = Number(normalized);
+        return Number.isFinite(amount) ? amount : 0;
+    };
+
     const updateEntryTotals = () => {
+        if (!form) return;
         let totalDebit = 0;
         let totalCredit = 0;
         const debits = form.querySelectorAll('input[name="debit[]"]');
         const credits = form.querySelectorAll('input[name="credit[]"]');
-        debits.forEach(d => totalDebit += parseFloat(d.value || 0));
-        credits.forEach(c => totalCredit += parseFloat(c.value || 0));
-        const diff = totalDebit - totalCredit;
+        debits.forEach(d => totalDebit += toAmount(d.value));
+        credits.forEach(c => totalCredit += toAmount(c.value));
+
+        // Compare in cents to avoid floating-point precision locks (e.g. 0.1 + 0.2).
+        const debitCents = Math.round(totalDebit * 100);
+        const creditCents = Math.round(totalCredit * 100);
+        const diffCents = debitCents - creditCents;
+        const diff = diffCents / 100;
+
         document.getElementById('total-debit').textContent = fmt(totalDebit);
         document.getElementById('total-credit').textContent = fmt(totalCredit);
         const diffEl = document.getElementById('entry-diff');
         diffEl.textContent = fmt(Math.abs(diff));
-        diffEl.className = diff === 0 ? 'text-success' : 'text-danger';
+        diffEl.className = diffCents === 0 ? 'text-success' : 'text-danger';
         const submitBtn = document.getElementById('submit-entry');
         if (submitBtn) {
-            submitBtn.disabled = totalDebit === 0 || totalCredit === 0 || diff !== 0;
+            submitBtn.disabled = debitCents <= 0 || creditCents <= 0 || diffCents !== 0;
         }
     };
 
@@ -978,12 +993,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (form) {
         form.addEventListener('input', updateEntryTotals);
+        form.addEventListener('change', updateEntryTotals);
         const addLineBtn = document.getElementById('add-line-btn');
         if (addLineBtn) {
             addLineBtn.addEventListener('click', addLineRow);
         }
         bindRemoveButtons();
         updateEntryTotals();
+
+        const entryModal = document.getElementById('manualEntryModal');
+        if (entryModal) {
+            entryModal.addEventListener('shown.bs.modal', updateEntryTotals);
+        }
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -995,11 +1016,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const credits = formData.getAll('credit[]');
 
             for (let i = 0; i < accounts.length; i++) {
+                const debit = toAmount(debits[i]);
+                const credit = toAmount(credits[i]);
                 if (accounts[i]) {
                     lines.push({
                         account: accounts[i],
-                        debit: parseFloat(debits[i] || 0),
-                        credit: parseFloat(credits[i] || 0)
+                        debit,
+                        credit
                     });
                 }
             }
