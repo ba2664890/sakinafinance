@@ -15,6 +15,19 @@ DEBIT_NORMAL_ACCOUNT_TYPES = {
     Account.AccountType.ASSET,
     Account.AccountType.EXPENSE,
 }
+EQUITY_NAME_HINTS = (
+    'capital',
+    'reserve',
+    'reserves',
+    'réserve',
+    'réserves',
+    'resultat',
+    'résultat',
+    'report a nouveau',
+    'report à nouveau',
+    'subvention',
+    'fonds propres',
+)
 
 SYSCOHADA_CLASS_ACCOUNT_TYPES = {
     '1': {Account.AccountType.LIABILITY, Account.AccountType.EQUITY},
@@ -120,6 +133,22 @@ def refresh_current_balances(company, end_date=None):
             account.save(update_fields=['current_balance', 'updated_at'])
 
 
+def is_probable_equity_account(account):
+    if account.account_type == Account.AccountType.EQUITY:
+        return True
+
+    if account.account_class != Account.AccountClass.CLASS_1:
+        return False
+
+    code = (account.code or '').strip()
+    name = (account.name or '').lower()
+
+    if code.startswith(('10', '11', '12', '13', '14')):
+        return True
+
+    return any(keyword in name for keyword in EQUITY_NAME_HINTS)
+
+
 def build_balance_sheet_snapshot(company, end_date=None):
     balances = get_company_account_balances(company, end_date=end_date)
 
@@ -127,12 +156,13 @@ def build_balance_sheet_snapshot(company, end_date=None):
         ('Immobilisations', lambda account: account.account_class == Account.AccountClass.CLASS_2),
         ('Stocks', lambda account: account.account_class == Account.AccountClass.CLASS_3),
         ('Créances et tiers débiteurs', lambda account: account.account_class == Account.AccountClass.CLASS_4 and account.account_type == Account.AccountType.ASSET),
-        ('Disponibilités', lambda account: account.account_class == Account.AccountClass.CLASS_5),
+        ('Disponibilités', lambda account: account.account_class == Account.AccountClass.CLASS_5 and account.account_type != Account.AccountType.LIABILITY),
     ]
     liability_buckets = [
-        ('Capitaux propres', lambda account: account.account_type == Account.AccountType.EQUITY),
-        ('Dettes financières et ressources durables', lambda account: account.account_class == Account.AccountClass.CLASS_1 and account.account_type == Account.AccountType.LIABILITY),
+        ('Capitaux propres', is_probable_equity_account),
+        ('Dettes financières et ressources durables', lambda account: account.account_class == Account.AccountClass.CLASS_1 and not is_probable_equity_account(account)),
         ('Dettes fournisseurs et tiers', lambda account: account.account_class == Account.AccountClass.CLASS_4 and account.account_type == Account.AccountType.LIABILITY),
+        ('Trésorerie passive et concours bancaires', lambda account: account.account_class == Account.AccountClass.CLASS_5 and account.account_type == Account.AccountType.LIABILITY),
     ]
 
     def bucket_total(predicate):
@@ -153,14 +183,17 @@ def build_balance_sheet_snapshot(company, end_date=None):
     )
 
     def to_items(values, total):
+        non_zero_values = [(label, amount) for label, amount in values if amount != ZERO]
+        selected_values = non_zero_values or values
+        denominator = total if total != ZERO else sum((abs(amount) for _, amount in selected_values), ZERO)
+
         return [
             {
                 'label': label,
                 'amount': float(amount),
-                'pct': float(round((amount / total) * 100, 1)) if total else 0.0,
+                'pct': float(round((amount / denominator) * 100, 1)) if denominator else 0.0,
             }
-            for label, amount in values
-            if amount != ZERO
+            for label, amount in selected_values
         ]
 
     current_assets = sum(
@@ -172,6 +205,10 @@ def build_balance_sheet_snapshot(company, end_date=None):
     )
     current_liabilities = next(
         (amount for label, amount in liability_values if label == 'Dettes fournisseurs et tiers'),
+        ZERO,
+    )
+    current_liabilities += next(
+        (amount for label, amount in liability_values if label == 'Trésorerie passive et concours bancaires'),
         ZERO,
     )
     cash = next(

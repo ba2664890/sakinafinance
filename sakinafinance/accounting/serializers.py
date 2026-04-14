@@ -4,6 +4,7 @@ Serializers for Accounting Module
 
 from rest_framework import serializers
 from .models import Account, Journal, Transaction, TransactionLine, Invoice, InvoiceLine, FinancialStatement, TaxDeclaration
+from .services import SYSCOHADA_CLASS_ACCOUNT_TYPES
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -29,6 +30,19 @@ class AccountSerializer(serializers.ModelSerializer):
         company = getattr(user, 'company', None) or getattr(getattr(user, 'profile', None), 'company', None)
         if not company:
             raise serializers.ValidationError({'company': "Aucune entreprise n'est associée à cet utilisateur."})
+
+        account_class = attrs.get('account_class') or getattr(self.instance, 'account_class', None)
+        account_type = attrs.get('account_type') or getattr(self.instance, 'account_type', None)
+        expected_types = SYSCOHADA_CLASS_ACCOUNT_TYPES.get(str(account_class or '').strip())
+
+        if expected_types and account_type not in expected_types:
+            labels = ', '.join(
+                Account.AccountType(value).label.lower()
+                for value in sorted(expected_types)
+            )
+            raise serializers.ValidationError({
+                'account_type': f"Le type choisi est incohérent pour la classe {account_class}. Types autorisés: {labels}."
+            })
         return attrs
 
     def create(self, validated_data):

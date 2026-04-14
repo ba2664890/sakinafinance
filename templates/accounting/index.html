@@ -304,15 +304,16 @@
                 <div class="card h-100">
                     <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 text-primary-emphasis fw-bold">Structure du Bilan</h5>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary active">Actif</button>
-                            <button class="btn btn-outline-secondary">Passif</button>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Filtre du bilan">
+                            <button type="button" class="btn btn-outline-secondary active" data-balance-filter="all">Tous</button>
+                            <button type="button" class="btn btn-outline-secondary" data-balance-filter="actif">Actif</button>
+                            <button type="button" class="btn btn-outline-secondary" data-balance-filter="passif">Passif</button>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="row g-4" id="balance-sheet-container">
                             <!-- Left Side: Actif -->
-                            <div class="col-md-6 border-end">
+                            <div class="col-md-6 border-end" id="balance-sheet-assets-col">
                                 <h6 class="text-secondary small fw-bold text-uppercase mb-3">Actif (Emplois)</h6>
                                 <div id="acc-assets-breakdown">
                                     <!-- Dynamic items -->
@@ -320,7 +321,7 @@
                                 </div>
                             </div>
                             <!-- Right Side: Passif -->
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="balance-sheet-liabilities-col">
                                 <h6 class="text-secondary small fw-bold text-uppercase mb-3">Passif (Ressources)</h6>
                                 <div id="acc-liabilities-breakdown">
                                     <!-- Dynamic items -->
@@ -664,12 +665,117 @@ document.addEventListener('DOMContentLoaded', function() {
     const fmtM = (num) => num >= 1e9 ? (num/1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num/1e6).toFixed(1) + 'M' : fmt(num));
     const getCsrfToken = () => document.querySelector('#manualEntryForm [name="csrfmiddlewaretoken"]')?.value || '';
     const apiBase = '/api/v1';
+    const balanceSheetState = {
+        filter: 'all',
+        data: {
+            actif: [],
+            passif: []
+        }
+    };
+    const accountTypeOptions = {
+        '1': [
+            { value: 'equity', label: 'Capitaux propres' },
+            { value: 'liability', label: 'Passif' }
+        ],
+        '2': [{ value: 'asset', label: 'Actif' }],
+        '3': [{ value: 'asset', label: 'Actif' }],
+        '4': [
+            { value: 'asset', label: 'Actif' },
+            { value: 'liability', label: 'Passif' }
+        ],
+        '5': [
+            { value: 'asset', label: 'Actif' },
+            { value: 'liability', label: 'Passif' }
+        ],
+        '6': [{ value: 'expense', label: 'Charges' }],
+        '7': [{ value: 'income', label: 'Produits' }],
+        '8': [
+            { value: 'expense', label: 'Charges' },
+            { value: 'income', label: 'Produits' }
+        ]
+    };
 
     const setFormMsg = (el, type, message) => {
         if (!el) return;
         el.className = `small mt-2 alert alert-${type}`;
         el.textContent = message;
         el.classList.remove('d-none');
+    };
+
+    const renderBalanceSheetItems = (items, tone) => {
+        if (!items.length) {
+            return '<div class="text-center py-4 text-secondary">Aucune rubrique disponible.</div>';
+        }
+
+        const accentClass = tone === 'asset' ? 'text-primary' : 'text-warning';
+        const barClass = tone === 'asset' ? '' : 'bg-warning';
+
+        return items.map(item => `
+            <div class="balance-sheet-item">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-bold text-dark">${item.label}</span>
+                    <span class="small fw-bold ${accentClass}">${fmtM(item.amount)}</span>
+                </div>
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar ${barClass}" style="width: ${item.pct}%"></div>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    const applyBalanceSheetFilter = (filter = 'all') => {
+        const assetsCol = document.getElementById('balance-sheet-assets-col');
+        const liabCol = document.getElementById('balance-sheet-liabilities-col');
+        const filterBtns = document.querySelectorAll('[data-balance-filter]');
+        const showAssets = filter !== 'passif';
+        const showLiabilities = filter !== 'actif';
+
+        balanceSheetState.filter = filter;
+        filterBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.balanceFilter === filter));
+
+        if (!assetsCol || !liabCol) return;
+
+        assetsCol.classList.toggle('d-none', !showAssets);
+        liabCol.classList.toggle('d-none', !showLiabilities);
+        assetsCol.classList.toggle('col-md-6', filter === 'all');
+        liabCol.classList.toggle('col-md-6', filter === 'all');
+        assetsCol.classList.toggle('col-12', filter !== 'all' && showAssets);
+        liabCol.classList.toggle('col-12', filter !== 'all' && showLiabilities);
+        assetsCol.classList.toggle('border-end', filter === 'all');
+    };
+
+    const renderBalanceSheet = () => {
+        const assetsBreakdown = document.getElementById('acc-assets-breakdown');
+        const liabBreakdown = document.getElementById('acc-liabilities-breakdown');
+        const balanceSheet = balanceSheetState.data || { actif: [], passif: [] };
+
+        if (assetsBreakdown) {
+            assetsBreakdown.innerHTML = renderBalanceSheetItems(balanceSheet.actif || [], 'asset');
+        }
+
+        if (liabBreakdown) {
+            liabBreakdown.innerHTML = renderBalanceSheetItems(balanceSheet.passif || [], 'liability');
+        }
+
+        applyBalanceSheetFilter(balanceSheetState.filter);
+    };
+
+    const syncAccountTypeOptions = () => {
+        const accountForm = document.getElementById('accountForm');
+        const classSelect = accountForm?.querySelector('select[name="account_class"]');
+        const typeSelect = accountForm?.querySelector('select[name="account_type"]');
+        const options = accountTypeOptions[classSelect?.value] || [];
+
+        if (!classSelect || !typeSelect || !options.length) return;
+
+        const currentValue = typeSelect.value;
+        typeSelect.innerHTML = options.map(option => `
+            <option value="${option.value}">${option.label}</option>
+        `).join('');
+
+        typeSelect.value = options.some(option => option.value === currentValue)
+            ? currentValue
+            : options[0].value;
     };
 
     async function loadAccountingData() {
@@ -727,35 +833,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('acc-working-capital').textContent = `${fmtM(workingCapital)} XOF`;
 
             // Balance Sheet Breakdown
-            const assetsBreakdown = document.getElementById('acc-assets-breakdown');
-            if (assetsBreakdown) {
-                assetsBreakdown.innerHTML = data.balance_sheet.actif.length ? data.balance_sheet.actif.map(item => `
-                    <div class="balance-sheet-item">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="small fw-bold text-dark">${item.label}</span>
-                            <span class="small fw-bold text-primary">${fmtM(item.amount)}</span>
-                        </div>
-                        <div class="progress" style="height: 4px;">
-                            <div class="progress-bar" style="width: ${item.pct}%"></div>
-                        </div>
-                    </div>
-                `).join('') : `<div class="text-center py-4 text-secondary">Aucune rubrique d'actif disponible.</div>`;
-            }
-
-            const liabBreakdown = document.getElementById('acc-liabilities-breakdown');
-            if (liabBreakdown) {
-                liabBreakdown.innerHTML = data.balance_sheet.passif.length ? data.balance_sheet.passif.map(item => `
-                    <div class="balance-sheet-item">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="small fw-bold text-dark">${item.label}</span>
-                            <span class="small fw-bold text-warning">${fmtM(item.amount)}</span>
-                        </div>
-                        <div class="progress" style="height: 4px;">
-                            <div class="progress-bar bg-warning" style="width: ${item.pct}%"></div>
-                        </div>
-                    </div>
-                `).join('') : `<div class="text-center py-4 text-secondary">Aucune rubrique de passif disponible.</div>`;
-            }
+            balanceSheetState.data = data.balance_sheet || { actif: [], passif: [] };
+            renderBalanceSheet();
 
             // Compliance SYSCOHADA
             const compliance = data.compliance || {};
@@ -1081,6 +1160,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create Account
     const accountForm = document.getElementById('accountForm');
     if (accountForm) {
+        syncAccountTypeOptions();
+        accountForm.account_class.addEventListener('change', syncAccountTypeOptions);
+
         accountForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const msg = document.getElementById('account-form-msg');
@@ -1103,9 +1185,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (res.ok) {
                     setFormMsg(msg, 'success', 'Compte cree avec succes.');
                     accountForm.reset();
+                    syncAccountTypeOptions();
                     loadAccountingData();
                 } else {
-                    const message = data?.company?.[0] || data?.detail || 'Erreur lors de la creation du compte.';
+                    const message = data?.account_type?.[0] || data?.company?.[0] || data?.detail || 'Erreur lors de la creation du compte.';
                     setFormMsg(msg, 'danger', message);
                 }
             } catch (err) {
@@ -1113,6 +1196,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    document.querySelectorAll('[data-balance-filter]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            applyBalanceSheetFilter(this.dataset.balanceFilter || 'all');
+        });
+    });
 
     // Create Journal
     const journalForm = document.getElementById('journalForm');

@@ -5,6 +5,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from sakinafinance.accounting.models import Account, Journal, Transaction, TransactionLine
+from sakinafinance.accounting.services import build_balance_sheet_snapshot
 from sakinafinance.accounts.models import Company, User
 
 
@@ -120,6 +121,79 @@ class AccountingSecurityAndDataTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_account_viewset_rejects_invalid_syscohada_account_type(self):
+        response = self.client.post(
+            reverse('account-list'),
+            data={
+                'name': 'Capital mal paramétré',
+                'account_class': Account.AccountClass.CLASS_1,
+                'account_type': Account.AccountType.ASSET,
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('account_type', response.json())
+
+
+class AccountingBalanceSheetDisplayTests(TestCase):
+    def setUp(self):
+        self.company = Company.objects.create(name='Delta')
+        self.user = User.objects.create_user(
+            email='delta@finance.test',
+            password='testpass123',
+            first_name='Delta',
+            last_name='Finance',
+            company=self.company,
+            role=User.Role.CFO,
+        )
+        self.client.force_login(self.user)
+
+    def test_accounting_api_keeps_balance_sheet_sections_visible_without_accounts(self):
+        response = self.client.get(reverse('api_accounting_data'))
+        payload = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            [item['label'] for item in payload['balance_sheet']['actif']],
+            ['Immobilisations', 'Stocks', 'Créances et tiers débiteurs', 'Disponibilités'],
+        )
+        self.assertEqual(
+            [item['label'] for item in payload['balance_sheet']['passif']],
+            [
+                'Capitaux propres',
+                'Dettes financières et ressources durables',
+                'Dettes fournisseurs et tiers',
+                'Trésorerie passive et concours bancaires',
+            ],
+        )
+        self.assertTrue(all(item['amount'] == 0.0 for item in payload['balance_sheet']['actif']))
+        self.assertTrue(all(item['amount'] == 0.0 for item in payload['balance_sheet']['passif']))
+
+    def test_balance_sheet_reports_class_5_liabilities_in_passif(self):
+        Account.objects.create(
+            company=self.company,
+            code='565000',
+            name='Banques créditrices',
+            account_class=Account.AccountClass.CLASS_5,
+            account_type=Account.AccountType.LIABILITY,
+            opening_balance=Decimal('250.00'),
+        )
+
+        snapshot = build_balance_sheet_snapshot(self.company)
+        liabilities = {item['label']: item['amount'] for item in snapshot['passif']}
+
+        self.assertEqual(liabilities['Trésorerie passive et concours bancaires'], 250.0)
+        self.assertEqual(snapshot['current_liabilities'], Decimal('250.00'))
+
+    def test_accounting_page_contains_balance_sheet_filter_controls(self):
+        response = self.client.get(reverse('accounting'))
+        content = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('data-balance-filter="all"', content)
+        self.assertIn('data-balance-filter="actif"', content)
+        self.assertIn('data-balance-filter="passif"', content)
 
 
 class ReportingDataTests(TestCase):

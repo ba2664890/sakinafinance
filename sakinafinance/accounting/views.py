@@ -16,12 +16,90 @@ from django.utils import timezone
 from .models import Account, Transaction, TransactionLine, Journal
 from .services import (
     ZERO,
+    SYSCOHADA_CLASS_ACCOUNT_TYPES,
     aggregate_posted_movements,
     build_accounting_insight,
     build_balance_sheet_snapshot,
     post_transaction,
     syscohada_account_compliance,
 )
+
+
+def _validate_syscohada_journal_rules(journal, normalized_lines):
+    """
+    Enforce core SYSCOHADA-oriented journal patterns on manual entry forms.
+    Returns an error string when a rule is violated, else None.
+    """
+    for line in normalized_lines:
+        account = line['account']
+        expected_types = SYSCOHADA_CLASS_ACCOUNT_TYPES.get((account.account_class or '').strip(), set())
+        if expected_types and account.account_type not in expected_types:
+            return (
+                f"Le compte {account.code} ({account.name}) est incoherent pour la classe "
+                f"{account.account_class}. Corrigez le type de compte selon SYSCOHADA."
+            )
+
+    journal_type = journal.journal_type
+
+    def has_line(predicate):
+        return any(predicate(line) for line in normalized_lines)
+
+    has_class_5 = has_line(lambda line: line['account'].account_class == Account.AccountClass.CLASS_5)
+    if journal_type in {Journal.JournalType.BANK, Journal.JournalType.CASH} and not has_class_5:
+        return "Un journal de tresorerie (Banque/Caisse) doit contenir au moins un compte de classe 5."
+
+    if journal_type == Journal.JournalType.SALES:
+        has_revenue_credit = has_line(
+            lambda line: line['account'].account_class == Account.AccountClass.CLASS_7 and line['credit'] > ZERO
+        )
+        has_counterpart_debit = has_line(
+            lambda line: line['account'].account_class in {Account.AccountClass.CLASS_4, Account.AccountClass.CLASS_5}
+            and line['debit'] > ZERO
+        )
+        if not (has_revenue_credit and has_counterpart_debit):
+            return (
+                "Journal Ventes: il faut au moins une ligne de produit (classe 7 au credit) "
+                "et une contrepartie client/tresorerie (classe 4/5 au debit)."
+            )
+
+    if journal_type == Journal.JournalType.PURCHASES:
+        has_expense_debit = has_line(
+            lambda line: line['account'].account_class in {
+                Account.AccountClass.CLASS_2,
+                Account.AccountClass.CLASS_3,
+                Account.AccountClass.CLASS_6,
+            } and line['debit'] > ZERO
+        )
+        has_counterpart_credit = has_line(
+            lambda line: line['account'].account_class in {Account.AccountClass.CLASS_4, Account.AccountClass.CLASS_5}
+            and line['credit'] > ZERO
+        )
+        if not (has_expense_debit and has_counterpart_credit):
+            return (
+                "Journal Achats: il faut une charge/stock/immobilisation (classe 6/3/2 au debit) "
+                "et une contrepartie fournisseur/tresorerie (classe 4/5 au credit)."
+            )
+
+    if journal_type == Journal.JournalType.PAYROLL:
+        has_payroll_debit = has_line(
+            lambda line: line['account'].account_class == Account.AccountClass.CLASS_6 and line['debit'] > ZERO
+        )
+        has_payroll_counterpart = has_line(
+            lambda line: line['account'].account_class in {Account.AccountClass.CLASS_4, Account.AccountClass.CLASS_5}
+            and line['credit'] > ZERO
+        )
+        if not (has_payroll_debit and has_payroll_counterpart):
+            return (
+                "Journal Paie: il faut une charge de personnel (classe 6 au debit) "
+                "et une contrepartie tiers/tresorerie (classe 4/5 au credit)."
+            )
+
+    if journal_type == Journal.JournalType.INVENTORY:
+        has_inventory_class = has_line(lambda line: line['account'].account_class == Account.AccountClass.CLASS_3)
+        if not has_inventory_class:
+            return "Journal Stocks: au moins une ligne de classe 3 est requise."
+
+    return None
 
 @login_required
 def accounting_view(request):
