@@ -136,7 +136,7 @@ def settings_view(request):
                 return redirect('settings')
         
         elif form_type == 'company_settings' and company:
-            company_form = CompanyForm(request.POST, instance=company)
+            company_form = CompanyForm(request.POST, request.FILES, instance=company)
             if company_form.is_valid():
                 company_form.save()
                 messages.success(request, 'Paramètres de l\'entreprise mis à jour.')

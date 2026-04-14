@@ -6,9 +6,20 @@
     <div class="sidebar-header">
         <a href="{% url 'dashboard' %}" class="sidebar-brand">
             <div class="brand-logo">
-                <img src="{% static 'img/logo_sakinafinance.jpeg' %}" alt="SakinaFinance" />
+                {% if request.user.company and request.user.company.logo %}
+                    <img src="{{ request.user.company.logo.url }}" alt="{{ request.user.company.name }}" />
+                {% else %}
+                    <span class="brand-initials">{{ request.user.company.name|default:'SF'|slice:':2'|upper }}</span>
+                {% endif %}
             </div>
-            <span class="brand-text">Sakina<span>Finance</span></span>
+            <div>
+                <span class="brand-text">{{ request.user.company.name|default:'SakinaFinance' }}</span>
+                {% if request.user.company %}
+                <small class="company-details text-white-50 d-block" style="font-size:0.8rem; line-height:1.2;">
+                    {{ request.user.company.get_company_type_display }} • {{ request.user.company.get_subscription_status_display }}
+                </small>
+                {% endif %}
+            </div>
         </a>
     </div>
 
@@ -234,6 +245,18 @@
         height: 100%;
         object-fit: cover;
         border-radius: 10px;
+    }
+
+    .brand-initials {
+        display: inline-flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        color: white;
+        text-transform: uppercase;
     }
 
     /* Smooth sidebar/main transition */

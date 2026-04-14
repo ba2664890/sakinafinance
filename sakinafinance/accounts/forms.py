@@ -129,7 +129,7 @@ class CompanyForm(forms.ModelForm):
             'name', 'legal_name', 'company_type', 'accounting_standard',
             'registration_number', 'tax_id', 'vat_number',
             'address', 'city', 'country', 'postal_code',
-            'phone', 'email', 'website',
+            'phone', 'email', 'website', 'logo',
             'legal_form', 'capital', 'fiscal_year_start', 'fiscal_year_end',
             'base_currency', 'timezone', 'language'
         ]
@@ -148,6 +148,7 @@ class CompanyForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
             'legal_form': forms.TextInput(attrs={'class': 'form-control'}),
             'capital': forms.NumberInput(attrs={'class': 'form-control'}),
             'fiscal_year_start': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),

@@ -52,9 +52,14 @@
                         <h5 class="mb-0">Informations de l'entreprise</h5>
                     </div>
                     <div class="card-body p-4">
-                        <form method="post">
+                        <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <input type="hidden" name="form_type" value="company_settings">
+                            {% if company_form.instance.logo %}
+                            <div class="mb-4 text-center">
+                                <img src="{{ company_form.instance.logo.url }}" alt="{{ company_form.instance.name }} logo" class="img-fluid rounded" style="max-height: 120px;">
+                            </div>
+                            {% endif %}
                             <div class="row">
                                 {{ company_form|crispy }}
                             </div>

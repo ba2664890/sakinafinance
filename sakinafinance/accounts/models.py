@@ -259,7 +259,8 @@ class Company(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     website = models.URLField(blank=True)
-    
+    logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
+
     # Legal
     legal_form = models.CharField(max_length=100, blank=True)
     capital = models.DecimalField(max_digits=15, decimal_places=2, default=0)
