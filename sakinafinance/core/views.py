@@ -608,7 +608,7 @@ def api_consolidation_data(request):
         entities_list.append({
             'id': str(ent.id)[:8].upper() if ent.id else "ENT",
             'name': ent.name,
-            'currency': ent.currency or 'XOF',
+            'currency': ent.local_currency or 'XOF',
             'income': ent_net,
             'norm': 'IFRS' if ent.country != 'SN' else 'OHADA',
             'conversion': 'Native',
@@ -706,4 +706,3 @@ def run_consolidation(request):
         'message': 'La consolidation a été effectuée avec succès sur toutes les entités.',
         'report_id': str(report.id)
     })
-
