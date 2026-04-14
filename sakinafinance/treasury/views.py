@@ -7,10 +7,11 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from datetime import timedelta
 
-from django.db import connection
+from django.db import connection, transaction as db_transaction
 from django.db.models import Sum, Q
 from decimal import Decimal, InvalidOperation
-from sakinafinance.accounting.models import Transaction, TransactionLine, Account
+from sakinafinance.accounting.models import Transaction, TransactionLine, Account, Journal
+from sakinafinance.accounting.services import post_transaction
 from sakinafinance.accounts.models import Entity
 from sakinafinance.ai_engine.services import AIService
 from .models import BankAccount, BankStatement, BankStatementLine
@@ -88,6 +89,57 @@ def _ensure_treasury_account(company, entity):
     raise ValueError("Impossible de générer un code de compte de trésorerie unique.")
 
 
+def _ensure_bank_journal(company, entity=None):
+    journal = Journal.objects.filter(
+        company=company,
+        journal_type=Journal.JournalType.BANK,
+        is_active=True,
+    ).order_by('code').first()
+    if journal:
+        return journal
+
+    for i in range(1000):
+        code = 'BQ' if i == 0 else f"BQ{i:03d}"
+        if Journal.objects.filter(company=company, code=code).exists():
+            continue
+        return Journal.objects.create(
+            company=company,
+            entity=entity,
+            code=code,
+            name='Journal Banque',
+            journal_type=Journal.JournalType.BANK,
+            is_active=True,
+        )
+
+    raise ValueError("Impossible de générer un code de journal banque unique.")
+
+
+def _ensure_treasury_suspense_account(company, entity):
+    account = Account.objects.filter(
+        company=company,
+        account_class='4',
+        code__startswith='471'
+    ).order_by('code').first()
+    if account:
+        return account
+
+    for i in range(1000):
+        code = f"471{i:03d}"
+        if Account.objects.filter(company=company, code=code).exists():
+            continue
+        return Account.objects.create(
+            company=company,
+            entity=entity,
+            code=code,
+            name="Compte d'attente tresorerie",
+            account_class='4',
+            account_type=Account.AccountType.LIABILITY,
+            is_active=True,
+        )
+
+    raise ValueError("Impossible de generer un compte d'attente tresorerie unique.")
+
+
 def _safe_bank_accounts_list(company):
     """
     Lecture robuste des comptes bancaires.
@@ -160,6 +212,57 @@ def _safe_bank_accounts_list(company):
         logger.exception("Fallback bank account list (SQL) failed company=%s: %s", company.pk, exc)
         return []
 
+
+def _bank_movements_queryset(company):
+    return BankStatementLine.objects.filter(statement__bank_account__company=company)
+
+
+def _bank_liquidity(company, start_date=None, end_date=None):
+    queryset = _bank_movements_queryset(company)
+    if start_date:
+        queryset = queryset.filter(date__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(date__lte=end_date)
+    return queryset.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+
+def _accounting_liquidity(company, start_date=None, end_date=None):
+    queryset = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status=Transaction.TransactionStatus.POSTED,
+        account__account_class='5'
+    )
+    if start_date:
+        queryset = queryset.filter(transaction__date__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(transaction__date__lte=end_date)
+    return queryset.aggregate(total=Sum('debit') - Sum('credit'))['total'] or Decimal('0')
+
+
+def _bank_account_balances(company):
+    accounts = BankAccount.objects.filter(company=company).select_related('entity').order_by('bank_name', 'account_name')
+    balance_rows = _bank_movements_queryset(company).values(
+        'statement__bank_account_id'
+    ).annotate(total=Sum('amount'))
+    balances_by_account_id = {
+        str(row['statement__bank_account_id']): (row['total'] or Decimal('0'))
+        for row in balance_rows
+    }
+
+    data = []
+    for account in accounts:
+        bank_balance = balances_by_account_id.get(str(account.id), Decimal('0'))
+        accounting_balance = getattr(account.accounting_account, 'current_balance', Decimal('0')) or Decimal('0')
+        data.append({
+            'entity': account.entity.name if account.entity else 'N/A',
+            'bank': account.bank_name or account.account_name or 'Compte bancaire',
+            'balance': float(bank_balance),
+            'accounting_balance': float(accounting_balance),
+            'currency': account.currency or 'XOF',
+            'status': 'active' if account.is_active else 'inactive',
+        })
+    return data
+
 @login_required
 def api_treasury_data(request):
     """API: Récupération des données de trésorerie réelles"""
@@ -168,12 +271,18 @@ def api_treasury_data(request):
         return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
 
     try:
-        # 1. Liquidité Totale (Classe 5*)
-        liquidity = TransactionLine.objects.filter(
-            transaction__company=company,
-            transaction__status=Transaction.TransactionStatus.POSTED,
-            account__account_class='5'
-        ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
+        has_bank_movements = _bank_movements_queryset(company).exists()
+        today = timezone.now().date()
+        window_start = today - timedelta(days=30)
+
+        bank_liquidity = _bank_liquidity(company)
+        accounting_liquidity = _accounting_liquidity(company)
+        liquidity = bank_liquidity if has_bank_movements else accounting_liquidity
+        net_cashflow_30d = (
+            _bank_liquidity(company, start_date=window_start)
+            if has_bank_movements
+            else _accounting_liquidity(company, start_date=window_start)
+        )
 
         # 2. DSO (Days Sales Outstanding) - Simplifié : Solde Client / (CA/30)
         receivables = TransactionLine.objects.filter(
@@ -219,27 +328,12 @@ def api_treasury_data(request):
         cash_cycle = dso + dio - dpo
 
         # 6. Comptes Bancaires
-        entities = company.entities.all()
-        bank_accounts = []
-        for ent in entities:
-            ent_liquid = TransactionLine.objects.filter(
-                transaction__entity=ent,
-                transaction__status=Transaction.TransactionStatus.POSTED,
-                account__account_class='5'
-            ).aggregate(bal=Sum('debit') - Sum('credit'))['bal'] or Decimal('0')
-
-            bank_accounts.append({
-                'entity': ent.name,
-                'bank': 'Compte Principal',
-                'balance': float(ent_liquid),
-                'currency': 'XOF',
-                'status': 'active'
-            })
+        bank_accounts = _bank_account_balances(company)
 
         data = {
             'total_liquidity': float(liquidity),
             'liquidity_growth': 5.4,
-            'net_cashflow_30d': float(liquidity * Decimal('0.15')),
+            'net_cashflow_30d': float(net_cashflow_30d),
             'cashflow_growth': 2.1,
             'dso_days': dso,
             'dso_target': 35,
@@ -253,6 +347,7 @@ def api_treasury_data(request):
             ],
             'dio_days': dio,
             'dpo_days': dpo,
+            'liquidity_source': 'bank_statements' if has_bank_movements else 'accounting_entries',
         }
     except Exception as exc:
         logger.exception("Erreur api_treasury_data company=%s user=%s: %s", company.pk, request.user.pk, exc)
@@ -279,31 +374,40 @@ def treasury_api_cashflow(request):
     labels = []
     inflows = []
     outflows = []
+    has_bank_movements = _bank_movements_queryset(company).exists()
     
     today = timezone.now().date()
     for i in range(5, -1, -1):
         target_date = today - timedelta(days=i*30)
         month_label = target_date.strftime('%b')
         labels.append(month_label)
-        
-        # Inflows (Debit on Class 5)
-        inf = TransactionLine.objects.filter(
-            transaction__company=company,
-            transaction__status=Transaction.TransactionStatus.POSTED,
-            account__account_class='5',
-            transaction__date__month=target_date.month,
-            transaction__date__year=target_date.year
-        ).aggregate(t=Sum('debit'))['t'] or Decimal('0')
-        
-        # Outflows (Credit on Class 5)
-        out = TransactionLine.objects.filter(
-            transaction__company=company,
-            transaction__status=Transaction.TransactionStatus.POSTED,
-            account__account_class='5',
-            transaction__date__month=target_date.month,
-            transaction__date__year=target_date.year
-        ).aggregate(t=Sum('credit'))['t'] or Decimal('0')
-        
+
+        if has_bank_movements:
+            monthly_lines = _bank_movements_queryset(company).filter(
+                date__month=target_date.month,
+                date__year=target_date.year
+            )
+            inf = monthly_lines.filter(amount__gt=0).aggregate(t=Sum('amount'))['t'] or Decimal('0')
+            out_signed = monthly_lines.filter(amount__lt=0).aggregate(t=Sum('amount'))['t'] or Decimal('0')
+            out = abs(out_signed)
+        else:
+            # Fallback comptable: classe 5 validée
+            inf = TransactionLine.objects.filter(
+                transaction__company=company,
+                transaction__status=Transaction.TransactionStatus.POSTED,
+                account__account_class='5',
+                transaction__date__month=target_date.month,
+                transaction__date__year=target_date.year
+            ).aggregate(t=Sum('debit'))['t'] or Decimal('0')
+
+            out = TransactionLine.objects.filter(
+                transaction__company=company,
+                transaction__status=Transaction.TransactionStatus.POSTED,
+                account__account_class='5',
+                transaction__date__month=target_date.month,
+                transaction__date__year=target_date.year
+            ).aggregate(t=Sum('credit'))['t'] or Decimal('0')
+
         inflows.append(float(inf))
         outflows.append(float(out))
 
@@ -443,37 +547,87 @@ def api_bank_movement_create(request):
 
     bank_account = get_object_or_404(BankAccount, id=account_id, company=company)
 
-    signed_amount = amount if mv_type == 'IN' else -amount
-    statement_ref = f"MAN-{movement_date.strftime('%Y%m%d')}"
-    # BankStatementLine expects a statement; reuse manual day statement to keep balances coherent.
-    statement, _ = BankStatement.objects.get_or_create(
-        bank_account=bank_account,
-        reference=statement_ref,
-        defaults={
-            'start_date': movement_date,
-            'end_date': movement_date,
-            'opening_balance': Decimal('0'),
-            'closing_balance': Decimal('0'),
-            'is_imported': False,
-        }
-    )
-    BankStatementLine.objects.create(
-        statement=statement,
-        date=movement_date,
-        description=description,
-        amount=signed_amount,
-        reference=f"MAN-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-        is_reconciled=False
-    )
+    with db_transaction.atomic():
+        signed_amount = amount if mv_type == 'IN' else -amount
+        statement_ref = f"MAN-{movement_date.strftime('%Y%m%d')}"
+        # BankStatementLine expects a statement; reuse manual day statement to keep balances coherent.
+        statement, _ = BankStatement.objects.get_or_create(
+            bank_account=bank_account,
+            reference=statement_ref,
+            defaults={
+                'start_date': movement_date,
+                'end_date': movement_date,
+                'opening_balance': Decimal('0'),
+                'closing_balance': Decimal('0'),
+                'is_imported': False,
+            }
+        )
+        movement = BankStatementLine.objects.create(
+            statement=statement,
+            date=movement_date,
+            description=description,
+            amount=signed_amount,
+            reference=f"MAN-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+            is_reconciled=False
+        )
 
-    statement_delta = statement.lines.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    statement.closing_balance = (statement.opening_balance or Decimal('0')) + statement_delta
-    statement.save(update_fields=['closing_balance'])
+        journal = _ensure_bank_journal(company, entity=bank_account.entity)
+        suspense_account = _ensure_treasury_suspense_account(company, bank_account.entity)
 
-    statement_balance = BankStatementLine.objects.filter(
-        statement__bank_account=bank_account
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    accounting_balance = getattr(bank_account.accounting_account, 'current_balance', Decimal('0')) or Decimal('0')
+        tx_reference = f"TRS-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        tx = Transaction.objects.create(
+            company=company,
+            entity=bank_account.entity,
+            journal=journal,
+            reference=tx_reference,
+            date=movement_date,
+            description=description,
+            total_debit=amount,
+            total_credit=amount,
+            currency=bank_account.currency or 'XOF',
+            status=Transaction.TransactionStatus.PENDING,
+            created_by=request.user,
+            source_document='bank_movement',
+            source_id=str(movement.id),
+        )
+
+        if mv_type == 'IN':
+            bank_debit, bank_credit = amount, Decimal('0')
+            counterpart_debit, counterpart_credit = Decimal('0'), amount
+        else:
+            bank_debit, bank_credit = Decimal('0'), amount
+            counterpart_debit, counterpart_credit = amount, Decimal('0')
+
+        TransactionLine.objects.create(
+            transaction=tx,
+            account=bank_account.accounting_account,
+            debit=bank_debit,
+            credit=bank_credit,
+            description=description,
+        )
+        TransactionLine.objects.create(
+            transaction=tx,
+            account=suspense_account,
+            debit=counterpart_debit,
+            credit=counterpart_credit,
+            description=f"Contrepartie mouvement bancaire {movement.reference}",
+        )
+
+        post_transaction(tx, user=request.user)
+
+        movement.reconciled_transaction = tx
+        movement.is_reconciled = True
+        movement.save(update_fields=['reconciled_transaction', 'is_reconciled'])
+
+        statement_delta = statement.lines.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        statement.closing_balance = (statement.opening_balance or Decimal('0')) + statement_delta
+        statement.save(update_fields=['closing_balance'])
+
+        statement_balance = BankStatementLine.objects.filter(
+            statement__bank_account=bank_account
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        bank_account.accounting_account.refresh_from_db(fields=['current_balance'])
+        accounting_balance = getattr(bank_account.accounting_account, 'current_balance', Decimal('0')) or Decimal('0')
 
     return JsonResponse({
         'status': 'success',
@@ -481,4 +635,5 @@ def api_bank_movement_create(request):
         'balance': float(statement_balance),
         'accounting_balance': float(accounting_balance),
         'movement_amount': float(signed_amount),
+        'transaction_id': str(tx.id),
     })
