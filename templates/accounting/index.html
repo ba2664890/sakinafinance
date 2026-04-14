@@ -926,8 +926,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return Number.isFinite(amount) ? amount : 0;
     };
 
-    const updateEntryTotals = () => {
-        if (!form) return;
+    const computeEntryTotals = () => {
+        if (!form) {
+            return { totalDebit: 0, totalCredit: 0, debitCents: 0, creditCents: 0, diffCents: 0 };
+        }
         let totalDebit = 0;
         let totalCredit = 0;
         const debits = form.querySelectorAll('input[name="debit[]"]');
@@ -935,10 +937,15 @@ document.addEventListener('DOMContentLoaded', function() {
         debits.forEach(d => totalDebit += toAmount(d.value));
         credits.forEach(c => totalCredit += toAmount(c.value));
 
-        // Compare in cents to avoid floating-point precision locks (e.g. 0.1 + 0.2).
         const debitCents = Math.round(totalDebit * 100);
         const creditCents = Math.round(totalCredit * 100);
         const diffCents = debitCents - creditCents;
+        return { totalDebit, totalCredit, debitCents, creditCents, diffCents };
+    };
+
+    const updateEntryTotals = () => {
+        if (!form) return;
+        const { totalDebit, totalCredit, debitCents, creditCents, diffCents } = computeEntryTotals();
         const diff = diffCents / 100;
 
         document.getElementById('total-debit').textContent = fmt(totalDebit);
@@ -948,7 +955,10 @@ document.addEventListener('DOMContentLoaded', function() {
         diffEl.className = diffCents === 0 ? 'text-success' : 'text-danger';
         const submitBtn = document.getElementById('submit-entry');
         if (submitBtn) {
-            submitBtn.disabled = debitCents <= 0 || creditCents <= 0 || diffCents !== 0;
+            const canSubmit = debitCents > 0 && creditCents > 0 && diffCents === 0;
+            submitBtn.disabled = false;
+            submitBtn.classList.toggle('opacity-75', !canSubmit);
+            submitBtn.title = canSubmit ? '' : 'Débit et Crédit doivent être > 0 et strictement équilibrés.';
         }
     };
 
@@ -1008,6 +1018,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            const totals = computeEntryTotals();
+            if (totals.debitCents <= 0 || totals.creditCents <= 0) {
+                alert("Les totaux débit et crédit doivent être strictement positifs.");
+                return;
+            }
+            if (totals.diffCents !== 0) {
+                alert("L'écriture n'est pas équilibrée. Vérifiez Débit/Crédit.");
+                return;
+            }
             
             const formData = new FormData(form);
             const lines = [];
