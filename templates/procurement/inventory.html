@@ -221,8 +221,10 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Type de mouvement</label>
                         <select class="form-select rounded-12" name="transaction_type">
-                            <option value="IN">Entrée (Achat / Retour)</option>
-                            <option value="OUT">Sortie (Vente / Perte)</option>
+                            <option value="in">Entrée (Achat / Retour)</option>
+                            <option value="out">Sortie (Vente / Perte)</option>
+                            <option value="adj">Ajustement Inventaire</option>
+                            <option value="return">Retour</option>
                         </select>
                     </div>
                     <div class="row g-3 mb-3">
@@ -237,7 +239,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Référence / Commande</label>
-                        <input type="text" class="form-control rounded-12" name="reference" placeholder="Ex: PO-2026-001">
+                        <input type="text" class="form-control rounded-12" name="reference" placeholder="Auto (ex: STK-2026-001)" disabled>
+                        <div class="small text-muted mt-1">Référence générée automatiquement.</div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Enregistrer le mouvement</button>
                     <div id="stock-error" class="text-danger small mt-2 d-none">Attention: Stock insuffisant pour cette sortie.</div>
@@ -265,7 +268,8 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">SKU / Code</label>
-                            <input type="text" class="form-control rounded-12" name="sku" placeholder="AUTO si vide">
+                            <input type="text" class="form-control rounded-12" name="sku" placeholder="Auto (ex: SKU-0001)" disabled>
+                            <div class="small text-muted mt-1">Le SKU est généré automatiquement.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Unité</label>

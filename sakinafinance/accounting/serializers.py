@@ -19,6 +19,44 @@ class AccountSerializer(serializers.ModelSerializer):
             'opening_balance', 'current_balance', 'is_active', 'description'
         ]
         read_only_fields = ['id', 'current_balance']
+        extra_kwargs = {
+            'code': {'required': False, 'allow_blank': True},
+        }
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        company = getattr(user, 'company', None) or getattr(getattr(user, 'profile', None), 'company', None)
+        if not company:
+            raise serializers.ValidationError({'company': "Aucune entreprise n'est associée à cet utilisateur."})
+        return attrs
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        company = getattr(user, 'company', None) or getattr(getattr(user, 'profile', None), 'company', None)
+        code = (validated_data.get('code') or '').strip()
+        account_class = validated_data.get('account_class')
+
+        if not code and company and account_class:
+            prefix = str(account_class)[0]
+            try:
+                start = int(prefix) * 100 + 1
+            except ValueError:
+                start = None
+
+            if start is not None:
+                candidate = start
+                while True:
+                    code_candidate = f"{candidate}"
+                    if not Account.objects.filter(company=company, code=code_candidate).exists():
+                        code = code_candidate
+                        break
+                    candidate += 1
+
+            validated_data['code'] = code or f"{account_class}01"
+
+        return super().create(validated_data)
 
 
 class JournalSerializer(serializers.ModelSerializer):
@@ -34,6 +72,43 @@ class JournalSerializer(serializers.ModelSerializer):
             'default_debit_account', 'default_debit_account_name',
             'default_credit_account', 'default_credit_account_name', 'is_active'
         ]
+        extra_kwargs = {
+            'code': {'required': False, 'allow_blank': True},
+        }
+
+    def validate(self, attrs):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        company = getattr(user, 'company', None) or getattr(getattr(user, 'profile', None), 'company', None)
+        if not company:
+            raise serializers.ValidationError({'company': "Aucune entreprise n'est associée à cet utilisateur."})
+        return attrs
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        company = getattr(user, 'company', None) or getattr(getattr(user, 'profile', None), 'company', None)
+        code = (validated_data.get('code') or '').strip()
+        journal_type = validated_data.get('journal_type')
+        if not code:
+            mapping = {
+                'od': 'OD',
+                'sales': 'VEN',
+                'purchases': 'ACH',
+                'bank': 'BQ',
+                'cash': 'CA',
+                'payroll': 'PAIE',
+                'inventory': 'STK',
+            }
+            base_code = mapping.get(journal_type, (journal_type or 'JR')[:3].upper())
+            code = base_code
+            if company:
+                suffix = 2
+                while Journal.objects.filter(company=company, code=code).exists():
+                    code = f"{base_code}{suffix}"
+                    suffix += 1
+            validated_data['code'] = code
+        return super().create(validated_data)
 
 
 class TransactionLineSerializer(serializers.ModelSerializer):

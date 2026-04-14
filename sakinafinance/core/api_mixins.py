@@ -12,7 +12,12 @@ class CompanyScopedViewSetMixin:
     company_field = 'company'
 
     def get_user_company(self):
-        return getattr(self.request.user, 'company', None)
+        user = self.request.user
+        company = getattr(user, 'company', None)
+        if company:
+            return company
+        profile = getattr(user, 'profile', None)
+        return getattr(profile, 'company', None)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -61,10 +66,10 @@ class CompanyScopedViewSetMixin:
         company = self.get_user_company()
         save_kwargs = {}
 
-        if model and not getattr(user, 'is_superuser', False):
+        if model:
             if hasattr(model, 'company'):
                 if not company:
-                    raise ValidationError({'company': "Aucune entreprise n'est associée à cet utilisateur."})
+                    raise ValidationError({'company': "Aucune entreprise n'est associée à cet utilisateur. Merci d'assigner une entreprise avant de créer des données."})
                 save_kwargs['company'] = company
 
             if hasattr(model, 'entity') and getattr(user, 'entity', None):

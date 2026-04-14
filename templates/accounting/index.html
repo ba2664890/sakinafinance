@@ -471,7 +471,8 @@
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Code</label>
-                        <input type="text" class="form-control rounded-8" name="code" placeholder="Ex: 601" required>
+                        <input type="text" class="form-control rounded-8" name="code" placeholder="Auto (ex: 601)" disabled>
+                        <div class="small text-muted mt-1">Le code est généré automatiquement selon la classe.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Intitulé</label>
@@ -528,7 +529,8 @@
                     {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Code</label>
-                        <input type="text" class="form-control rounded-8" name="code" placeholder="Ex: OD" required>
+                        <input type="text" class="form-control rounded-8" name="code" placeholder="Auto (ex: OD, VEN)" disabled>
+                        <div class="small text-muted mt-1">Le code est généré automatiquement selon le type.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Nom</label>
@@ -1040,7 +1042,6 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const msg = document.getElementById('account-form-msg');
             const payload = {
-                code: accountForm.code.value.trim(),
                 name: accountForm.name.value.trim(),
                 account_class: accountForm.account_class.value,
                 account_type: accountForm.account_type.value,
@@ -1061,7 +1062,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     accountForm.reset();
                     loadAccountingData();
                 } else {
-                    setFormMsg(msg, 'danger', data.detail || 'Erreur lors de la creation du compte.');
+                    const message = data?.company?.[0] || data?.detail || 'Erreur lors de la creation du compte.';
+                    setFormMsg(msg, 'danger', message);
                 }
             } catch (err) {
                 setFormMsg(msg, 'danger', 'Erreur reseau lors de la creation du compte.');
@@ -1076,7 +1078,6 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const msg = document.getElementById('journal-form-msg');
             const payload = {
-                code: journalForm.code.value.trim(),
                 name: journalForm.name.value.trim(),
                 journal_type: journalForm.journal_type.value
             };
@@ -1095,7 +1096,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     journalForm.reset();
                     loadAccountingData();
                 } else {
-                    setFormMsg(msg, 'danger', data.detail || 'Erreur lors de la creation du journal.');
+                    const message = data?.company?.[0] || data?.detail || 'Erreur lors de la creation du journal.';
+                    setFormMsg(msg, 'danger', message);
                 }
             } catch (err) {
                 setFormMsg(msg, 'danger', 'Erreur reseau lors de la creation du journal.');

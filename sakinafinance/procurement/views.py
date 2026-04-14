@@ -14,7 +14,11 @@ from decimal import Decimal
 from .models import Supplier, PurchaseOrder, PurchaseRFQ, SupplierCategory, InventoryItem, StockTransaction
 
 def _get_company(request):
-    return getattr(request.user, 'company', None)
+    company = getattr(request.user, 'company', None)
+    if company:
+        return company
+    profile = getattr(request.user, 'profile', None)
+    return getattr(profile, 'company', None)
 
 
 @login_required
@@ -279,6 +283,8 @@ def inventory_item_create(request):
 def api_po_create(request):
     """API: Créer un bon de commande"""
     company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
     supplier_id = request.POST.get('supplier')
     expected_delivery = request.POST.get('expected_delivery')
     items_json = request.POST.get('items') # JSON string of items
@@ -286,10 +292,19 @@ def api_po_create(request):
     supplier = get_object_or_404(Supplier, id=supplier_id, company=company)
     
     # Création simplifiée pour l'exemple
+    # Générer une référence automatique SYSCOHADA-friendly
+    base_ref = f"PO-{timezone.now().strftime('%Y%m%d')}"
+    ref = base_ref
+    suffix = 1
+    while PurchaseOrder.objects.filter(company=company, reference=ref).exists():
+        suffix += 1
+        ref = f"{base_ref}-{suffix:02d}"
+
     po = PurchaseOrder.objects.create(
         company=company,
         supplier=supplier,
         expected_delivery=expected_delivery or None,
+        reference=ref,
         status='draft',
         created_by=request.user,
         total=Decimal('0')
@@ -309,15 +324,25 @@ def api_po_create(request):
 def api_inventory_item_create(request):
     """API: Créer un article"""
     company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
     name = request.POST.get('name')
     sku = request.POST.get('sku')
     unit = request.POST.get('unit', 'unit')
     min_stock = Decimal(request.POST.get('min_stock_level', '10'))
-    
+
+    if not sku:
+        base_sku = f"SKU-{timezone.now().strftime('%Y%m%d')}"
+        sku = base_sku
+        suffix = 1
+        while InventoryItem.objects.filter(company=company, sku=sku).exists():
+            sku = f"{base_sku}-{suffix:03d}"
+            suffix += 1
+
     item = InventoryItem.objects.create(
         company=company,
         name=name,
-        sku=sku or f"SKU-{timezone.now().timestamp()}",
+        sku=sku,
         unit_measure=unit,
         min_stock_level=min_stock
     )
@@ -334,8 +359,22 @@ def api_inventory_item_create(request):
 def api_stock_transaction_create(request):
     """API: Créer un mouvement de stock"""
     company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
     item_id = request.POST.get('inventory_item')
-    trans_type = request.POST.get('transaction_type')
+    trans_type = (request.POST.get('transaction_type') or '').lower()
+    if trans_type in {'in', 'out', 'adj', 'return'}:
+        normalized_type = trans_type
+    elif trans_type == 'in':
+        normalized_type = 'in'
+    elif trans_type == 'out':
+        normalized_type = 'out'
+    elif trans_type == 'IN'.lower():
+        normalized_type = 'in'
+    elif trans_type == 'OUT'.lower():
+        normalized_type = 'out'
+    else:
+        normalized_type = 'in'
     quantity = Decimal(request.POST.get('quantity', '0'))
     unit_price = Decimal(request.POST.get('unit_price', '0'))
     reference = request.POST.get('reference')
@@ -343,11 +382,19 @@ def api_stock_transaction_create(request):
     item = get_object_or_404(InventoryItem, id=item_id, company=company)
     
     try:
+        if not reference:
+            base_ref = f"STK-{timezone.now().strftime('%Y%m%d')}"
+            reference = base_ref
+            suffix = 1
+            while StockTransaction.objects.filter(item__company=company, reference=reference).exists():
+                reference = f"{base_ref}-{suffix:03d}"
+                suffix += 1
+
         trans = StockTransaction.objects.create(
             item=item,
-            transaction_type=trans_type,
+            transaction_type=normalized_type,
             quantity=quantity,
-            unit_price=unit_price,
+            unit_cost=unit_price,
             reference=reference
         )
         return JsonResponse({
