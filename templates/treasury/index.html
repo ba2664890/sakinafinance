@@ -214,6 +214,9 @@
                         <button class="btn btn-outline-primary w-100 rounded-8 py-2 small fw-bold mb-2" data-bs-toggle="modal" data-bs-target="#bankAccountModal">
                             <i class="bi bi-plus-lg me-1"></i> Nouveau Compte
                         </button>
+                        <button class="btn btn-outline-secondary w-100 rounded-8 py-2 small fw-bold mb-2" data-bs-toggle="modal" data-bs-target="#entityModal">
+                            <i class="bi bi-diagram-3 me-1"></i> Ajouter une entité
+                        </button>
                         <button class="btn btn-primary w-100 rounded-8 py-2 small fw-bold">
                             Rapprochement Bancaire
                         </button>
@@ -307,6 +310,13 @@
                 <form id="bankAccountForm">
                     {% csrf_token %}
                     <div class="mb-3">
+                        <label class="form-label small fw-bold">Entité</label>
+                        <select class="form-select rounded-12" name="entity_id" id="bankAccountEntitySelect">
+                            <option value="">Entité par défaut (auto)</option>
+                        </select>
+                        <div class="small text-muted mt-1">Laissez vide pour utiliser l'entité principale.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label small fw-bold">Nom de la Banque</label>
                         <input type="text" class="form-control rounded-12" name="bank_name" placeholder="Ex: CBAO, Ecobank..." required>
                     </div>
@@ -331,6 +341,43 @@
                     </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold mt-4">Enregistrer le compte</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: New Entity -->
+<div class="modal fade" id="entityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-24 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Nouvelle Entité</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="entityForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nom de l'entité</label>
+                        <input type="text" class="form-control rounded-12" name="name" placeholder="Ex: Filiale Dakar" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Type d'entité</label>
+                        <select class="form-select rounded-12" name="entity_type">
+                            <option value="branch">Succursale</option>
+                            <option value="subsidiary">Filiale</option>
+                            <option value="hq">Siège Social</option>
+                            <option value="jv">Joint-Venture</option>
+                            <option value="partnership">Partenariat</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Code (optionnel)</label>
+                        <input type="text" class="form-control rounded-12" name="code" maxlength="10" placeholder="Auto si vide">
+                        <div class="small text-muted mt-1">Maximum 10 caractères, unique.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold mt-2">Créer l'entité</button>
                 </form>
             </div>
         </div>
@@ -388,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function parseJsonResponse(response) {
         const contentType = response.headers.get('content-type') || '';
         if (!contentType.includes('application/json')) {
-            const text = await response.text();
+            await response.text();
             throw new Error(`Réponse non JSON (${response.status})`);
         }
 
@@ -399,7 +446,19 @@ document.addEventListener('DOMContentLoaded', function() {
         return payload;
     }
 
-    async function loadTreasuryData() {
+    function populateEntitySelect(entities, selectedEntityId = '') {
+        const entitySelect = document.getElementById('bankAccountEntitySelect');
+        if (!entitySelect) return;
+
+        const options = ['<option value="">Entité par défaut (auto)</option>'];
+        (entities || []).forEach((entity) => {
+            const selected = String(entity.id) === String(selectedEntityId) ? 'selected' : '';
+            options.push(`<option value="${entity.id}" ${selected}>${entity.code} - ${entity.name}</option>`);
+        });
+        entitySelect.innerHTML = options.join('');
+    }
+
+    async function loadTreasuryData(preferredEntityId = '') {
         try {
             const response = await fetch('{% url "api_treasury_data" %}');
             const data = await parseJsonResponse(response);
@@ -464,9 +523,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.bank_accounts_list.map(b => `<option value="${b.id}">${b.bank_name} (${b.iban || b.account_name || 'Compte'})</option>`).join('');
             }
 
+            populateEntitySelect(data.entities_list || [], preferredEntityId);
+
         } catch (error) {
             console.error('Erreur de chargement Trésorerie:', error);
         }
+    }
+
+    // Handle Entity Form
+    const entityForm = document.getElementById('entityForm');
+    if (entityForm) {
+        entityForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(entityForm);
+            try {
+                const response = await fetch('/treasury/api/entities/create/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const res = await parseJsonResponse(response);
+                if (res.status === 'success') {
+                    bootstrap.Modal.getInstance(document.getElementById('entityModal')).hide();
+                    entityForm.reset();
+                    await loadTreasuryData(res.entity?.id || '');
+                } else {
+                    alert(res.message);
+                }
+            } catch (err) {
+                console.error('Entity submit error:', err);
+                alert(err.message || "Impossible de créer l'entité.");
+            }
+        });
     }
 
     // Handle Bank Account Form

@@ -36,17 +36,21 @@ def _ensure_default_entity(company):
     if entity:
         return entity
 
-    for _ in range(5):
-        code = f"HQ{uuid.uuid4().hex[:8].upper()}"  # max_length=10
-        if Entity.objects.filter(code=code).exists():
-            continue
-        return Entity.objects.create(
-            company=company,
-            name='Siège',
-            code=code,
-            entity_type=Entity.EntityType.HEADQUARTERS,
-        )
+    return Entity.objects.create(
+        company=company,
+        name='Siège',
+        code=_generate_unique_entity_code('HQ'),
+        entity_type=Entity.EntityType.HEADQUARTERS,
+    )
 
+
+def _generate_unique_entity_code(prefix='ENT'):
+    """Génère un code d'entité globalement unique (max 10 chars)."""
+    safe_prefix = ''.join(ch for ch in (prefix or 'ENT').upper() if ch.isalnum())[:3] or 'ENT'
+    for _ in range(25):
+        code = f"{safe_prefix}{uuid.uuid4().hex[:7].upper()}"[:10]
+        if not Entity.objects.filter(code=code).exists():
+            return code
     raise ValueError("Impossible de générer un code d'entité unique.")
 
 
@@ -169,6 +173,7 @@ def api_treasury_data(request):
         'cash_cycle_days': cash_cycle,
         'bank_accounts': bank_accounts,
         'bank_accounts_list': list(BankAccount.objects.filter(company=company).values('id', 'bank_name', 'account_name', 'iban', 'currency')),
+        'entities_list': list(company.entities.values('id', 'name', 'code', 'entity_type').order_by('code', 'name')),
         'currency_exposure': [
             {'currency': 'XOF', 'amount': f"{float(liquidity)/1e6:.1f}M", 'risk': 'STABLE', 'risk_class': 'success'},
         ],
@@ -231,6 +236,54 @@ def treasury_api_cashflow(request):
 
 @require_POST
 @login_required
+def api_entity_create(request):
+    """API: Créer une entité rapidement depuis la Trésorerie."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': "Aucune entreprise n'est associée à cet utilisateur."}, status=400)
+
+    name = (request.POST.get('name') or '').strip()
+    entity_type = (request.POST.get('entity_type') or Entity.EntityType.BRANCH).strip()
+    code = (request.POST.get('code') or '').strip().upper().replace(' ', '')
+
+    if not name:
+        return JsonResponse({'status': 'error', 'message': "Le nom de l'entité est requis."}, status=400)
+
+    valid_entity_types = {choice[0] for choice in Entity.EntityType.choices}
+    if entity_type not in valid_entity_types:
+        entity_type = Entity.EntityType.BRANCH
+
+    if code:
+        if len(code) > 10:
+            return JsonResponse({'status': 'error', 'message': "Le code d'entité ne doit pas dépasser 10 caractères."}, status=400)
+        if Entity.objects.filter(code=code).exists():
+            return JsonResponse({'status': 'error', 'message': "Ce code d'entité existe déjà."}, status=400)
+    else:
+        prefix = 'HQ' if entity_type == Entity.EntityType.HEADQUARTERS else 'ENT'
+        code = _generate_unique_entity_code(prefix)
+
+    entity = Entity.objects.create(
+        company=company,
+        name=name,
+        code=code,
+        entity_type=entity_type,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Entité créée',
+        'entity': {
+            'id': str(entity.id),
+            'name': entity.name,
+            'code': entity.code,
+            'entity_type': entity.entity_type,
+            'entity_type_display': entity.get_entity_type_display(),
+        }
+    })
+
+
+@require_POST
+@login_required
 def api_bank_account_create(request):
     """API: Créer un compte bancaire"""
     company = _get_company(request)
@@ -241,13 +294,20 @@ def api_bank_account_create(request):
     account_number = request.POST.get('account_number')
     currency = request.POST.get('currency', 'XOF')
     account_name = request.POST.get('account_name') or (f"Compte {bank_name}" if bank_name else "Compte bancaire")
+    entity_id = request.POST.get('entity_id')
     
     if not bank_name:
         return JsonResponse({'status': 'error', 'message': 'Champs requis manquants'}, status=400)
     
     try:
-        # Entité et compte comptable créés automatiquement si absents.
-        entity = _ensure_default_entity(company)
+        if entity_id:
+            entity = Entity.objects.filter(company=company, id=entity_id).first()
+            if not entity:
+                return JsonResponse({'status': 'error', 'message': "L'entité sélectionnée est introuvable."}, status=400)
+        else:
+            # Entité créée automatiquement si absente.
+            entity = _ensure_default_entity(company)
+
         accounting_account = _ensure_treasury_account(company, entity)
     except Exception as exc:
         logger.exception("Erreur préparation compte bancaire société=%s", company.pk)
@@ -266,7 +326,7 @@ def api_bank_account_create(request):
     return JsonResponse({
         'status': 'success',
         'message': 'Compte bancaire créé',
-        'account': {'id': str(account.id), 'bank': account.bank_name}
+        'account': {'id': str(account.id), 'bank': account.bank_name, 'entity': entity.name}
     })
 
 
