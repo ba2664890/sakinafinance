@@ -1,1182 +1,607 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}SakinaFinance — Intelligence Financière pour l'Afrique{% endblock %}
+{% block title %}SakinaFinance - Système d'Intelligence Financière Universel{% endblock %}
 
 {% block extra_css %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-
 <style>
-/* ─── TOKENS ─────────────────────────────────────────── */
-:root {
-  --ink:      #080d1a;
-  --ink-mid:  #1a2340;
-  --ink-soft: #2e3d60;
-  --sky:      #0066ff;
-  --sky-glow: rgba(0,102,255,.18);
-  --teal:     #00c9b1;
-  --amber:    #f5a623;
-  --surface:  #f0f4ff;
-  --white:    #ffffff;
-  --radius:   20px;
-  --font-head: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-}
+    .landing-hero {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .landing-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(37, 99, 235, 0.15), transparent 70%);
+        z-index: 1;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    .feature-card {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.4) !important;
+        border-radius: 24px;
+        padding: 2.5rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        background: rgba(255,255,255,0.9);
+    }
+    .navbar {
+        background: rgba(15, 23, 42, 0.8) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 0.8rem 0;
+    }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: var(--font-body);
-  background: var(--white);
-  color: var(--ink);
-  overflow-x: hidden;
-}
-
-/* ─── SCROLLBAR ─────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--sky); border-radius: 4px; }
-
-/* ─── NAVBAR ────────────────────────────────────────── */
-.sf-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-  padding: 1rem 0;
-  background: rgba(8,13,26,0);
-  backdrop-filter: blur(0px);
-  transition: background .4s, backdrop-filter .4s, padding .3s;
-}
-.sf-nav.scrolled {
-  background: rgba(8,13,26,.88);
-  backdrop-filter: blur(20px);
-  padding: .65rem 0;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-}
-.sf-nav .container {
-  display: flex; align-items: center; gap: 2rem;
-  max-width: 1280px; margin: 0 auto; padding: 0 2rem;
-}
-.sf-logo {
-  display: flex; align-items: center; gap: .6rem;
-  text-decoration: none;
-  font-family: var(--font-head);
-  font-weight: 800; font-size: 1.35rem;
-  color: var(--white);
-  letter-spacing: -.02em;
-}
-.sf-logo span { color: var(--sky); }
-.sf-logo img { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; }
-
-.sf-nav-links {
-  display: flex; align-items: center; gap: 2rem;
-  list-style: none; margin-left: auto;
-}
-.sf-nav-links a {
-  color: rgba(255,255,255,.7);
-  text-decoration: none; font-size: .9rem;
-  transition: color .2s;
-}
-.sf-nav-links a:hover { color: #fff; }
-.sf-btn-ghost {
-  padding: .45rem 1.1rem; border: 1px solid rgba(255,255,255,.25);
-  border-radius: 50px; color: #fff !important;
-  transition: border-color .2s, background .2s !important;
-}
-.sf-btn-ghost:hover { border-color: #fff; background: rgba(255,255,255,.08) !important; }
-.sf-btn-solid {
-  padding: .45rem 1.3rem;
-  background: var(--sky); color: #fff !important;
-  border-radius: 50px; font-weight: 500;
-  transition: transform .2s, box-shadow .2s !important;
-}
-.sf-btn-solid:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--sky-glow) !important; }
-
-/* ─── HERO ──────────────────────────────────────────── */
-.sf-hero {
-  min-height: 100vh;
-  background: var(--ink);
-  display: flex; align-items: center;
-  position: relative; overflow: hidden;
-  padding: 7rem 0 5rem;
-}
-
-/* Animated mesh background */
-.sf-hero-mesh {
-  position: absolute; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse 70% 60% at 75% 30%, rgba(0,102,255,.22) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(0,201,177,.12) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 60% 90%, rgba(245,166,35,.08) 0%, transparent 55%);
-}
-
-/* Floating orb */
-.sf-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: .5;
-  animation: orb-float 8s ease-in-out infinite;
-}
-.sf-orb-1 { width: 500px; height: 500px; background: var(--sky); top: -100px; right: -100px; animation-delay: 0s; }
-.sf-orb-2 { width: 300px; height: 300px; background: var(--teal); bottom: -50px; left: 10%; animation-delay: -3s; }
-
-@keyframes orb-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50%       { transform: translateY(-30px) scale(1.05); }
-}
-
-/* Grid lines overlay */
-.sf-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-.sf-hero .container { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-
-.sf-hero-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 5rem; }
-
-.sf-badge {
-  display: inline-flex; align-items: center; gap: .5rem;
-  padding: .35rem 1rem;
-  background: rgba(0,102,255,.12);
-  border: 1px solid rgba(0,102,255,.3);
-  border-radius: 50px; color: #93c5fd;
-  font-size: .78rem; font-weight: 600; letter-spacing: .06em;
-  margin-bottom: 1.75rem;
-  animation: fade-up .6s ease both;
-}
-.sf-badge-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--sky);
-  box-shadow: 0 0 6px var(--sky);
-  animation: pulse 1.5s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity: 1; } 50% { opacity: .3; }
-}
-
-.sf-hero h1 {
-  font-family: var(--font-head);
-  font-size: clamp(2.8rem, 5vw, 4.8rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -.04em;
-  color: var(--white);
-  margin-bottom: 1.5rem;
-  animation: fade-up .7s .1s ease both;
-}
-.sf-hero h1 em {
-  font-style: normal;
-  background: linear-gradient(135deg, var(--sky) 0%, var(--teal) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sf-hero p {
-  color: rgba(255,255,255,.6);
-  font-size: 1.1rem; line-height: 1.75;
-  max-width: 480px;
-  margin-bottom: 2.5rem;
-  animation: fade-up .7s .2s ease both;
-}
-
-.sf-hero-ctas {
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  animation: fade-up .7s .3s ease both;
-}
-.sf-cta-primary {
-  display: inline-flex; align-items: center; gap: .6rem;
-  padding: .85rem 2rem;
-  background: var(--sky);
-  color: var(--white) !important;
-  border-radius: 50px;
-  font-weight: 600; font-size: .95rem;
-  text-decoration: none;
-  transition: transform .25s, box-shadow .25s;
-  box-shadow: 0 4px 24px rgba(0,102,255,.4);
-}
-.sf-cta-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 36px rgba(0,102,255,.5); }
-.sf-cta-primary svg { transition: transform .25s; }
-.sf-cta-primary:hover svg { transform: translateX(4px); }
-
-.sf-cta-ghost {
-  display: inline-flex; align-items: center; gap: .6rem;
-  padding: .85rem 1.8rem;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.15);
-  color: var(--white) !important;
-  border-radius: 50px;
-  font-weight: 500; font-size: .95rem;
-  text-decoration: none;
-  transition: background .2s, border-color .2s;
-}
-.sf-cta-ghost:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.35); }
-
-.sf-trust {
-  margin-top: 2.5rem;
-  display: flex; align-items: center; gap: .75rem;
-  color: rgba(255,255,255,.4); font-size: .82rem;
-  animation: fade-up .7s .4s ease both;
-}
-.sf-trust-avatars { display: flex; }
-.sf-trust-avatars span {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--ink);
-  margin-left: -6px;
-  font-size: .65rem;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; color: #fff;
-}
-.sf-trust-avatars span:nth-child(1) { background: #0066ff; margin-left: 0; }
-.sf-trust-avatars span:nth-child(2) { background: #00c9b1; }
-.sf-trust-avatars span:nth-child(3) { background: #f5a623; }
-.sf-trust-avatars span:nth-child(4) { background: #e11d48; }
-
-/* ─── DASHBOARD MOCKUP ──────────────────────────────── */
-.sf-dash-wrap {
-  position: relative;
-  animation: fade-up .8s .2s ease both;
-}
-
-.sf-dash-card {
-  background: #111827;
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,.08);
-  overflow: hidden;
-  box-shadow: 0 60px 120px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
-}
-
-.sf-dash-titlebar {
-  background: #0c1220;
-  padding: 12px 18px;
-  display: flex; align-items: center; gap: 8px;
-}
-.sf-dot { width: 10px; height: 10px; border-radius: 50%; }
-.sf-dot-r { background: #ff5f56; }
-.sf-dot-y { background: #ffbd2e; }
-.sf-dot-g { background: #27c93f; }
-.sf-dash-url {
-  flex: 1; text-align: center;
-  background: rgba(255,255,255,.05);
-  border-radius: 6px; padding: 3px 10px;
-  font-size: .72rem; color: rgba(255,255,255,.35);
-}
-
-.sf-dash-body { padding: 20px; }
-
-.sf-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
-.sf-kpi {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 12px; padding: 14px;
-}
-.sf-kpi-label { font-size: .62rem; color: rgba(255,255,255,.35); letter-spacing: .08em; margin-bottom: 6px; }
-.sf-kpi-val { font-family: var(--font-head); font-size: 1.3rem; font-weight: 700; color: #fff; }
-.sf-kpi-delta { font-size: .68rem; margin-top: 3px; }
-.sf-kpi-delta.up { color: #34d399; }
-.sf-kpi-delta.dn { color: #f87171; }
-
-/* Animated chart bars */
-.sf-chart { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
-.sf-chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.sf-chart-title { font-size: .72rem; color: rgba(255,255,255,.5); letter-spacing: .06em; }
-.sf-chart-pill { font-size: .6rem; background: rgba(0,102,255,.15); color: #93c5fd; border-radius: 20px; padding: 2px 8px; }
-.sf-bars { display: flex; align-items: flex-end; gap: 5px; height: 60px; }
-.sf-bar {
-  flex: 1; border-radius: 4px 4px 0 0;
-  background: rgba(0,102,255,.25);
-  animation: bar-grow .8s ease forwards;
-  transform-origin: bottom;
-  transform: scaleY(0);
-}
-.sf-bar.hi { background: linear-gradient(to top, #0066ff, #00c9b1); }
-@keyframes bar-grow { to { transform: scaleY(1); } }
-.sf-bar:nth-child(1) { height: 40%; animation-delay: .1s; }
-.sf-bar:nth-child(2) { height: 60%; animation-delay: .15s; }
-.sf-bar:nth-child(3) { height: 45%; animation-delay: .2s; }
-.sf-bar:nth-child(4) { height: 75%; animation-delay: .25s; }
-.sf-bar:nth-child(5) { height: 55%; animation-delay: .3s; }
-.sf-bar:nth-child(6) { height: 90%; animation-delay: .35s; }
-.sf-bar.hi:nth-child(7) { height: 100%; animation-delay: .4s; }
-.sf-bar:nth-child(8) { height: 70%; animation-delay: .45s; }
-
-/* AI insight chip */
-.sf-ai-chip {
-  background: linear-gradient(135deg, rgba(0,102,255,.15), rgba(0,201,177,.08));
-  border: 1px solid rgba(0,102,255,.25);
-  border-radius: 12px; padding: 14px;
-  margin-bottom: 14px;
-}
-.sf-ai-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: .6rem; color: #93c5fd; letter-spacing: .08em;
-  margin-bottom: 8px;
-}
-.sf-ai-lines span {
-  display: block; height: 5px;
-  background: rgba(255,255,255,.1);
-  border-radius: 3px; margin-bottom: 5px;
-  position: relative; overflow: hidden;
-}
-.sf-ai-lines span::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(0,102,255,.6), transparent);
-  animation: shimmer 2.5s ease infinite;
-}
-@keyframes shimmer {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-.sf-ai-lines span:nth-child(1) { width: 100%; animation-delay: 0s; }
-.sf-ai-lines span:nth-child(2) { width: 80%; animation-delay: .3s; }
-.sf-ai-lines span:nth-child(3) { width: 55%; animation-delay: .6s; }
-.sf-ai-text { font-size: .72rem; color: rgba(255,255,255,.55); margin-top: 8px; }
-
-/* Floating badge on mockup */
-.sf-float-badge {
-  position: absolute;
-  background: var(--white);
-  border-radius: 14px;
-  padding: 10px 14px;
-  box-shadow: 0 16px 40px rgba(0,0,0,.25);
-  animation: float-badge 4s ease-in-out infinite;
-}
-.sf-float-badge-1 { top: -20px; right: -30px; }
-.sf-float-badge-2 { bottom: 40px; left: -30px; }
-@keyframes float-badge {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-.sf-float-inner { display: flex; align-items: center; gap: 8px; }
-.sf-float-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .8rem; }
-.sf-float-text .val { font-size: .9rem; font-weight: 700; color: var(--ink); line-height: 1; }
-.sf-float-text .lbl { font-size: .65rem; color: #64748b; }
-
-/* ─── STATS TICKER ──────────────────────────────────── */
-.sf-stats {
-  background: var(--surface);
-  padding: 4.5rem 0;
-}
-.sf-stats .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-.sf-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: #dde5f5;
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.sf-stat-cell {
-  background: var(--white);
-  padding: 2.5rem 2rem;
-  text-align: center;
-}
-.sf-stat-num {
-  font-family: var(--font-head);
-  font-size: 2.8rem; font-weight: 800;
-  letter-spacing: -.04em;
-  color: var(--sky);
-  line-height: 1;
-  margin-bottom: .5rem;
-}
-.sf-stat-desc { font-size: .88rem; color: #64748b; line-height: 1.5; }
-
-/* ─── SECTION HELPERS ───────────────────────────────── */
-.sf-section { padding: 7rem 0; }
-.sf-section .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-.sf-eyebrow {
-  display: inline-flex; align-items: center; gap: .5rem;
-  font-size: .75rem; font-weight: 700; letter-spacing: .1em;
-  color: var(--sky);
-  margin-bottom: 1rem;
-}
-.sf-eyebrow::before {
-  content: '';
-  display: block;
-  width: 20px; height: 2px;
-  background: var(--sky);
-  border-radius: 2px;
-}
-.sf-section-title {
-  font-family: var(--font-head);
-  font-size: clamp(2rem, 3.5vw, 3rem);
-  font-weight: 800;
-  letter-spacing: -.04em;
-  line-height: 1.1;
-  color: var(--ink);
-  margin-bottom: 1rem;
-}
-.sf-section-sub { font-size: 1.05rem; color: #64748b; max-width: 520px; line-height: 1.75; }
-
-/* ─── DEMO SECTION ──────────────────────────────────── */
-.sf-demo { background: var(--white); }
-.sf-demo-layout { display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; gap: 5rem; }
-
-.sf-demo-features { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-.sf-demo-feat {
-  display: flex; align-items: flex-start; gap: 1rem;
-  padding: 1.25rem;
-  border-radius: 16px;
-  border: 1px solid transparent;
-  transition: background .3s, border-color .3s, transform .3s;
-  cursor: default;
-}
-.sf-demo-feat:hover { background: var(--surface); border-color: #dde5f5; transform: translateX(6px); }
-.sf-demo-feat-icon {
-  width: 42px; height: 42px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; flex-shrink: 0;
-}
-.sf-demo-feat-body h5 { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: .25rem; color: var(--ink); }
-.sf-demo-feat-body p { font-size: .87rem; color: #64748b; line-height: 1.6; margin: 0; }
-
-/* ─── FEATURES SECTION ──────────────────────────────── */
-.sf-features-bg { background: var(--ink); }
-.sf-feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; background: rgba(255,255,255,.06); border-radius: var(--radius); overflow: hidden; margin-top: 4rem; }
-.sf-feat-tile {
-  background: var(--ink-mid);
-  padding: 2.5rem;
-  position: relative; overflow: hidden;
-  transition: background .3s;
-}
-.sf-feat-tile:hover { background: var(--ink-soft); }
-.sf-feat-tile::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--sky), transparent);
-  opacity: 0;
-  transition: opacity .3s;
-}
-.sf-feat-tile:hover::after { opacity: 1; }
-
-.sf-feat-num {
-  font-family: var(--font-head);
-  font-size: 3rem; font-weight: 800;
-  color: rgba(255,255,255,.05);
-  line-height: 1;
-  margin-bottom: -.5rem;
-}
-.sf-feat-ico {
-  width: 48px; height: 48px;
-  background: rgba(0,102,255,.12);
-  border: 1px solid rgba(0,102,255,.2);
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.25rem; margin-bottom: 1.25rem;
-}
-.sf-feat-tile h4 {
-  font-family: var(--font-head);
-  font-size: 1.1rem; font-weight: 700;
-  color: var(--white); margin-bottom: .6rem;
-  letter-spacing: -.02em;
-}
-.sf-feat-tile p { font-size: .87rem; color: rgba(255,255,255,.45); line-height: 1.65; margin: 0; }
-
-/* ─── MODULES SECTION ───────────────────────────────── */
-.sf-modules { background: var(--surface); }
-.sf-mod-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; margin-top: 3rem; }
-.sf-mod-card {
-  background: var(--white);
-  border-radius: 20px;
-  border: 1px solid #e2e8f4;
-  padding: 2rem;
-  transition: transform .3s, box-shadow .3s, border-color .3s;
-}
-.sf-mod-card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(0,0,0,.07); border-color: #c7d5f5; }
-.sf-mod-header { display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem; }
-.sf-mod-icon {
-  width: 44px; height: 44px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-}
-.sf-mod-header h5 { font-family: var(--font-head); font-size: 1.05rem; font-weight: 700; color: var(--ink); margin: 0; }
-.sf-mod-card p { font-size: .87rem; color: #64748b; line-height: 1.65; margin-bottom: 1rem; }
-.sf-mod-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
-.sf-tag {
-  font-size: .72rem; font-weight: 500;
-  padding: .2rem .7rem;
-  border-radius: 50px;
-  background: var(--surface);
-  color: var(--sky);
-  border: 1px solid #dde5f5;
-}
-
-/* ─── PRICING SECTION ───────────────────────────────── */
-.sf-pricing { background: var(--white); }
-.sf-pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 3.5rem; align-items: start; }
-.sf-plan {
-  border-radius: 20px;
-  border: 1px solid #e2e8f4;
-  padding: 2rem;
-  transition: transform .3s, box-shadow .3s;
-}
-.sf-plan:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(0,0,0,.07); }
-.sf-plan.featured {
-  background: var(--ink);
-  border-color: transparent;
-  box-shadow: 0 20px 60px rgba(0,102,255,.2);
-}
-.sf-plan-badge {
-  display: inline-block;
-  font-size: .68rem; font-weight: 700; letter-spacing: .08em;
-  color: var(--sky); background: rgba(0,102,255,.1);
-  border-radius: 50px; padding: .2rem .8rem;
-  margin-bottom: 1.25rem;
-}
-.sf-plan.featured .sf-plan-badge { color: var(--teal); background: rgba(0,201,177,.1); }
-.sf-plan-name { font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; color: var(--ink); margin-bottom: .3rem; }
-.sf-plan.featured .sf-plan-name { color: #fff; }
-.sf-plan-sub { font-size: .82rem; color: #94a3b8; margin-bottom: 1.5rem; }
-.sf-plan-price { margin-bottom: 1.5rem; }
-.sf-plan-price .amt { font-family: var(--font-head); font-size: 2.5rem; font-weight: 800; letter-spacing: -.04em; color: var(--ink); }
-.sf-plan.featured .sf-plan-price .amt { color: #fff; }
-.sf-plan-price .per { font-size: .85rem; color: #94a3b8; }
-.sf-plan-feats { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: .75rem; }
-.sf-plan-feats li { display: flex; align-items: flex-start; gap: .6rem; font-size: .85rem; color: #4b5563; }
-.sf-plan.featured .sf-plan-feats li { color: rgba(255,255,255,.7); }
-.sf-plan-feats li::before {
-  content: '✓';
-  display: flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: rgba(0,102,255,.1); color: var(--sky);
-  font-size: .7rem; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-}
-.sf-plan.featured .sf-plan-feats li::before { background: rgba(0,201,177,.15); color: var(--teal); }
-.sf-plan-btn {
-  display: block; text-align: center;
-  padding: .8rem; border-radius: 12px;
-  font-weight: 600; font-size: .9rem;
-  text-decoration: none;
-  transition: all .25s;
-}
-.sf-plan-btn.outline { border: 1px solid #e2e8f4; color: var(--ink); }
-.sf-plan-btn.outline:hover { background: var(--surface); border-color: #c7d5f5; }
-.sf-plan-btn.solid { background: var(--sky); color: #fff; box-shadow: 0 4px 16px rgba(0,102,255,.35); }
-.sf-plan-btn.solid:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,102,255,.45); }
-
-/* ─── CTA BANNER ────────────────────────────────────── */
-.sf-cta-banner {
-  background: var(--ink);
-  padding: 6rem 0;
-  position: relative; overflow: hidden;
-}
-.sf-cta-banner::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(0,102,255,.18), transparent 70%);
-}
-.sf-cta-banner .container { position: relative; z-index: 2; text-align: center; max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-.sf-cta-banner h2 {
-  font-family: var(--font-head);
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 800; letter-spacing: -.04em;
-  color: #fff; margin-bottom: 1rem;
-}
-.sf-cta-banner p { color: rgba(255,255,255,.5); font-size: 1.05rem; margin-bottom: 2.5rem; }
-.sf-cta-banner .sf-cta-primary { margin: 0 auto; }
-.sf-cta-banner .sf-guarantee { margin-top: 1.25rem; font-size: .82rem; color: rgba(255,255,255,.35); }
-
-/* ─── FOOTER ────────────────────────────────────────── */
-.sf-footer { background: #050a15; padding: 5rem 0 2.5rem; }
-.sf-footer .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-.sf-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-.sf-footer-brand p { font-size: .88rem; color: rgba(255,255,255,.35); line-height: 1.75; margin-top: .75rem; max-width: 240px; }
-.sf-footer h6 { font-family: var(--font-head); font-size: .8rem; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,.5); margin-bottom: 1.25rem; }
-.sf-footer ul { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
-.sf-footer ul a { font-size: .88rem; color: rgba(255,255,255,.35); text-decoration: none; transition: color .2s; }
-.sf-footer ul a:hover { color: rgba(255,255,255,.85); }
-.sf-footer-bottom { border-top: 1px solid rgba(255,255,255,.06); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; }
-.sf-footer-copy { font-size: .83rem; color: rgba(255,255,255,.25); }
-.sf-footer-socials { display: flex; gap: 1rem; }
-.sf-footer-socials a {
-  width: 34px; height: 34px; border-radius: 8px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,.4); font-size: .9rem;
-  text-decoration: none; transition: background .2s, color .2s;
-}
-.sf-footer-socials a:hover { background: rgba(255,255,255,.12); color: #fff; }
-
-/* ─── ANIMATIONS ────────────────────────────────────── */
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.sf-reveal { opacity: 0; transform: translateY(30px); transition: opacity .65s ease, transform .65s ease; }
-.sf-reveal.visible { opacity: 1; transform: none; }
-
-/* ─── RESPONSIVE ────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .sf-hero-row, .sf-demo-layout { grid-template-columns: 1fr; gap: 3rem; }
-  .sf-feat-grid { grid-template-columns: repeat(2, 1fr); }
-  .sf-pricing-grid { grid-template-columns: repeat(2, 1fr); }
-  .sf-footer-grid { grid-template-columns: 1fr 1fr; }
-  .sf-stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 640px) {
-  .sf-nav-links { display: none; }
-  .sf-feat-grid { grid-template-columns: 1fr; }
-  .sf-pricing-grid { grid-template-columns: 1fr; }
-  .sf-mod-grid { grid-template-columns: 1fr; }
-  .sf-footer-grid { grid-template-columns: 1fr; }
-  .sf-stats-grid { grid-template-columns: 1fr 1fr; }
-  .sf-hero h1 { font-size: 2.5rem; }
-  .sf-float-badge { display: none; }
-}
+    /* Demo Section Styles */
+    .demo-section {
+        background: #f8fafc;
+        padding: 100px 0;
+        position: relative;
+    }
+    .demo-window {
+        background: #1e293b;
+        border-radius: 20px;
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    .demo-window-header {
+        background: #0f172a;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    
+    .demo-content-mockup {
+        padding: 30px;
+        color: white;
+    }
+    .mockup-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+    }
+    .ai-insight-line {
+        height: 8px;
+        background: rgba(59, 130, 246, 0.3);
+        border-radius: 4px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    .glow-primary {
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+    }
+    .text-gradient {
+        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 </style>
 {% endblock %}
 
 {% block body %}
-
-<!-- ═══ NAVBAR ═══════════════════════════════════════════════════════ -->
-<nav class="sf-nav" id="sfNav">
-  <div class="container">
-    <a class="sf-logo" href="{% url 'home' %}">
-      <img src="{% static 'img/logo_sakinafinance.jpeg' %}" alt="SakinaFinance">
-      Sakina<span>Finance</span>
-    </a>
-    <ul class="sf-nav-links">
-      <li><a href="#features">Fonctionnalités</a></li>
-      <li><a href="#demo">Démo</a></li>
-      <li><a href="#pricing">Tarifs</a></li>
-      <li><a href="{% url 'login' %}" class="sf-btn-ghost">Connexion</a></li>
-      <li><a href="{% url 'register' %}" class="sf-btn-solid">Essai gratuit →</a></li>
-    </ul>
-  </div>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+            <div class="brand-logo" style="width: 36px; height: 36px; font-size: 0.9rem; background: var(--primary-color);">
+                <img src="{% static 'img/logo_sakinafinance.jpeg' %}" alt="SakinaFinance" style="width:100%; height:100%; object-fit:cover; border-radius:12px;" />
+            </div>
+            <span class="fw-bold" style="font-family: 'Outfit'; font-size: 1.4rem;">Sakina<span style="color: #3b82f6;">Finance</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#features">Fonctionnalités</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pricing">Tarifs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">À propos</a>
+                </li>
+                <li class="nav-item ms-lg-3">
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'login' %}">Connexion</a>
+                </li>
+                <li class="nav-item ms-2">
+                    <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Essai Premium</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 </nav>
 
-<!-- ═══ HERO ══════════════════════════════════════════════════════════ -->
-<section class="sf-hero">
-  <div class="sf-hero-mesh"></div>
-  <div class="sf-grid"></div>
-  <div class="sf-orb sf-orb-1"></div>
-  <div class="sf-orb sf-orb-2"></div>
-
-  <div class="container">
-    <div class="sf-hero-row">
-
-      <!-- Left: copy -->
-      <div>
-        <div class="sf-badge">
-          <div class="sf-badge-dot"></div>
-          INTELLIGENCE FINANCIÈRE · PROPULSÉE PAR L'IA
-        </div>
-        <h1>
-          Pilotez vos finances<br>
-          avec une IA <em>vraiment intelligente</em>
-        </h1>
-        <p>
-          SakinaFinance unifie comptabilité, trésorerie, paie et conformité OHADA dans une plateforme IA — conçue pour les entreprises africaines qui visent haut.
-        </p>
-        <div class="sf-hero-ctas">
-          <a href="{% url 'register' %}" class="sf-cta-primary">
-            Démarrer gratuitement
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-          <a href="#demo" class="sf-cta-ghost">
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            Voir la démo
-          </a>
-        </div>
-        <div class="sf-trust">
-          <div class="sf-trust-avatars">
-            <span>AB</span><span>DK</span><span>MN</span><span>+</span>
-          </div>
-          Accès illimité 14 jours · Sans CB · Annulation à tout moment
-        </div>
-      </div>
-
-      <!-- Right: dashboard mockup -->
-      <div class="sf-dash-wrap">
-        <!-- floating badges -->
-        <div class="sf-float-badge sf-float-badge-1">
-          <div class="sf-float-inner">
-            <div class="sf-float-icon" style="background:#dcfce7;">🤖</div>
-            <div class="sf-float-text">
-              <div class="val">+14.2%</div>
-              <div class="lbl">Cash Flow ↑</div>
+<!-- Hero Section -->
+<section class="landing-hero">
+    <div class="landing-hero-overlay"></div>
+    <div class="container hero-content">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-10">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-4 px-3 py-2 rounded-pill fw-bold" style="font-size: 0.8rem;">
+                    <i class="bi bi-stars me-2"></i>PRODUIT PREMIUM PROPULSÉ PAR L'IA
+                </span>
+                <h1 style="font-size: 4.5rem; font-weight: 800; letter-spacing: -0.04em; color: #0f172a; margin-bottom: 1.5rem; font-family: 'Outfit';">Sakina<span style="color: #2563eb;">Finance IA</span></h1>
+                <p class="lead">Le Système d'Intelligence Financière Universel pour Startups, PME, ETI et Groupes. Automatisez votre comptabilité, prédisez votre trésorerie et prenez des décisions éclairées grâce à l'IA.</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-rocket me-2"></i>Commencer l'expérience
+                    </a>
+                    <a href="#demo" class="btn btn-outline-light btn-lg px-5">
+                        <i class="bi bi-play-circle me-2"></i>Voir la démo
+                    </a>
+                </div>
+                <p class="mt-4 text-white-50 small">
+                    <i class="bi bi-shield-check me-1"></i>Accès illimité pendant 14 jours • Sans engagement • Annulation à tout moment
+                </p>
             </div>
-          </div>
         </div>
-        <div class="sf-float-badge sf-float-badge-2" style="animation-delay:-2s;">
-          <div class="sf-float-inner">
-            <div class="sf-float-icon" style="background:#dbeafe;">📊</div>
-            <div class="sf-float-text">
-              <div class="val">94%</div>
-              <div class="lbl">Précision ML</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sf-dash-card">
-          <div class="sf-dash-titlebar">
-            <div class="sf-dot sf-dot-r"></div>
-            <div class="sf-dot sf-dot-y"></div>
-            <div class="sf-dot sf-dot-g"></div>
-            <div class="sf-dash-url">app.sakinafinance.com / dashboard</div>
-          </div>
-          <div class="sf-dash-body">
-            <div class="sf-kpi-row">
-              <div class="sf-kpi">
-                <div class="sf-kpi-label">CASH FLOW</div>
-                <div class="sf-kpi-val">12.4M</div>
-                <div class="sf-kpi-delta up">↑ +14.2%</div>
-              </div>
-              <div class="sf-kpi">
-                <div class="sf-kpi-label">EBITDA</div>
-                <div class="sf-kpi-val">4.8M</div>
-                <div class="sf-kpi-delta" style="color:#93c5fd;">Marge 24%</div>
-              </div>
-              <div class="sf-kpi">
-                <div class="sf-kpi-label">DETTE NETTE</div>
-                <div class="sf-kpi-val">1.2M</div>
-                <div class="sf-kpi-delta dn">↓ −6.1%</div>
-              </div>
-            </div>
-            <div class="sf-chart">
-              <div class="sf-chart-header">
-                <span class="sf-chart-title">TRÉSORERIE — 8 DERNIERS MOIS</span>
-                <span class="sf-chart-pill">ML FORECAST</span>
-              </div>
-              <div class="sf-bars">
-                <div class="sf-bar"></div>
-                <div class="sf-bar"></div>
-                <div class="sf-bar"></div>
-                <div class="sf-bar"></div>
-                <div class="sf-bar"></div>
-                <div class="sf-bar"></div>
-                <div class="sf-bar hi"></div>
-                <div class="sf-bar"></div>
-              </div>
-            </div>
-            <div class="sf-ai-chip">
-              <div class="sf-ai-tag">⚡ INSIGHT IA · ANALYSE COMPLÈTE</div>
-              <div class="sf-ai-lines">
-                <span></span><span></span><span></span>
-              </div>
-              <div class="sf-ai-text">L'IA détecte une opportunité de réallocation vers Sakina Tech Hub pour optimiser le T4.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
-  </div>
 </section>
 
-<!-- ═══ STATS ══════════════════════════════════════════════════════════ -->
-<section class="sf-stats">
-  <div class="container">
-    <div class="sf-stats-grid sf-reveal">
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">73%</div>
-        <div class="sf-stat-desc">des entreprises africaines gèrent leurs finances sur Excel</div>
-      </div>
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">60K€</div>
-        <div class="sf-stat-desc">coût annuel moyen d'un ERP classique pour une PME</div>
-      </div>
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">-40%</div>
-        <div class="sf-stat-desc">de temps administratif gagné avec SakinaFinance</div>
-      </div>
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">18M</div>
-        <div class="sf-stat-desc">de prévision de trésorerie grâce au Machine Learning</div>
-      </div>
+<!-- Stats Section -->
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <h2 class="display-4 fw-bold text-primary">73%</h2>
+                <p class="text-muted">des entreprises africaines gèrent leurs finances sur Excel</p>
+            </div>
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <h2 class="display-4 fw-bold text-primary">60K€</h2>
+                <p class="text-muted">coût annuel moyen d'un ERP classique (PME)</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold text-primary">-40%</h2>
+                <p class="text-muted">de temps administratif avec SakinaFinance</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold text-primary">18 mois</h2>
+                <p class="text-muted">de prévision de trésorerie par ML</p>
+            </div>
+        </div>
     </div>
-  </div>
 </section>
 
-<!-- ═══ DEMO SECTION ══════════════════════════════════════════════════ -->
-<section class="sf-section sf-demo" id="demo">
-  <div class="container">
-    <div class="sf-demo-layout sf-reveal">
-      <div>
-        <div class="sf-eyebrow">DÉMONSTRATION LIVE</div>
-        <h2 class="sf-section-title">L'expérience financière de <em style="font-style:normal; color:var(--sky);">nouvelle génération</em></h2>
-        <p class="sf-section-sub">Vos données brutes transformées en décisions intelligentes — en temps réel, avec la précision du Machine Learning.</p>
-
-        <div class="sf-demo-features">
-          <div class="sf-demo-feat">
-            <div class="sf-demo-feat-icon" style="background:rgba(0,102,255,.08);">🧠</div>
-            <div class="sf-demo-feat-body">
-              <h5>Moteur de Prédiction ML</h5>
-              <p>Anticipation des flux de trésorerie à 94 % de précision sur un horizon de 18 mois.</p>
+<!-- Demo Section -->
+<section class="demo-section" id="demo">
+    <div class="container">
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-bold">DÉMONSTRATION LIVE</span>
+                <h2 class="display-5 fw-bold mb-4" style="font-family: 'Outfit';">L'Expérience Financière de <span class="text-gradient">Nouvelle Génération</span></h2>
+                <p class="lead text-muted mb-4">Découvrez comment SakinaFinance transforme vos données brutes en insights actionnables grâce à nos modèles d'IA spécialisés.</p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-cpu text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Moteur de Prédiction ML</h6>
+                            <p class="small text-muted mb-0">Anticipation des flux de trésorerie avec une précision de 94 % sur 18 mois.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-success bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-shield-check text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Conformité OHADA Auto</h6>
+                            <p class="small text-muted mb-0">Génération automatique des états financiers aux normes africaines.</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'register' %}" class="btn btn-primary px-4 py-2">Essayer gratuitement <i class="bi bi-arrow-right ms-2"></i></a>
             </div>
-          </div>
-          <div class="sf-demo-feat">
-            <div class="sf-demo-feat-icon" style="background:rgba(0,201,177,.08);">🛡️</div>
-            <div class="sf-demo-feat-body">
-              <h5>Conformité OHADA Automatique</h5>
-              <p>États financiers générés aux normes africaines et internationales sans effort manuel.</p>
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <div class="demo-window">
+                    <div class="demo-window-header">
+                        <div class="dot dot-red"></div>
+                        <div class="dot dot-yellow"></div>
+                        <div class="dot dot-green"></div>
+                        <div class="ms-2 small text-white-50">SakinaFinance - Executive Dashboard</div>
+                    </div>
+                    <div class="demo-content-mockup">
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="mockup-card">
+                                    <div class="small text-white-50 mb-1">CASH FLOW</div>
+                                    <h4 class="fw-bold mb-0">12.4M XOF</h4>
+                                    <div class="small text-success mt-1"><i class="bi bi-caret-up-fill"></i> +14.2%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mockup-card">
+                                    <div class="small text-white-50 mb-1">EBITDA</div>
+                                    <h4 class="fw-bold mb-0">4.8M XOF</h4>
+                                    <div class="small text-primary mt-1">Marge: 24%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-card mb-4 glow-primary" style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.3);">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-robot me-2"></i>INSIGHT IA</h6>
+                                <span class="badge bg-primary border-0" style="font-size: 0.6rem;">ANALYSIS COMPLETE</span>
+                            </div>
+                            <div class="ai-insight-line"></div>
+                            <div class="ai-insight-line" style="width: 80%;"></div>
+                            <div class="ai-insight-line" style="width: 60%;"></div>
+                            <p class="small text-white-50 mt-2 mb-0">L'IA détecte une opportunité de réallocation des réserves vers Sakina Tech Hub pour optimiser le T4.</p>
+                        </div>
+                        <div class="mockup-card">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="small text-white-50">HISTORIQUE RÉCENT</div>
+                                <div class="small text-white-50">TOUT VOIR</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="bg-white bg-opacity-10 rounded p-1" style="width:30px;height:30px;"></div>
+                                <div class="flex-grow-1 ai-insight-line mb-0" style="height:4px; opacity:0.3;"></div>
+                                <div class="small text-white-50">4.5M</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white bg-opacity-10 rounded p-1" style="width:30px;height:30px;"></div>
+                                <div class="flex-grow-1 ai-insight-line mb-0" style="height:4px; opacity:0.3; width:40%;"></div>
+                                <div class="small text-white-50">1.2M</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="sf-demo-feat">
-            <div class="sf-demo-feat-icon" style="background:rgba(245,166,35,.08);">💬</div>
-            <div class="sf-demo-feat-body">
-              <h5>IA en Langage Naturel</h5>
-              <p>Posez vos questions en français, obtenez des insights actionnables en quelques secondes.</p>
-            </div>
-          </div>
         </div>
-
-        <div style="margin-top:2rem;">
-          <a href="{% url 'register' %}" class="sf-cta-primary" style="display:inline-flex;">
-            Essayer gratuitement
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <div style="background:var(--surface); border-radius:24px; border:1px solid #dde5f5; padding:2rem;">
-        <!-- Mini interactive mockup -->
-        <div style="background:#1a2340; border-radius:16px; padding:1.5rem; color:#fff;">
-          <div style="font-size:.7rem; color:rgba(255,255,255,.4); letter-spacing:.08em; margin-bottom:1rem;">SAKINA AI · ANALYSE EN COURS</div>
-          <div style="display:flex; flex-direction:column; gap:.75rem;">
-            <div style="background:rgba(0,102,255,.1); border:1px solid rgba(0,102,255,.2); border-radius:10px; padding:1rem; font-size:.85rem; line-height:1.6; color:rgba(255,255,255,.75);">
-              📈 <strong style="color:#fff;">Trésorerie T4 :</strong> hausse prévue de +18% grâce à l'accélération des encaissements clients.
-            </div>
-            <div style="background:rgba(0,201,177,.06); border:1px solid rgba(0,201,177,.15); border-radius:10px; padding:1rem; font-size:.85rem; line-height:1.6; color:rgba(255,255,255,.75);">
-              ✅ <strong style="color:#fff;">Conformité OHADA :</strong> 3 écritures automatiquement ajustées pour la clôture de novembre.
-            </div>
-            <div style="background:rgba(245,166,35,.06); border:1px solid rgba(245,166,35,.15); border-radius:10px; padding:1rem; font-size:.85rem; line-height:1.6; color:rgba(255,255,255,.75);">
-              ⚠️ <strong style="color:#fff;">Alerte BFR :</strong> le besoin en fonds de roulement dépasse le seuil de 2.5M XOF.
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:1.25rem; display:flex; align-items:center; gap:.75rem; background:var(--white); border-radius:12px; padding:.85rem 1rem; border:1px solid #e2e8f4;">
-          <span style="font-size:.85rem; color:#94a3b8; flex:1;">Posez votre question financière…</span>
-          <div style="background:var(--sky); width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.8rem; color:#fff;">→</div>
-        </div>
-      </div>
-
     </div>
-  </div>
 </section>
 
-<!-- ═══ FEATURES ══════════════════════════════════════════════════════ -->
-<section class="sf-section sf-features-bg" id="features">
-  <div class="container">
-    <div style="text-align:center;">
-      <div class="sf-eyebrow" style="color:var(--teal); justify-content:center; margin: 0 auto 1rem;">
-        <span style="background:var(--teal); width:20px; height:2px; border-radius:2px; display:block;"></span>
-        LES 6 PILIERS
-      </div>
-      <h2 class="sf-section-title" style="color:#fff; margin:0 auto 1rem;">Une plateforme. Tous vos besoins.</h2>
-      <p class="sf-section-sub" style="color:rgba(255,255,255,.45); margin:0 auto;">Chaque module est conçu pour fonctionner ensemble — et séparément.</p>
-    </div>
 
-    <div class="sf-feat-grid sf-reveal">
-      <div class="sf-feat-tile">
-        <div class="sf-feat-num">01</div>
-        <div class="sf-feat-ico">📊</div>
-        <h4>ANALYSER</h4>
-        <p>Tableau de bord exécutif temps réel. KPIs financiers critiques avec alertes intelligentes et drill-down instantané.</p>
-      </div>
-      <div class="sf-feat-tile">
-        <div class="sf-feat-num">02</div>
-        <div class="sf-feat-ico">🔮</div>
-        <h4>PRÉVOIR</h4>
-        <p>Machine Learning sur vos données historiques. Prévision de trésorerie à 18 mois, précision 94 %, scénarios multiples.</p>
-      </div>
-      <div class="sf-feat-tile">
-        <div class="sf-feat-num">03</div>
-        <div class="sf-feat-ico">⚙️</div>
-        <h4>AUTOMATISER</h4>
-        <p>Rapprochements, écritures comptables, paie, facturation. Zéro saisie manuelle — juste de la valeur ajoutée.</p>
-      </div>
-      <div class="sf-feat-tile">
-        <div class="sf-feat-num">04</div>
-        <div class="sf-feat-ico">💬</div>
-        <h4>INTERROGER</h4>
-        <p>IA générative sur vos données réelles. Posez vos questions en langage naturel, obtenez des insights actionnables.</p>
-      </div>
-      <div class="sf-feat-tile">
-        <div class="sf-feat-num">05</div>
-        <div class="sf-feat-ico">🛡️</div>
-        <h4>CONFORMER</h4>
-        <p>OHADA, IFRS, fiscal, réglementaire. Conformité automatique avec les normes comptables africaines et internationales.</p>
-      </div>
-      <div class="sf-feat-tile">
-        <div class="sf-feat-num">06</div>
-        <div class="sf-feat-ico">🏢</div>
-        <h4>CONSOLIDER</h4>
-        <p>Multi-entités, multi-devises, groupe. Consolidation automatique pour holdings et groupes internationaux.</p>
-      </div>
+<!-- Features Section -->
+<section class="landing-features" id="features">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Les 6 Piliers de SakinaFinance</h2>
+            <p class="lead text-muted">Une plateforme complète qui couvre tous vos besoins financiers</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">VOIR</h4>
+                    <p class="text-muted">Tableaux de bord temps réel. Visualisez votre performance financière en un coup d'œil avec des KPIs personnalisés.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">PRÉDIRE</h4>
+                    <p class="text-muted">ML forecasting. Prévisions de cash flow à 18 mois avec Prophet, LSTM et XGBoost pour une anticipation optimale.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">ALERTER</h4>
+                    <p class="text-muted">Détection d'anomalies instantanée. Soyez alerté des dérives budgétaires, fraudes et risques en temps réel.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">CONSEILLER</h4>
+                    <p class="text-muted">IA générative sur vos données réelles. Posez vos questions en langage naturel et obtenez des insights actionnables.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">CONFORMER</h4>
+                    <p class="text-muted">OHADA, IFRS, fiscal, réglementaire. Conformité automatique avec les normes comptables africaines et internationales.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">CONSOLIDER</h4>
+                    <p class="text-muted">Multi-entités, multi-devises, groupe. Consolidation automatique pour les holdings et groupes internationaux.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </section>
 
-<!-- ═══ MODULES ═══════════════════════════════════════════════════════ -->
-<section class="sf-section sf-modules">
-  <div class="container">
-    <div>
-      <div class="sf-eyebrow">MODULES COMPLETS</div>
-      <h2 class="sf-section-title">Tout ce dont vous avez besoin</h2>
-      <p class="sf-section-sub">Des modules profonds, intégrés, pensés pour la réalité des entreprises africaines.</p>
+<!-- Modules Section -->
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Modules Complets</h2>
+            <p class="lead text-muted">Tout ce dont vous avez besoin pour gérer vos finances</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-calculator text-primary fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">Comptabilité</h5>
+                        </div>
+                        <p class="text-muted">Plan comptable OHADA/SYSCOHADA, journaux automatisés, états financiers (Bilan, CR, TFT), clôture assistée par IA.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Écritures automatiques</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Rapprochement bancaire IA</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Amortissements auto</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-bank text-success fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">Trésorerie</h5>
+                        </div>
+                        <p class="text-muted">Multi-comptes, prévisions ML, gestion du BFR, risques de change, relations bancaires, cash pooling.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Forecasting 18 mois</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Alertes de seuil</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>VaR multi-devises</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-people text-info fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">RH & Paie</h5>
+                        </div>
+                        <p class="text-muted">Gestion de la paie (CNSS, IPRES, IRPP), masse salariale, congés, bulletins, déclarations automatiques.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Calcul automatique</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Télédéclaration</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Multi-pays</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-cart text-warning fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">Achats</h5>
+                        </div>
+                        <p class="text-muted">Procure-to-Pay complet, OCR sur factures, benchmark prix, évaluation fournisseurs, spend analysis.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>3-way match auto</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>OCR IA > 96%</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Détection doublons</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="sf-mod-grid sf-reveal">
-      <div class="sf-mod-card">
-        <div class="sf-mod-header">
-          <div class="sf-mod-icon" style="background:#dbeafe;">🧮</div>
-          <h5>Comptabilité</h5>
-        </div>
-        <p>Plan comptable OHADA/SYSCOHADA, journaux automatisés, états financiers (Bilan, CR, TFT), clôture assistée par IA.</p>
-        <div class="sf-mod-tags">
-          <span class="sf-tag">Écritures auto</span>
-          <span class="sf-tag">Rapprochement IA</span>
-          <span class="sf-tag">Amortissements</span>
-        </div>
-      </div>
-      <div class="sf-mod-card">
-        <div class="sf-mod-header">
-          <div class="sf-mod-icon" style="background:#dcfce7;">🏦</div>
-          <h5>Trésorerie</h5>
-        </div>
-        <p>Multi-comptes, prévisions ML, gestion du BFR, risques de change, relations bancaires, cash pooling.</p>
-        <div class="sf-mod-tags">
-          <span class="sf-tag">Forecasting 18M</span>
-          <span class="sf-tag">Alertes seuil</span>
-          <span class="sf-tag">VaR multi-devises</span>
-        </div>
-      </div>
-      <div class="sf-mod-card">
-        <div class="sf-mod-header">
-          <div class="sf-mod-icon" style="background:#e0f2fe;">👥</div>
-          <h5>RH & Paie</h5>
-        </div>
-        <p>Gestion de la paie (CNSS, IPRES, IRPP), masse salariale, congés, bulletins, déclarations automatiques.</p>
-        <div class="sf-mod-tags">
-          <span class="sf-tag">Calcul auto</span>
-          <span class="sf-tag">Télédéclaration</span>
-          <span class="sf-tag">Multi-pays</span>
-        </div>
-      </div>
-      <div class="sf-mod-card">
-        <div class="sf-mod-header">
-          <div class="sf-mod-icon" style="background:#fef9c3;">🛒</div>
-          <h5>Achats</h5>
-        </div>
-        <p>Procure-to-Pay complet, OCR sur factures, benchmark prix, évaluation fournisseurs, spend analysis IA.</p>
-        <div class="sf-mod-tags">
-          <span class="sf-tag">3-way match auto</span>
-          <span class="sf-tag">OCR IA > 96%</span>
-          <span class="sf-tag">Détection doublons</span>
-        </div>
-      </div>
-    </div>
-  </div>
 </section>
 
-<!-- ═══ PRICING ═══════════════════════════════════════════════════════ -->
-<section class="sf-section sf-pricing" id="pricing">
-  <div class="container">
-    <div style="text-align:center;">
-      <div class="sf-eyebrow" style="justify-content:center; margin: 0 auto 1rem;">TARIFS</div>
-      <h2 class="sf-section-title" style="margin:0 auto 1rem;">Adaptés à votre croissance</h2>
-      <p class="sf-section-sub" style="margin:0 auto;">Choisissez le plan qui correspond à votre stade de développement.</p>
+<!-- Pricing Section -->
+<section class="py-5" id="pricing">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Tarifs Adaptés à Votre Croissance</h2>
+            <p class="lead text-muted">Choisissez le plan qui correspond à votre stade de développement</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Startup</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">49€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les startups en croissance</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Dashboard IA</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 3 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Comptabilité de base</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Trésorerie</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>1 utilisateur</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Support email</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Commencer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-primary shadow">
+                    <div class="card-header bg-primary text-white text-center py-2">
+                        <small>Le plus populaire</small>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-primary mb-2">PME</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">149€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les PME formelles</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout Startup +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 12 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Comptabilité OHADA</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Paie & RH</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Achats</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>5 utilisateurs</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Support prioritaire</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-primary w-100">Commencer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Enterprise</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">499€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les ETI et grandes entreprises</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout PME +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 18 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Multi-entités</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Consolidation</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>IFRS</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Contrôle de gestion</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Utilisateurs illimités</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Contacter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Groupe</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">1 499€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les holdings et groupes</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout Enterprise +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Multi-pays</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Consolidation groupe</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>API complète</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>On-premise option</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Account manager</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>SLA 99.9%</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Contacter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="sf-pricing-grid sf-reveal">
-
-      <!-- Startup -->
-      <div class="sf-plan">
-        <div class="sf-plan-badge">STARTUP</div>
-        <div class="sf-plan-name">Starter</div>
-        <div class="sf-plan-sub">Pour les startups en croissance</div>
-        <div class="sf-plan-price"><span class="amt">49€</span><span class="per">/mois</span></div>
-        <ul class="sf-plan-feats">
-          <li>Dashboard IA</li>
-          <li>Forecasting 3 mois</li>
-          <li>Comptabilité de base</li>
-          <li>Trésorerie</li>
-          <li>1 utilisateur</li>
-          <li>Support email</li>
-        </ul>
-        <a href="{% url 'register' %}" class="sf-plan-btn outline">Commencer</a>
-      </div>
-
-      <!-- PME - featured -->
-      <div class="sf-plan featured">
-        <div class="sf-plan-badge">⭐ LE PLUS POPULAIRE</div>
-        <div class="sf-plan-name">PME</div>
-        <div class="sf-plan-sub">Pour les PME formelles</div>
-        <div class="sf-plan-price"><span class="amt" style="color:#fff;">149€</span><span class="per">/mois</span></div>
-        <ul class="sf-plan-feats">
-          <li>Tout Starter +</li>
-          <li>Forecasting 12 mois</li>
-          <li>Comptabilité OHADA</li>
-          <li>Paie & RH</li>
-          <li>Achats</li>
-          <li>5 utilisateurs</li>
-          <li>Support prioritaire</li>
-        </ul>
-        <a href="{% url 'register' %}" class="sf-plan-btn solid">Commencer</a>
-      </div>
-
-      <!-- Enterprise -->
-      <div class="sf-plan">
-        <div class="sf-plan-badge">ENTERPRISE</div>
-        <div class="sf-plan-name">ETI</div>
-        <div class="sf-plan-sub">Pour les ETI et grandes entreprises</div>
-        <div class="sf-plan-price"><span class="amt">499€</span><span class="per">/mois</span></div>
-        <ul class="sf-plan-feats">
-          <li>Tout PME +</li>
-          <li>Forecasting 18 mois</li>
-          <li>Multi-entités</li>
-          <li>Consolidation</li>
-          <li>IFRS</li>
-          <li>Contrôle de gestion</li>
-          <li>Utilisateurs illimités</li>
-        </ul>
-        <a href="{% url 'register' %}" class="sf-plan-btn outline">Contacter</a>
-      </div>
-
-      <!-- Groupe -->
-      <div class="sf-plan">
-        <div class="sf-plan-badge">GROUPE</div>
-        <div class="sf-plan-name">Holding</div>
-        <div class="sf-plan-sub">Pour les holdings et groupes</div>
-        <div class="sf-plan-price"><span class="amt">1 499€</span><span class="per">/mois</span></div>
-        <ul class="sf-plan-feats">
-          <li>Tout ETI +</li>
-          <li>Multi-pays</li>
-          <li>Consolidation groupe</li>
-          <li>API complète</li>
-          <li>On-premise option</li>
-          <li>Account manager dédié</li>
-          <li>SLA 99.9%</li>
-        </ul>
-        <a href="{% url 'register' %}" class="sf-plan-btn outline">Contacter</a>
-      </div>
-
-    </div>
-  </div>
 </section>
 
-<!-- ═══ CTA BANNER ════════════════════════════════════════════════════ -->
-<section class="sf-cta-banner">
-  <div class="container">
-    <h2>Prêt à transformer votre gestion financière ?</h2>
-    <p>Rejoignez des centaines d'entreprises africaines qui font confiance à SakinaFinance.</p>
-    <a href="{% url 'register' %}" class="sf-cta-primary">
-      Commencer l'expérience
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </a>
-    <p class="sf-guarantee">🔒 14 jours d'essai gratuit · Aucune carte bancaire requise · Annulation à tout moment</p>
-  </div>
-</section>
-
-<!-- ═══ FOOTER ════════════════════════════════════════════════════════ -->
-<footer class="sf-footer">
-  <div class="container">
-    <div class="sf-footer-grid">
-      <div class="sf-footer-brand">
-        <a class="sf-logo" href="{% url 'home' %}" style="margin-bottom:.5rem;">
-          Sakina<span>Finance</span>
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container text-center">
+        <h2 class="text-white mb-3">Prêt à transformer votre gestion financière ?</h2>
+        <p class="text-white-50 mb-4">Rejoignez des milliers d'entreprises qui font confiance à SakinaFinance</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-rocket me-2"></i>Commencer l'expérience
         </a>
-        <p>Le Système d'Intelligence Financière Universel pour toutes les entreprises africaines.</p>
-      </div>
-      <div>
-        <h6>PRODUIT</h6>
-        <ul>
-          <li><a href="#features">Fonctionnalités</a></li>
-          <li><a href="#pricing">Tarifs</a></li>
-          <li><a href="#">Intégrations</a></li>
-          <li><a href="#">API</a></li>
-        </ul>
-      </div>
-      <div>
-        <h6>ENTREPRISE</h6>
-        <ul>
-          <li><a href="#">À propos</a></li>
-          <li><a href="#">Blog</a></li>
-          <li><a href="#">Carrières</a></li>
-          <li><a href="#">Contact</a></li>
-        </ul>
-      </div>
-      <div>
-        <h6>RESSOURCES</h6>
-        <ul>
-          <li><a href="#">Documentation</a></li>
-          <li><a href="#">Guides</a></li>
-          <li><a href="#">Support</a></li>
-          <li><a href="#">Status</a></li>
-        </ul>
-      </div>
-      <div>
-        <h6>LÉGAL</h6>
-        <ul>
-          <li><a href="{% url 'privacy' %}">Confidentialité</a></li>
-          <li><a href="{% url 'terms' %}">Conditions</a></li>
-          <li><a href="{% url 'cookies' %}">Cookies</a></li>
-        </ul>
-      </div>
     </div>
-    <div class="sf-footer-bottom">
-      <span class="sf-footer-copy">© 2024 SakinaFinance. Tous droits réservés.</span>
-      <div class="sf-footer-socials">
-        <a href="#"><i class="bi bi-twitter-x"></i></a>
-        <a href="#"><i class="bi bi-linkedin"></i></a>
-        <a href="#"><i class="bi bi-github"></i></a>
-      </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-5" style="background: #0f172a;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <a class="d-flex align-items-center gap-2 text-white text-decoration-none mb-3" href="{% url 'home' %}">
+                    <div class="brand-logo" style="width: 36px; height: 36px; font-size: 0.9rem; background: var(--primary-color);">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <span class="fw-bold" style="font-family: 'Outfit'; font-size: 1.4rem;">Sakina<span style="color: #3b82f6;">Finance</span></span>
+                </a>
+                <p class="text-white-50">Le Système d'Intelligence Financière Universel pour toutes les entreprises.</p>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Produit</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#features" class="text-white-50 text-decoration-none">Fonctionnalités</a></li>
+                    <li class="mb-2"><a href="#pricing" class="text-white-50 text-decoration-none">Tarifs</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Intégrations</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">API</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Entreprise</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">À propos</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Blog</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Carrières</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Ressources</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Documentation</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Guides</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Support</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Status</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h6 class="text-white mb-3">Légal</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'privacy' %}" class="text-white-50 text-decoration-none">Confidentialité</a></li>
+                    <li class="mb-2"><a href="{% url 'terms' %}" class="text-white-50 text-decoration-none">Conditions</a></li>
+                    <li><a href="{% url 'cookies' %}" class="text-white-50 text-decoration-none">Cookies</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-white-50 mb-0">&copy; 2024 SakinaFinance. Tous droits réservés.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-white-50 me-3"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="text-white-50 me-3"><i class="bi bi-linkedin"></i></a>
+                <a href="#" class="text-white-50"><i class="bi bi-github"></i></a>
+            </div>
+        </div>
     </div>
-  </div>
 </footer>
-
-<script>
-/* Navbar scroll effect */
-const nav = document.getElementById('sfNav');
-window.addEventListener('scroll', () => {
-  nav.classList.toggle('scrolled', window.scrollY > 40);
-});
-
-/* Scroll reveal */
-const reveals = document.querySelectorAll('.sf-reveal');
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((e, i) => {
-    if (e.isIntersecting) {
-      setTimeout(() => e.target.classList.add('visible'), i * 80);
-      observer.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.1 });
-reveals.forEach(el => observer.observe(el));
-
-/* Counter animation */
-const counters = document.querySelectorAll('.sf-stat-num');
-const countObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const el = e.target;
-      const text = el.textContent;
-      const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-      if (isNaN(num)) return;
-      let start = 0;
-      const duration = 1400;
-      const step = (timestamp) => {
-        if (!start) start = timestamp;
-        const progress = Math.min((timestamp - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const prefix = text.match(/^[^\d]*/)?.[0] || '';
-        const suffix = text.match(/[^\d.]+$/)?.[0] || '';
-        el.textContent = prefix + (num * eased).toFixed(num % 1 !== 0 ? 0 : 0) + suffix;
-        if (progress < 1) requestAnimationFrame(step);
-        else el.textContent = text;
-      };
-      requestAnimationFrame(step);
-      countObserver.unobserve(el);
-    }
-  });
-}, { threshold: 0.5 });
-counters.forEach(el => countObserver.observe(el));
-</script>
-
 {% endblock %}
