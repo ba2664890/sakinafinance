@@ -1,0 +1,607 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SakinaFinance - Système d'Intelligence Financière Universel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .landing-hero {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .landing-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 70% 30%, rgba(37, 99, 235, 0.15), transparent 70%);
+        z-index: 1;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    .feature-card {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.4) !important;
+        border-radius: 24px;
+        padding: 2.5rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+        background: rgba(255,255,255,0.9);
+    }
+    .navbar {
+        background: rgba(15, 23, 42, 0.8) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 0.8rem 0;
+    }
+
+    /* Demo Section Styles */
+    .demo-section {
+        background: #f8fafc;
+        padding: 100px 0;
+        position: relative;
+    }
+    .demo-window {
+        background: #1e293b;
+        border-radius: 20px;
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+        position: relative;
+    }
+    .demo-window-header {
+        background: #0f172a;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    
+    .demo-content-mockup {
+        padding: 30px;
+        color: white;
+    }
+    .mockup-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+    }
+    .ai-insight-line {
+        height: 8px;
+        background: rgba(59, 130, 246, 0.3);
+        border-radius: 4px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    .glow-primary {
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+    }
+    .text-gradient {
+        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+            <div class="brand-logo" style="width: 36px; height: 36px; font-size: 0.9rem; background: var(--primary-color);">
+                <img src="{% static 'img/logo_sakinafinance.jpeg' %}" alt="SakinaFinance" style="width:100%; height:100%; object-fit:cover; border-radius:12px;" />
+            </div>
+            <span class="fw-bold" style="font-family: 'Outfit'; font-size: 1.4rem;">Sakina<span style="color: #3b82f6;">Finance</span></span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#features">Fonctionnalités</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pricing">Tarifs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">À propos</a>
+                </li>
+                <li class="nav-item ms-lg-3">
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'login' %}">Connexion</a>
+                </li>
+                <li class="nav-item ms-2">
+                    <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Essai Premium</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="landing-hero">
+    <div class="landing-hero-overlay"></div>
+    <div class="container hero-content">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-10">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-4 px-3 py-2 rounded-pill fw-bold" style="font-size: 0.8rem;">
+                    <i class="bi bi-stars me-2"></i>PRODUIT PREMIUM PROPULSÉ PAR L'IA
+                </span>
+                <h1 style="font-size: 4.5rem; font-weight: 800; letter-spacing: -0.04em; color: #0f172a; margin-bottom: 1.5rem; font-family: 'Outfit';">Sakina<span style="color: #2563eb;">Finance IA</span></h1>
+                <p class="lead">Le Système d'Intelligence Financière Universel pour Startups, PME, ETI et Groupes. Automatisez votre comptabilité, prédisez votre trésorerie et prenez des décisions éclairées grâce à l'IA.</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-rocket me-2"></i>Commencer l'expérience
+                    </a>
+                    <a href="#demo" class="btn btn-outline-light btn-lg px-5">
+                        <i class="bi bi-play-circle me-2"></i>Voir la démo
+                    </a>
+                </div>
+                <p class="mt-4 text-white-50 small">
+                    <i class="bi bi-shield-check me-1"></i>Accès illimité pendant 14 jours • Sans engagement • Annulation à tout moment
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <h2 class="display-4 fw-bold text-primary">73%</h2>
+                <p class="text-muted">des entreprises africaines gèrent leurs finances sur Excel</p>
+            </div>
+            <div class="col-md-3 col-6 mb-4 mb-md-0">
+                <h2 class="display-4 fw-bold text-primary">60K€</h2>
+                <p class="text-muted">coût annuel moyen d'un ERP classique (PME)</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold text-primary">-40%</h2>
+                <p class="text-muted">de temps administratif avec SakinaFinance</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-4 fw-bold text-primary">18 mois</h2>
+                <p class="text-muted">de prévision de trésorerie par ML</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Demo Section -->
+<section class="demo-section" id="demo">
+    <div class="container">
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-2 rounded-pill fw-bold">DÉMONSTRATION LIVE</span>
+                <h2 class="display-5 fw-bold mb-4" style="font-family: 'Outfit';">L'Expérience Financière de <span class="text-gradient">Nouvelle Génération</span></h2>
+                <p class="lead text-muted mb-4">Découvrez comment SakinaFinance transforme vos données brutes en insights actionnables grâce à nos modèles d'IA spécialisés.</p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-cpu text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Moteur de Prédiction ML</h6>
+                            <p class="small text-muted mb-0">Anticipation des flux de trésorerie avec une précision de 94 % sur 18 mois.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="bg-success bg-opacity-10 p-2 rounded">
+                            <i class="bi bi-shield-check text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Conformité OHADA Auto</h6>
+                            <p class="small text-muted mb-0">Génération automatique des états financiers aux normes africaines.</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'register' %}" class="btn btn-primary px-4 py-2">Essayer gratuitement <i class="bi bi-arrow-right ms-2"></i></a>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <div class="demo-window">
+                    <div class="demo-window-header">
+                        <div class="dot dot-red"></div>
+                        <div class="dot dot-yellow"></div>
+                        <div class="dot dot-green"></div>
+                        <div class="ms-2 small text-white-50">SakinaFinance - Executive Dashboard</div>
+                    </div>
+                    <div class="demo-content-mockup">
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="mockup-card">
+                                    <div class="small text-white-50 mb-1">CASH FLOW</div>
+                                    <h4 class="fw-bold mb-0">12.4M XOF</h4>
+                                    <div class="small text-success mt-1"><i class="bi bi-caret-up-fill"></i> +14.2%</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mockup-card">
+                                    <div class="small text-white-50 mb-1">EBITDA</div>
+                                    <h4 class="fw-bold mb-0">4.8M XOF</h4>
+                                    <div class="small text-primary mt-1">Marge: 24%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-card mb-4 glow-primary" style="background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.3);">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-robot me-2"></i>INSIGHT IA</h6>
+                                <span class="badge bg-primary border-0" style="font-size: 0.6rem;">ANALYSIS COMPLETE</span>
+                            </div>
+                            <div class="ai-insight-line"></div>
+                            <div class="ai-insight-line" style="width: 80%;"></div>
+                            <div class="ai-insight-line" style="width: 60%;"></div>
+                            <p class="small text-white-50 mt-2 mb-0">L'IA détecte une opportunité de réallocation des réserves vers Sakina Tech Hub pour optimiser le T4.</p>
+                        </div>
+                        <div class="mockup-card">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="small text-white-50">HISTORIQUE RÉCENT</div>
+                                <div class="small text-white-50">TOUT VOIR</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="bg-white bg-opacity-10 rounded p-1" style="width:30px;height:30px;"></div>
+                                <div class="flex-grow-1 ai-insight-line mb-0" style="height:4px; opacity:0.3;"></div>
+                                <div class="small text-white-50">4.5M</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white bg-opacity-10 rounded p-1" style="width:30px;height:30px;"></div>
+                                <div class="flex-grow-1 ai-insight-line mb-0" style="height:4px; opacity:0.3; width:40%;"></div>
+                                <div class="small text-white-50">1.2M</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Features Section -->
+<section class="landing-features" id="features">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Les 6 Piliers de SakinaFinance</h2>
+            <p class="lead text-muted">Une plateforme complète qui couvre tous vos besoins financiers</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">VOIR</h4>
+                    <p class="text-muted">Tableaux de bord temps réel. Visualisez votre performance financière en un coup d'œil avec des KPIs personnalisés.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">PRÉDIRE</h4>
+                    <p class="text-muted">ML forecasting. Prévisions de cash flow à 18 mois avec Prophet, LSTM et XGBoost pour une anticipation optimale.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">ALERTER</h4>
+                    <p class="text-muted">Détection d'anomalies instantanée. Soyez alerté des dérives budgétaires, fraudes et risques en temps réel.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">CONSEILLER</h4>
+                    <p class="text-muted">IA générative sur vos données réelles. Posez vos questions en langage naturel et obtenez des insights actionnables.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">CONFORMER</h4>
+                    <p class="text-muted">OHADA, IFRS, fiscal, réglementaire. Conformité automatique avec les normes comptables africaines et internationales.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card shadow-sm">
+                    <div class="feature-icon mb-4">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h4 style="font-family: 'Outfit'; font-weight: 700;">CONSOLIDER</h4>
+                    <p class="text-muted">Multi-entités, multi-devises, groupe. Consolidation automatique pour les holdings et groupes internationaux.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modules Section -->
+<section class="py-5" style="background: #f8fafc;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Modules Complets</h2>
+            <p class="lead text-muted">Tout ce dont vous avez besoin pour gérer vos finances</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-calculator text-primary fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">Comptabilité</h5>
+                        </div>
+                        <p class="text-muted">Plan comptable OHADA/SYSCOHADA, journaux automatisés, états financiers (Bilan, CR, TFT), clôture assistée par IA.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Écritures automatiques</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Rapprochement bancaire IA</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Amortissements auto</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-bank text-success fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">Trésorerie</h5>
+                        </div>
+                        <p class="text-muted">Multi-comptes, prévisions ML, gestion du BFR, risques de change, relations bancaires, cash pooling.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Forecasting 18 mois</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Alertes de seuil</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>VaR multi-devises</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-people text-info fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">RH & Paie</h5>
+                        </div>
+                        <p class="text-muted">Gestion de la paie (CNSS, IPRES, IRPP), masse salariale, congés, bulletins, déclarations automatiques.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Calcul automatique</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Télédéclaration</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Multi-pays</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3) !important; border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                                <i class="bi bi-cart text-warning fs-4"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold" style="font-family: 'Outfit';">Achats</h5>
+                        </div>
+                        <p class="text-muted">Procure-to-Pay complet, OCR sur factures, benchmark prix, évaluation fournisseurs, spend analysis.</p>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>3-way match auto</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>OCR IA > 96%</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Détection doublons</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-5" id="pricing">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Tarifs Adaptés à Votre Croissance</h2>
+            <p class="lead text-muted">Choisissez le plan qui correspond à votre stade de développement</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Startup</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">49€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les startups en croissance</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Dashboard IA</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 3 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Comptabilité de base</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Trésorerie</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>1 utilisateur</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Support email</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Commencer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-primary shadow">
+                    <div class="card-header bg-primary text-white text-center py-2">
+                        <small>Le plus populaire</small>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-primary mb-2">PME</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">149€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les PME formelles</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout Startup +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 12 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Comptabilité OHADA</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Paie & RH</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Achats</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>5 utilisateurs</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Support prioritaire</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-primary w-100">Commencer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Enterprise</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">499€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les ETI et grandes entreprises</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout PME +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Forecasting 18 mois</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Multi-entités</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Consolidation</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>IFRS</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Contrôle de gestion</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>Utilisateurs illimités</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Contacter</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 text-center">
+                        <h5 class="text-muted mb-2">Groupe</h5>
+                        <div class="mb-3">
+                            <span class="display-5 fw-bold">1 499€</span>
+                            <span class="text-muted">/mois</span>
+                        </div>
+                        <p class="text-muted small mb-4">Pour les holdings et groupes</p>
+                        <ul class="list-unstyled text-start mb-4">
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Tout Enterprise +</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Multi-pays</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Consolidation groupe</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>API complète</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>On-premise option</li>
+                            <li class="mb-2"><i class="bi bi-check text-primary me-2"></i>Account manager</li>
+                            <li><i class="bi bi-check text-primary me-2"></i>SLA 99.9%</li>
+                        </ul>
+                        <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Contacter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+    <div class="container text-center">
+        <h2 class="text-white mb-3">Prêt à transformer votre gestion financière ?</h2>
+        <p class="text-white-50 mb-4">Rejoignez des milliers d'entreprises qui font confiance à SakinaFinance</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5">
+            <i class="bi bi-rocket me-2"></i>Commencer l'expérience
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-5" style="background: #0f172a;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <a class="d-flex align-items-center gap-2 text-white text-decoration-none mb-3" href="{% url 'home' %}">
+                    <div class="brand-logo" style="width: 36px; height: 36px; font-size: 0.9rem; background: var(--primary-color);">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </div>
+                    <span class="fw-bold" style="font-family: 'Outfit'; font-size: 1.4rem;">Sakina<span style="color: #3b82f6;">Finance</span></span>
+                </a>
+                <p class="text-white-50">Le Système d'Intelligence Financière Universel pour toutes les entreprises.</p>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Produit</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#features" class="text-white-50 text-decoration-none">Fonctionnalités</a></li>
+                    <li class="mb-2"><a href="#pricing" class="text-white-50 text-decoration-none">Tarifs</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Intégrations</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">API</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Entreprise</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">À propos</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Blog</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Carrières</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 mb-4 mb-md-0">
+                <h6 class="text-white mb-3">Ressources</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Documentation</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Guides</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Support</a></li>
+                    <li><a href="#" class="text-white-50 text-decoration-none">Status</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h6 class="text-white mb-3">Légal</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'privacy' %}" class="text-white-50 text-decoration-none">Confidentialité</a></li>
+                    <li class="mb-2"><a href="{% url 'terms' %}" class="text-white-50 text-decoration-none">Conditions</a></li>
+                    <li><a href="{% url 'cookies' %}" class="text-white-50 text-decoration-none">Cookies</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary my-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-white-50 mb-0">&copy; 2024 SakinaFinance. Tous droits réservés.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-white-50 me-3"><i class="bi bi-twitter"></i></a>
+                <a href="#" class="text-white-50 me-3"><i class="bi bi-linkedin"></i></a>
+                <a href="#" class="text-white-50"><i class="bi bi-github"></i></a>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}
