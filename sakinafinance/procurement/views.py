@@ -225,7 +225,7 @@ def supplier_create(request):
             supplier = form.save(commit=False)
             supplier.company = company
             supplier.save()
-            return redirect('procurement')
+            return redirect('purchases')
     else:
         form = SupplierForm(company=company)
     
@@ -247,7 +247,7 @@ def purchase_order_create(request):
             po.company = company
             po.created_by = request.user
             po.save()
-            return redirect('procurement')
+            return redirect('purchases')
     else:
         form = PurchaseOrderForm(company=company)
     
@@ -268,7 +268,7 @@ def inventory_item_create(request):
             item = form.save(commit=False)
             item.company = company
             item.save()
-            return redirect('procurement')
+            return redirect('purchases')
     else:
         form = InventoryItemForm()
     
