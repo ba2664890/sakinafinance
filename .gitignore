@@ -59,7 +59,7 @@ Thumbs.db
 logs/
 *.log
 
-reports/
+./reports/
 
 # Unit test / coverage reports
 htmlcov/
