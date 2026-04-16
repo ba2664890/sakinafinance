@@ -484,25 +484,40 @@ document.addEventListener('DOMContentLoaded', function() {
         payrollConfigForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(payrollConfigForm);
+            const csrfToken = formData.get('csrfmiddlewaretoken');
             try {
                 const response = await fetch('/hr/api/payroll-config/', {
                     method: 'POST',
                     body: formData,
-                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Accept': 'application/json'
+                    }
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Payroll config request failed:', response.status, errorText);
+                    alert('Erreur lors de la sauvegarde de la configuration. Vérifiez votre connexion et réessayez.');
+                    return;
+                }
+
                 const res = await response.json();
                 if (res.status === 'success') {
                     if (document.activeElement instanceof HTMLElement) {
                         document.activeElement.blur();
                     }
-                    bootstrap.Modal.getInstance(document.getElementById('payrollConfigModal')).hide();
+                    const modalEl = document.getElementById('payrollConfigModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance?.hide();
                     alert('Configuration sauvegardée avec succès');
                     loadHRData();
                 } else {
-                    alert(res.message);
+                    alert(res.message || 'Erreur inconnue');
                 }
             } catch (err) {
                 console.error('Submit error:', err);
+                alert('Une erreur est survenue lors de la soumission. Veuillez réessayer.');
             }
         });
     }

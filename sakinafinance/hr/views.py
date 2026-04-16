@@ -265,13 +265,19 @@ def api_hr_payroll_config(request):
     config, _ = PayrollConfig.objects.get_or_create(company=company)
     
     try:
-        config.cnss_employee_rate = Decimal(request.POST.get('cnss_employee_rate', 7.0))
-        config.cnss_employer_rate = Decimal(request.POST.get('cnss_employer_rate', 14.0))
-        config.ipres_employee_rate = Decimal(request.POST.get('ipres_employee_rate', 5.6))
-        config.ipres_employer_rate = Decimal(request.POST.get('ipres_employer_rate', 8.4))
-        config.irpp_estimated_rate = Decimal(request.POST.get('irpp_estimated_rate', 15.0))
-        config.irpp_threshold = Decimal(request.POST.get('irpp_threshold', 250000))
+        def safe_decimal(value, default):
+            raw = request.POST.get(value)
+            if raw in [None, '']:
+                raw = str(default)
+            return Decimal(raw)
+
+        config.cnss_employee_rate = safe_decimal('cnss_employee_rate', '7.0')
+        config.cnss_employer_rate = safe_decimal('cnss_employer_rate', '14.0')
+        config.ipres_employee_rate = safe_decimal('ipres_employee_rate', '5.6')
+        config.ipres_employer_rate = safe_decimal('ipres_employer_rate', '8.4')
+        config.irpp_estimated_rate = safe_decimal('irpp_estimated_rate', '15.0')
+        config.irpp_threshold = safe_decimal('irpp_threshold', '250000')
         config.save()
         return JsonResponse({'status': 'success', 'message': 'Configuration sauvegardée'})
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        return JsonResponse({'status': 'error', 'message': f'Erreur de validation des données : {e}'}, status=400)
