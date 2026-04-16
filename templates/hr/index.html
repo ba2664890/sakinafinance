@@ -255,6 +255,7 @@
             </div>
             <div class="modal-body p-4">
                 <form id="recruitForm">
+                    {% csrf_token %}
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Titre du Poste</label>
                         <input type="text" class="form-control rounded-12" name="title" required>
