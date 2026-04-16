@@ -5,11 +5,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.db.models import Sum, Avg, Count, Q
+from django.core.exceptions import ValidationError
 from .forms import SupplierForm, PurchaseOrderForm, InventoryItemForm
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from .models import Supplier, PurchaseOrder, PurchaseRFQ, SupplierCategory, InventoryItem, StockTransaction
 
@@ -402,7 +403,7 @@ def api_stock_transaction_create(request):
             'message': 'Mouvement de stock enregistré',
             'new_stock': float(item.current_stock)
         })
-    except ValueError as e:
+    except (ValueError, InvalidOperation, ValidationError) as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    except Exception as e:
+    except Exception:
         return JsonResponse({'status': 'error', 'message': 'Erreur lors de l’enregistrement'}, status=500)
