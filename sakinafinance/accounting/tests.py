@@ -102,6 +102,51 @@ class AccountingSecurityAndDataTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("équilibrée", response.json()['message'])
 
+    def test_create_transaction_auto_posts_by_default(self):
+        response = self.client.post(
+            reverse('api_create_transaction'),
+            data=json.dumps({
+                'journal': str(self.journal.id),
+                'reference': 'MAN-POST',
+                'date': '2026-04-02',
+                'description': 'Ecriture auto postée',
+                'lines': [
+                    {'account': self.cash.code, 'debit': 100, 'credit': 0},
+                    {'account': self.revenue.code, 'debit': 0, 'credit': 100},
+                ],
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload['status'], 'success')
+        tx = Transaction.objects.get(id=payload['transaction_id'])
+        self.assertEqual(tx.status, Transaction.TransactionStatus.POSTED)
+
+    def test_create_transaction_can_stay_pending_when_auto_post_false(self):
+        response = self.client.post(
+            reverse('api_create_transaction'),
+            data=json.dumps({
+                'journal': str(self.journal.id),
+                'reference': 'MAN-PENDING',
+                'date': '2026-04-02',
+                'description': 'Ecriture en attente',
+                'auto_post': False,
+                'lines': [
+                    {'account': self.cash.code, 'debit': 100, 'credit': 0},
+                    {'account': self.revenue.code, 'debit': 0, 'credit': 100},
+                ],
+            }),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload['status'], 'success')
+        tx = Transaction.objects.get(id=payload['transaction_id'])
+        self.assertEqual(tx.status, Transaction.TransactionStatus.PENDING)
+
     def test_create_transaction_requires_csrf_token(self):
         secured_client = Client(enforce_csrf_checks=True)
         secured_client.force_login(self.user)

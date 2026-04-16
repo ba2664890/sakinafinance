@@ -5,5 +5,6 @@ urlpatterns = [
     path('', views.accounting_view, name='accounting'),
     path('api/data/', views.api_accounting_data, name='api_accounting_data'),
     path('api/transactions/create/', views.api_create_transaction, name='api_create_transaction'),
+    path('api/transactions/<uuid:transaction_id>/post/', views.api_post_transaction, name='api_post_transaction'),
     path('api/trial-balance/', views.api_trial_balance, name='api_trial_balance'),
 ]

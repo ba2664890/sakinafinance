@@ -368,6 +368,40 @@
             </div>
         </div>
 
+        <!-- Pending Journal Entries -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header border-0 bg-transparent py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary-emphasis fw-bold">Écritures en attente</h5>
+                        <span class="badge bg-warning bg-opacity-15 text-warning">En attente</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Référence</th>
+                                        <th>Journal</th>
+                                        <th>Libellé</th>
+                                        <th class="text-end">Débit</th>
+                                        <th class="text-end">Crédit</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="acc-pending-entries">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5 text-secondary">Aucune écriture en attente.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Journal Entries Table -->
         <div class="row">
             <div class="col-12">
@@ -595,6 +629,12 @@
                         <textarea class="form-control rounded-8" name="description" rows="2" placeholder="Description détaillée..." required></textarea>
                     </div>
 
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" name="auto_post" id="autoPostCheckbox">
+                        <label class="form-check-label small text-secondary" for="autoPostCheckbox">Valider automatiquement après création</label>
+                        <div class="small text-muted ms-4">Si décoché, l'écriture sera créée en attente de validation.</div>
+                    </div>
+
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label small fw-bold text-secondary mb-0">Lignes d'écriture</label>
                         <button type="button" class="btn btn-sm btn-outline-primary" id="add-line-btn">
@@ -760,6 +800,68 @@ document.addEventListener('DOMContentLoaded', function() {
         applyBalanceSheetFilter(balanceSheetState.filter);
     };
 
+    const renderPendingEntries = (pendingEntries) => {
+        const pendingBody = document.getElementById('acc-pending-entries');
+        if (!pendingBody) return;
+
+        if (!pendingEntries || pendingEntries.length === 0) {
+            pendingBody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-secondary">Aucune écriture en attente.</td></tr>`;
+            return;
+        }
+
+        pendingBody.innerHTML = pendingEntries.map(entry => `
+            <tr>
+                <td>${entry.date}</td>
+                <td class="fw-bold text-dark">${entry.reference}</td>
+                <td>${entry.journal}</td>
+                <td>${entry.description || '-'}</td>
+                <td class="text-end fw-bold text-dark">${entry.debit > 0 ? fmt(entry.debit) : '-'}</td>
+                <td class="text-end fw-bold text-dark">${entry.credit > 0 ? fmt(entry.credit) : '-'}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-primary validate-pending-btn" data-transaction-id="${entry.id}">Valider</button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    const postPendingTransaction = async (transactionId) => {
+        const url = `/accounting/api/transactions/${transactionId}/post/`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            },
+        });
+        return response.json();
+    };
+
+    const handlePendingActions = async (event) => {
+        const button = event.target.closest('.validate-pending-btn');
+        if (!button) return;
+
+        const transactionId = button.dataset.transactionId;
+        if (!transactionId) return;
+
+        button.disabled = true;
+        button.textContent = 'Validation...';
+
+        try {
+            const result = await postPendingTransaction(transactionId);
+            if (result.status === 'success') {
+                alert('Écriture validée avec succès.');
+                loadAccountingData();
+            } else {
+                alert('Erreur : ' + (result.message || 'Impossible de valider.'));
+                button.disabled = false;
+                button.textContent = 'Valider';
+            }
+        } catch (err) {
+            alert('Erreur réseau lors de la validation.');
+            button.disabled = false;
+            button.textContent = 'Valider';
+        }
+    };
+
     const syncAccountTypeOptions = () => {
         const accountForm = document.getElementById('accountForm');
         const classSelect = accountForm?.querySelector('select[name="account_class"]');
@@ -799,6 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ? 'Marge indisponible'
                 : `${data.net_income_margin}% Marge nette simplifiée`;
             document.getElementById('pending-count').textContent = data.pending_entries;
+            renderPendingEntries(data.pending_transactions || []);
 
             const qualityBox = document.getElementById('acc-data-quality');
             qualityBox.className = `alert alert-${data.quality.level} rounded-16 border-0 mb-4`;
@@ -1131,7 +1234,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 reference: formData.get('reference'),
                 date: formData.get('date'),
                 description: formData.get('description'),
-                lines: lines
+                lines: lines,
+                auto_post: formData.get('auto_post') === 'on'
             };
 
             try {
@@ -1155,6 +1259,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert("Erreur réseau");
             }
         });
+
+        const pendingEntriesBody = document.getElementById('acc-pending-entries');
+        if (pendingEntriesBody) {
+            pendingEntriesBody.addEventListener('click', handlePendingActions);
+        }
     }
 
     // Create Account

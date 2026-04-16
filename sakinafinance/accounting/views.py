@@ -121,6 +121,7 @@ def api_accounting_data(request):
         'net_income': 0.0,
         'net_income_margin': None,
         'pending_entries': 0,
+        'pending_transactions': [],
         'ai_insight': build_accounting_insight(False, ZERO, ZERO, ZERO, None, None),
         'journal_entries': [],
         'balance_sheet': {
@@ -160,6 +161,18 @@ def api_accounting_data(request):
     previous_balance_sheet = build_balance_sheet_snapshot(company, end_date=last_year_end)
     posted_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.POSTED)
     pending_transactions = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.PENDING)
+    pending_transactions_list = [
+        {
+            'id': str(tx.id),
+            'date': tx.date.strftime('%d/%m/%Y'),
+            'reference': tx.reference,
+            'description': tx.description,
+            'journal': tx.journal.code if tx.journal else '',
+            'debit': float(tx.total_debit),
+            'credit': float(tx.total_credit),
+        }
+        for tx in pending_transactions.order_by('-date', '-created_at')
+    ]
 
     revenue = ZERO
     ebitda = ZERO
@@ -273,6 +286,7 @@ def api_accounting_data(request):
             'cash': float(balance_sheet['cash']),
             'stocks': float(balance_sheet['stocks']),
         },
+        'pending_transactions': pending_transactions_list,
         'ratios': {
             'liquidity_ratio': round(liquidity_ratio, 2) if liquidity_ratio is not None else None,
             'solvability_ratio': round(solvability_ratio, 2) if solvability_ratio is not None else None,
@@ -320,7 +334,11 @@ def _get_company(request):
 @login_required
 @require_POST
 def api_create_transaction(request):
-    """Create a manual journal entry."""
+    """Create a manual journal entry.
+
+    The transaction is posted automatically by default.
+    Pass `auto_post: false` in the JSON payload to keep it pending.
+    """
     try:
         payload = json.loads(request.body)
     except JSONDecodeError:
@@ -385,6 +403,8 @@ def api_create_transaction(request):
         if total_debit != total_credit:
             return JsonResponse({'status': 'error', 'message': "L'écriture doit être équilibrée."}, status=400)
 
+        auto_post = payload.get('auto_post', True)
+
         tx = Transaction.objects.create(
             company=company,
             journal=journal,
@@ -407,10 +427,16 @@ def api_create_transaction(request):
         tx.total_debit = total_debit
         tx.total_credit = total_credit
         tx.save()
-        
+
+        if auto_post:
+            tx = post_transaction(tx, user=request.user)
+            success_message = 'Écriture créée et validée.'
+        else:
+            success_message = 'Écriture créée en attente de validation.'
+
         return JsonResponse({
             'status': 'success',
-            'message': 'Écriture créée en attente de validation',
+            'message': success_message,
             'transaction_id': str(tx.id)
         })
         
