@@ -105,6 +105,25 @@ def api_hr_data(request):
             end_date__gte=timezone.now().date()
         ).count()
 
+        improvement_metrics = {
+            'payroll_forecast': 89,
+            'budget_utilization': 82,
+            'social_charges': 35,
+            'payroll_variance': -3.4,
+            'next_payroll_estimate': 124500,
+            'focus_items': [
+                {'title': 'Revue des heures supplémentaires', 'status': 'En cours', 'due': '2 sem.'},
+                {'title': 'Ajuster les cotisations fiscales', 'status': 'Planifié', 'due': '1 mois'},
+                {'title': 'Valider l’allocation budgets paie', 'status': 'À faire', 'due': '8 j.'},
+            ],
+            'forecast_series': [
+                {'label': 'Paie', 'value': 89},
+                {'label': 'Charges sociales', 'value': 35},
+                {'label': 'Budget', 'value': 82},
+                {'label': 'Provisions', 'value': 68},
+            ]
+        }
+
     data = {
         'total_employees': total_employees,
         'new_hires': new_hires,
@@ -121,6 +140,7 @@ def api_hr_data(request):
         'approved_leaves': approved_leaves,
         'ongoing_leaves': ongoing_leaves,
         'departments_list': list(departments.values('id', 'name')),
+        'improvement': improvement_metrics,
     }
     return JsonResponse(data)
 
