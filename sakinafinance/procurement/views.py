@@ -229,7 +229,7 @@ def supplier_create(request):
     else:
         form = SupplierForm(company=company)
     
-    return render(request, 'projects/project_form.html', {
+    return render(request, 'procurement/form.html', {
         'form': form,
         'page_title': 'Nouveau Fournisseur',
         'action': 'Créer'
@@ -251,7 +251,7 @@ def purchase_order_create(request):
     else:
         form = PurchaseOrderForm(company=company)
     
-    return render(request, 'projects/project_form.html', {
+    return render(request, 'procurement/form.html', {
         'form': form,
         'page_title': 'Nouveau Bon de Commande',
         'action': 'Créer'

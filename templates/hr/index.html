@@ -331,6 +331,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    let deptChartInstance = null;
     loadHRData();
 
     async function loadHRData() {
@@ -415,7 +416,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Chart
             const ctx = document.getElementById('deptChart').getContext('2d');
-            new Chart(ctx, {
+            if (deptChartInstance) {
+                deptChartInstance.destroy();
+            }
+            deptChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: data.departments.map(d => d.name),
@@ -459,6 +463,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
+                    if (document.activeElement instanceof HTMLElement) {
+                        document.activeElement.blur();
+                    }
                     bootstrap.Modal.getInstance(document.getElementById('recruitModal')).hide();
                     loadHRData(); // Refresh dashboard
                     recruitForm.reset();
@@ -485,6 +492,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
+                    if (document.activeElement instanceof HTMLElement) {
+                        document.activeElement.blur();
+                    }
                     bootstrap.Modal.getInstance(document.getElementById('payrollConfigModal')).hide();
                     alert('Configuration sauvegardée avec succès');
                     loadHRData();

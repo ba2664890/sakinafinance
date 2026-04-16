@@ -20,7 +20,11 @@ from decimal import Decimal
 
 def _get_company(request):
     """Helper: returns the user's company or None"""
-    return getattr(request.user, 'company', None)
+    company = getattr(request.user, 'company', None)
+    if company:
+        return company
+    profile = getattr(request.user, 'profile', None)
+    return getattr(profile, 'company', None)
 
 
 @login_required
@@ -255,6 +259,9 @@ def api_hr_recruit(request):
 def api_hr_payroll_config(request):
     """API: Configurer les taux de paie"""
     company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Société introuvable pour l’utilisateur.'}, status=400)
+
     config, _ = PayrollConfig.objects.get_or_create(company=company)
     
     try:
