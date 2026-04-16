@@ -128,9 +128,9 @@
                 <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                 {% endif %}
 
-                {% if form.budget_total %}
+                {% if form_type == 'project' %}
                 <div class="form-section">
-                    <h6>Identite du projet</h6>
+                    <h6>Identité du projet</h6>
                     <div class="form-grid">
                         <div>{{ form.name|as_crispy_field }}</div>
                         <div>{{ form.code|as_crispy_field }}</div>
@@ -141,17 +141,7 @@
                 </div>
 
                 <div class="form-section">
-                    <h6>Gouvernance</h6>
-                    <div class="form-grid">
-                        <div>{{ form.manager|as_crispy_field }}</div>
-                        <div>{{ form.priority|as_crispy_field }}</div>
-                        <div>{{ form.health|as_crispy_field }}</div>
-                        <div class="form-note full">Definissez clairement le chef de projet et le niveau de risque pour un suivi precis.</div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h6>Planning et budget</h6>
+                    <h6>Planning & budget</h6>
                     <div class="form-grid">
                         <div>{{ form.start_date|as_crispy_field }}</div>
                         <div>{{ form.end_date|as_crispy_field }}</div>
@@ -159,11 +149,51 @@
                         <div>{{ form.currency|as_crispy_field }}</div>
                     </div>
                 </div>
+
+                <div class="form-section">
+                    <h6>Suivi de projet</h6>
+                    <div class="form-grid">
+                        <div>{{ form.manager|as_crispy_field }}</div>
+                        <div>{{ form.priority|as_crispy_field }}</div>
+                        <div>{{ form.health|as_crispy_field }}</div>
+                        <div class="form-note full">Définissez le responsable, la priorité et l'état de santé du projet.</div>
+                    </div>
+                </div>
+                {% elif form_type == 'task' %}
+                <div class="form-section">
+                    <h6>Détails de la tâche</h6>
+                    <div class="form-grid">
+                        <div class="full">{{ form.title|as_crispy_field }}</div>
+                        <div class="full">{{ form.description|as_crispy_field }}</div>
+                        <div>{{ form.milestone|as_crispy_field }}</div>
+                        <div>{{ form.due_date|as_crispy_field }}</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h6>Affectation</h6>
+                    <div class="form-grid">
+                        <div>{{ form.assigned_to|as_crispy_field }}</div>
+                        <div>{{ form.estimated_hours|as_crispy_field }}</div>
+                        <div>{{ form.priority|as_crispy_field }}</div>
+                        <div>{{ form.status|as_crispy_field }}</div>
+                    </div>
+                </div>
+                {% elif form_type == 'milestone' %}
+                <div class="form-section">
+                    <h6>Détails du jalon</h6>
+                    <div class="form-grid">
+                        <div class="full">{{ form.name|as_crispy_field }}</div>
+                        <div class="full">{{ form.description|as_crispy_field }}</div>
+                        <div>{{ form.due_date|as_crispy_field }}</div>
+                        <div>{{ form.status|as_crispy_field }}</div>
+                    </div>
+                </div>
                 {% else %}
                 <div class="form-section">
                     <h6>Informations</h6>
                     <div class="form-grid">
-                        {% for field in form %}
+                        {% for field in form.visible_fields %}
                             <div class="{% if field.name == 'description' or field.name == 'notes' %}full{% endif %}">
                                 {{ field|as_crispy_field }}
                             </div>

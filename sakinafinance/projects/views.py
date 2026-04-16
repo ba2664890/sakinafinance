@@ -184,7 +184,8 @@ def project_create(request):
     return render(request, 'projects/project_form.html', {
         'form': form,
         'page_title': 'Nouveau Projet',
-        'action': 'Créer'
+        'action': 'Créer',
+        'form_type': 'project'
     })
 
 
@@ -207,7 +208,8 @@ def task_create(request, project_pk=None):
     return render(request, 'projects/project_form.html', {
         'form': form,
         'page_title': 'Nouvelle Tâche',
-        'action': 'Ajouter'
+        'action': 'Ajouter',
+        'form_type': 'task'
     })
 
 
@@ -228,5 +230,6 @@ def milestone_create(request, project_pk):
     return render(request, 'projects/project_form.html', {
         'form': form,
         'page_title': 'Nouveau Jalon',
-        'action': 'Ajouter'
+        'action': 'Ajouter',
+        'form_type': 'milestone'
     })
