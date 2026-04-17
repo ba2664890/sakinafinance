@@ -166,24 +166,24 @@
 </section>
 
 <!-- Stats Section -->
-<section class="py-5" style="background: rgb(220, 213, 213);">
+<section class="py-4" style="background: rgb(220, 213, 213);">
     <div class="container">
         <div class="row text-center">
-            <div class="col-md-3 col-6 mb-4 mb-md-0">
-                <h2 class="display-4 fw-bold text-primary">73%</h2>
-                <p class="text-muted">des entreprises africaines gèrent leurs finances sur Excel</p>
+            <div class="col-md-3 col-6 mb-3 mb-md-0">
+                <h2 class="display-5 fw-bold text-primary counter" data-target="73" data-suffix="%">0%</h2>
+                <p class="text-muted small">des entreprises africaines gèrent leurs finances sur Excel</p>
             </div>
-            <div class="col-md-3 col-6 mb-4 mb-md-0">
-                <h2 class="display-4 fw-bold text-primary">60K€</h2>
-                <p class="text-muted">coût annuel moyen d'un ERP classique (PME)</p>
-            </div>
-            <div class="col-md-3 col-6">
-                <h2 class="display-4 fw-bold text-primary">-40%</h2>
-                <p class="text-muted">de temps administratif avec SakinaFinance</p>
+            <div class="col-md-3 col-6 mb-3 mb-md-0">
+                <h2 class="display-5 fw-bold text-primary counter" data-target="60" data-suffix="K€">0K€</h2>
+                <p class="text-muted small">coût annuel moyen d'un ERP classique (PME)</p>
             </div>
             <div class="col-md-3 col-6">
-                <h2 class="display-4 fw-bold text-primary">18 mois</h2>
-                <p class="text-muted">de prévision de trésorerie par ML</p>
+                <h2 class="display-5 fw-bold text-primary counter" data-target="-40" data-suffix="%">0%</h2>
+                <p class="text-muted small">de temps administratif avec SakinaFinance</p>
+            </div>
+            <div class="col-md-3 col-6">
+                <h2 class="display-5 fw-bold text-primary counter" data-target="18" data-suffix=" mois">0 mois</h2>
+                <p class="text-muted small">de prévision de trésorerie par ML</p>
             </div>
         </div>
     </div>
@@ -606,4 +606,45 @@
         </div>
     </div>
 </footer>
+<script>
+    // Counter Animation
+    const animateCounters = () => {
+        const counters = document.querySelectorAll('.counter');
+        
+        const countObserver = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    const el = e.target;
+                    const target = parseFloat(el.getAttribute('data-target'));
+                    const suffix = el.getAttribute('data-suffix') || '';
+                    const duration = 1500;
+                    let start = null;
+
+                    const step = (timestamp) => {
+                        if (!start) start = timestamp;
+                        const progress = Math.min((timestamp - start) / duration, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        
+                        // Handle integer vs decimal if needed, but here integers are fine
+                        const currentCount = Math.floor(target * eased);
+                        el.textContent = currentCount + suffix;
+
+                        if (progress < 1) {
+                            requestAnimationFrame(step);
+                        } else {
+                            el.textContent = target + suffix;
+                        }
+                    };
+
+                    requestAnimationFrame(step);
+                    countObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(el => countObserver.observe(el));
+    };
+
+    document.addEventListener('DOMContentLoaded', animateCounters);
+</script>
 {% endblock %}
