@@ -358,34 +358,39 @@ body {
 .sf-float-text .val { font-size: .9rem; font-weight: 700; color: var(--ink); line-height: 1; }
 .sf-float-text .lbl { font-size: .65rem; color: #64748b; }
 
-/* ─── STATS TICKER ──────────────────────────────────── */
+/* ─── STATS TICKER (Looped) ─────────────────────────── */
 .sf-stats {
   background: var(--surface);
-  padding: 3rem 0;
-}
-.sf-stats .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-.sf-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: #dde5f5;
-  border-radius: var(--radius);
+  padding: 1.5rem 0;
   overflow: hidden;
 }
+.sf-stats-track {
+  display: flex;
+  width: fit-content;
+  animation: sf-ticker 40s linear infinite;
+  gap: 6rem;
+}
+@keyframes sf-ticker {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
 .sf-stat-cell {
-  background: var(--white);
-  padding: 2.5rem 2rem;
-  text-align: center;
+  background: transparent;
+  padding: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  white-space: nowrap;
 }
 .sf-stat-num {
   font-family: var(--font-head);
-  font-size: 2.2rem; font-weight: 800;
+  font-size: 2rem; font-weight: 800;
   letter-spacing: -.04em;
   color: var(--sky);
   line-height: 1;
-  margin-bottom: .5rem;
+  margin-bottom: 0;
 }
-.sf-stat-desc { font-size: .88rem; color: #64748b; line-height: 1.5; }
+.sf-stat-desc { font-size: 0.9rem; color: #64748b; margin: 0; font-weight: 500; }
 
 /* ─── SECTION HELPERS ───────────────────────────────── */
 .sf-section { padding: 7rem 0; }
@@ -771,26 +776,42 @@ body {
   </div>
 </section>
 
-<!-- ═══ STATS ══════════════════════════════════════════════════════════ -->
+<!-- ═══ STATS TICKER ══════════════════════════════════════════════════════════ -->
 <section class="sf-stats">
-  <div class="container">
-    <div class="sf-stats-grid sf-reveal">
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">73%</div>
-        <div class="sf-stat-desc">des entreprises africaines gèrent leurs finances sur Excel</div>
-      </div>
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">60K€</div>
-        <div class="sf-stat-desc">coût annuel moyen d'un ERP classique pour une PME</div>
-      </div>
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">-40%</div>
-        <div class="sf-stat-desc">de temps administratif gagné avec SakinaFinance</div>
-      </div>
-      <div class="sf-stat-cell">
-        <div class="sf-stat-num">18M</div>
-        <div class="sf-stat-desc">de prévision de trésorerie grâce au Machine Learning</div>
-      </div>
+  <div class="sf-stats-track">
+    <!-- Set 1 -->
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">73%</div>
+      <div class="sf-stat-desc">des entreprises africaines gèrent leurs finances sur Excel</div>
+    </div>
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">60K€</div>
+      <div class="sf-stat-desc">coût annuel moyen d'un ERP classique pour une PME</div>
+    </div>
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">-40%</div>
+      <div class="sf-stat-desc">de temps administratif gagné avec SakinaFinance</div>
+    </div>
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">18M</div>
+      <div class="sf-stat-desc">de prévision de trésorerie grâce au Machine Learning</div>
+    </div>
+    <!-- Set 2 (Loop) -->
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">73%</div>
+      <div class="sf-stat-desc">des entreprises africaines gèrent leurs finances sur Excel</div>
+    </div>
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">60K€</div>
+      <div class="sf-stat-desc">coût annuel moyen d'un ERP classique pour une PME</div>
+    </div>
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">-40%</div>
+      <div class="sf-stat-desc">de temps administratif gagné avec SakinaFinance</div>
+    </div>
+    <div class="sf-stat-cell">
+      <div class="sf-stat-num">18M</div>
+      <div class="sf-stat-desc">de prévision de trésorerie grâce au Machine Learning</div>
     </div>
   </div>
 </section>
@@ -1150,33 +1171,7 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 reveals.forEach(el => observer.observe(el));
 
-/* Counter animation */
-const counters = document.querySelectorAll('.sf-stat-num');
-const countObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      const el = e.target;
-      const text = el.textContent;
-      const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-      if (isNaN(num)) return;
-      let start = 0;
-      const duration = 1400;
-      const step = (timestamp) => {
-        if (!start) start = timestamp;
-        const progress = Math.min((timestamp - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const prefix = text.match(/^[^\d]*/)?.[0] || '';
-        const suffix = text.match(/[^\d.]+$/)?.[0] || '';
-        el.textContent = prefix + (num * eased).toFixed(num % 1 !== 0 ? 0 : 0) + suffix;
-        if (progress < 1) requestAnimationFrame(step);
-        else el.textContent = text;
-      };
-      requestAnimationFrame(step);
-      countObserver.unobserve(el);
-    }
-  });
-}, { threshold: 0.5 });
-counters.forEach(el => countObserver.observe(el));
+/* Counter animation removed in favor of ticker */
 </script>
 
 {% endblock %}
