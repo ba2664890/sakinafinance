@@ -297,7 +297,7 @@ def api_hr_recruit(request):
 
     errors = []
     for field, field_errors in form.errors.items():
-        errors.append(`${field}: ${field_errors.join(', ')}`)
+        errors.append(f"{field}: {', '.join(field_errors)}")
     return JsonResponse({
         'status': 'error',
         'message': 'Validation impossible.',
