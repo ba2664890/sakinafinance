@@ -374,13 +374,18 @@
                                 </div>
                             </div>
 
-                            <div class="form-check custom-check p-3 rounded-3 border mb-4 bg-light">
+                            <div class="form-check custom-check p-3 rounded-3 border mb-4 bg-light {% if form.accept_legal.errors %}border-danger{% endif %}">
                                 {{ form.accept_legal }}
                                 <label class="form-check-label small ms-2" for="terms">
                                     J'accepte les <a href="{% url 'terms' %}" class="fw-bold">CGU</a> et la <a
                                         href="{% url 'privacy' %}" class="fw-bold">Politique de Confidentialité</a> de
                                     la plateforme SakinaFinance.
                                 </label>
+                                {% if form.accept_legal.errors %}
+                                <div class="text-danger small mt-2">
+                                    {{ form.accept_legal.errors.0 }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
 

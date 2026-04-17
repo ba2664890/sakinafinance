@@ -38,8 +38,9 @@ class HRFormsTestCase(TestCase):
 class HRAPITestCase(TestCase):
     def setUp(self):
         # Create a user with a company
-        from django.contrib.auth.models import User
-        self.user = User.objects.create_user(username='testuser', password='password')
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.user = User.objects.create_user(email='testuser@example.com', password='password')
         self.company = Company.objects.create(name="Test Company")
         self.user.company = self.company
         self.user.save()

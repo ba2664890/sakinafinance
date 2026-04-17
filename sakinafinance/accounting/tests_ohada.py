@@ -14,11 +14,11 @@ class OHADABackendTest(TestCase):
         
         self.acc_asset = Account.objects.create(
             company=self.company, code="211", name="Matériel", 
-            account_type='asset', account_class='class_2'
+            account_type='asset', account_class='2'
         )
         self.acc_cash = Account.objects.create(
             company=self.company, code="521", name="Banque", 
-            account_type='asset', account_class='class_5'
+            account_type='asset', account_class='5'
         )
 
     def test_automatic_balance_refresh(self):
