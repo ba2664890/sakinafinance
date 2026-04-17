@@ -245,143 +245,91 @@
     </div>
 </div>
 
-<!-- Modal: Recruitment (Nouveau Employé) -->
+<!-- Modal: Recruit (Nouveau Employé) -->
 <div class="modal fade" id="recruitModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content rounded-24 border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold">Nouveau Recrutement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="recruitForm">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Titre du Poste</label>
-                            <input type="text" class="form-control rounded-12" name="title" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Département</label>
-                            <select class="form-select rounded-12" name="department" id="recruitDeptSelect"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Poste</label>
-                            <select class="form-select rounded-12" name="position" id="recruitPositionSelect"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Type de contrat</label>
-                            <select class="form-select rounded-12" name="contract_type">
-                                <option value="cdi">CDI</option>
-                                <option value="cdd">CDD</option>
-                                <option value="interim">Intérim</option>
-                                <option value="freelance">Freelance / Consultant</option>
-                                <option value="apprenticeship">Apprentissage</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Salaire minimum</label>
-                            <input type="number" step="0.01" class="form-control rounded-12" name="salary_min" placeholder="0.00">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Salaire maximum</label>
-                            <input type="number" step="0.01" class="form-control rounded-12" name="salary_max" placeholder="0.00">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Priorité</label>
-                            <select class="form-select rounded-12" name="priority">
-                                <option value="normal">Normale</option>
-                                <option value="high">Haute</option>
-                                <option value="critical">Critique</option>
-                                <option value="low">Faible</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Échéance</label>
-                            <input type="date" class="form-control rounded-12" name="deadline">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">Exigences</label>
-                            <textarea class="form-control rounded-12" name="requirements" rows="3"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">Description détaillée</label>
-                            <textarea class="form-control rounded-12" name="description" rows="4"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Publier l'offre</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Recruitment (Nouveau Employé) -->
-<div class="modal fade" id="recruitModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-24 border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold">Nouveau Recrutement</h5>
+                <h5 class="fw-bold"><i class="bi bi-person-plus text-primary me-2"></i>Recruter un Nouvel Employé</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <form id="recruitForm">
                     {% csrf_token %}
                     <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Matricule</label>
+                            <input type="text" class="form-control rounded-12" name="employee_number" placeholder="EMP-001" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Prénom</label>
+                            <input type="text" class="form-control rounded-12" name="first_name" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nom</label>
+                            <input type="text" class="form-control rounded-12" name="last_name" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Genre</label>
+                            <select class="form-select rounded-12" name="gender">
+                                <option value="M">Homme</option>
+                                <option value="F">Femme</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Date de naissance</label>
+                            <input type="date" class="form-control rounded-12" name="date_of_birth">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Date d'embauche</label>
+                            <input type="date" class="form-control rounded-12" name="hire_date" required>
+                        </div>
+
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Titre du Poste</label>
-                            <input type="text" class="form-control rounded-12" name="title" required>
+                            <label class="form-label small fw-bold">Email</label>
+                            <input type="email" class="form-control rounded-12" name="email">
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label small fw-bold">Téléphone</label>
+                            <input type="text" class="form-control rounded-12" name="phone">
+                        </div>
+
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold">Département</label>
-                            <select class="form-select rounded-12" name="department" id="recruitDeptSelect"></select>
+                            <select class="form-select rounded-12" name="department" id="recruitDeptSelect" required></select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Poste</label>
-                            <select class="form-select rounded-12" name="position" id="recruitPositionSelect"></select>
+                            <select class="form-select rounded-12" name="position" id="recruitPositionSelect" required></select>
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold">Type de contrat</label>
                             <select class="form-select rounded-12" name="contract_type">
                                 <option value="cdi">CDI</option>
                                 <option value="cdd">CDD</option>
                                 <option value="interim">Intérim</option>
-                                <option value="freelance">Freelance / Consultant</option>
+                                <option value="freelance">Freelance</option>
                                 <option value="apprenticeship">Apprentissage</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Salaire minimum</label>
-                            <input type="number" step="0.01" class="form-control rounded-12" name="salary_min" placeholder="0.00">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Salaire de Base</label>
+                            <input type="number" step="0.01" class="form-control rounded-12" name="base_salary" value="0.00">
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Salaire maximum</label>
-                            <input type="number" step="0.01" class="form-control rounded-12" name="salary_max" placeholder="0.00">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Devise</label>
+                            <input type="text" class="form-control rounded-12" name="currency" value="XOF" readonly>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Priorité</label>
-                            <select class="form-select rounded-12" name="priority">
-                                <option value="normal">Normale</option>
-                                <option value="high">Haute</option>
-                                <option value="critical">Critique</option>
-                                <option value="low">Faible</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Échéance</label>
-                            <input type="date" class="form-control rounded-12" name="deadline">
-                        </div>
+
                         <div class="col-12">
-                            <label class="form-label small fw-bold">Exigences</label>
-                            <textarea class="form-control rounded-12" name="requirements" rows="3"></textarea>
+                            <label class="form-label small fw-bold">Adresse</label>
+                            <textarea class="form-control rounded-12" name="address" rows="2"></textarea>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">Description détaillée</label>
-                            <textarea class="form-control rounded-12" name="description" rows="4"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Publier l'offre</button>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Finaliser l'embauche</button>
                         </div>
                     </div>
                 </form>
@@ -579,54 +527,27 @@ z
         }
     }
 
-    // Handle Recruitment Form
+    // Handle Employee Creation Form (Recruit)
     const recruitForm = document.getElementById('recruitForm');
     if (recruitForm) {
         recruitForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(recruitForm);
             try {
-                const response = await fetch('/hr/api/recruit/', {
+                const response = await fetch('/hr/api/employees/add/', {
                     method: 'POST',
                     body: formData,
                     headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
-                    if (document.activeElement instanceof HTMLElement) {
-                        document.activeElement.blur();
-                    }
                     bootstrap.Modal.getInstance(document.getElementById('recruitModal')).hide();
                     loadHRData(); // Refresh dashboard
                     recruitForm.reset();
+                    // Optional: redirect to the new employee detail
+                    // window.location.href = `/hr/employees/${res.employee.id}/`;
                 } else {
-                    alert(res.message);
-                }
-            } catch (err) {
-                console.error('Submit error:', err);
-            }
-        });
-    }
-
-    // Handle Recruitment Form
-    const recruitForm = document.getElementById('recruitForm');
-    if (recruitForm) {
-        recruitForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(recruitForm);
-            try {
-                const response = await fetch('/hr/api/recruit/', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
-                });
-                const res = await response.json();
-                if (res.status === 'success') {
-                    bootstrap.Modal.getInstance(document.getElementById('recruitModal')).hide();
-                    loadData(); // Refresh dashboard
-                    recruitForm.reset();
-                } else {
-                    alert(res.message);
+                    alert(res.message + (res.errors ? '\n' + res.errors.join('\n') : ''));
                 }
             } catch (err) {
                 console.error('Submit error:', err);
@@ -650,7 +571,7 @@ z
                 if (res.status === 'success') {
                     bootstrap.Modal.getInstance(document.getElementById('payrollConfigModal')).hide();
                     alert('Configuration sauvegardée avec succès');
-                    loadData();
+                    loadHRData();
                 } else {
                     alert(res.message);
                 }

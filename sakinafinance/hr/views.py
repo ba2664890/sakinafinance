@@ -307,6 +307,35 @@ def api_hr_recruit(request):
 
 @require_POST
 @login_required
+def api_hr_employee_add(request):
+    """API: Créer un nouvel employé (Embauche)"""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Société introuvable.'}, status=400)
+
+    form = EmployeeForm(request.POST, request.FILES, company=company)
+    if form.is_valid():
+        employee = form.save(commit=False)
+        employee.company = company
+        employee.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Employé {employee.get_full_name()} créé avec succès.',
+            'employee': {'id': str(employee.id), 'name': employee.get_full_name()}
+        })
+
+    errors = []
+    for field, field_errors in form.errors.items():
+        errors.append(f"{field}: {', '.join(field_errors)}")
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Erreur de validation.',
+        'errors': errors
+    }, status=400)
+
+
+@require_POST
+@login_required
 def api_hr_payroll_config(request):
     """API: Configurer les taux de paie"""
     company = _get_company(request)

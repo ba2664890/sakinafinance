@@ -12,5 +12,6 @@ urlpatterns = [
     path('leaves/add/', views.leave_request_create, name='leave_request_create'),
     path('payslips/<uuid:pk>/', views.payslip_detail, name='payslip_detail'),
     path('api/recruit/', views.api_hr_recruit, name='api_hr_recruit'),
+    path('api/employees/add/', views.api_hr_employee_add, name='api_hr_employee_add'),
     path('api/payroll-config/', views.api_hr_payroll_config, name='api_hr_payroll_config'),
 ]
