@@ -69,17 +69,22 @@ class ComprehensiveRegistrationForm(forms.Form):
     company_name = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nom de l\'entreprise'}))
     company_type = forms.ChoiceField(choices=Company.CompanyType.choices, widget=forms.Select(attrs={'class': 'form-select'}))
     registration_number = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'N° de Registre du Commerce'}))
+    tax_id = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NINEA / ID Fiscal'}))
+    address = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Siège social', 'rows': 2}))
     city = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ville'}))
     country = forms.CharField(max_length=100, initial='Sénégal', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pays'}))
+    logo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
+    
+    # User Phone
+    phone = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Téléphone'}))
     
     # Subscription
     subscription_plan = forms.ChoiceField(
         choices=[
             ('free', 'Gratuit (Essai 14 jours)'),
-            ('startup', 'Startup'),
-            ('pme', 'PME'),
-            ('enterprise', 'Enterprise'),
-            ('groupe', 'Groupe'),
+            ('startup', 'Startup (SME Focus)'),
+            ('pme', 'PME (Croissance)'),
+            ('enterprise', 'Enterprise (Full-Suite)'),
         ],
         initial='free',
         widget=forms.Select(attrs={'class': 'form-select'})

@@ -131,6 +131,187 @@
     .hr-panel .progress-bar.bg-primary { background-color: #2563eb; }
     .nav-pills .nav-link { color: #475569; font-weight: 700; border: 1px solid transparent; }
     .nav-pills .nav-link.active { color: #ffffff; background: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+
+    /* ── RECRUIT MODAL PREMIUM ─────────────────────────── */
+    .recruit-modal-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #0ea5e9 100%);
+        padding: 2rem 2rem 1.5rem;
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px 20px 0 0;
+    }
+    .recruit-modal-header::before {
+        content: '';
+        position: absolute;
+        top: -40px; right: -40px;
+        width: 200px; height: 200px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .recruit-modal-header::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: 30%;
+        width: 280px; height: 280px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 50%;
+    }
+    .recruit-logo {
+        height: 44px;
+        filter: brightness(0) invert(1);
+        opacity: 0.95;
+    }
+    .recruit-modal-title {
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.02em;
+    }
+    .recruit-modal-subtitle {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    /* Avatar uploader */
+    .avatar-upload-zone {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 3px dashed rgba(255,255,255,0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: rgba(255,255,255,0.12);
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+    }
+    .avatar-upload-zone:hover { border-color: #fff; background: rgba(255,255,255,0.2); }
+    .avatar-upload-zone img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; display:none; }
+    .avatar-upload-zone .avatar-overlay {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 0.2s;
+        color: #fff; font-size: 0.65rem; font-weight: 700;
+    }
+    .avatar-upload-zone:hover .avatar-overlay { opacity: 1; }
+    .avatar-placeholder { color: rgba(255,255,255,0.7); text-align: center; }
+    .avatar-placeholder i { font-size: 2rem; display: block; margin-bottom: 0.25rem; }
+    .avatar-placeholder span { font-size: 0.65rem; }
+
+    /* Steps nav */
+    .recruit-steps { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .recruit-step-btn {
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.65);
+        font-size: 0.75rem; font-weight: 700;
+        cursor: pointer; transition: all 0.2s;
+        backdrop-filter: blur(4px);
+    }
+    .recruit-step-btn.active {
+        background: rgba(255,255,255,0.25);
+        color: #fff;
+        border-color: rgba(255,255,255,0.5);
+    }
+    .recruit-step-btn .step-num {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 900;
+    }
+    .recruit-step-btn.active .step-num { background:#fff; color: #2563eb; }
+    .recruit-step-btn.done .step-num { background: #10b981; color: #fff; }
+    .recruit-step-btn.done { color: rgba(255,255,255,0.85); }
+
+    /* Step progress bar */
+    .recruit-progress {
+        height: 3px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 99px;
+        margin-top: 1rem;
+    }
+    .recruit-progress-fill {
+        height: 100%;
+        background: rgba(255,255,255,0.8);
+        border-radius: 99px;
+        transition: width 0.4s ease;
+    }
+
+    /* Field groups */
+    .form-section-title {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .form-section-title i { color: #2563eb; font-size: 0.9rem; }
+
+    .form-control-enhanced, .form-select-enhanced {
+        border-radius: 12px !important;
+        border: 1.5px solid #e2e8f0 !important;
+        padding: 0.6rem 0.875rem !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        transition: all 0.2s !important;
+        background: #fafafa !important;
+    }
+    .form-control-enhanced:focus, .form-select-enhanced:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+        background: #fff !important;
+    }
+    .form-label-enhanced {
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        color: #475569 !important;
+        margin-bottom: 0.35rem !important;
+        display: flex; align-items: center; gap: 0.3rem;
+    }
+    .field-required::after { content: " *"; color: #ef4444; }
+
+    /* Modal footer */
+    .recruit-modal-footer {
+        padding: 1.25rem 2rem;
+        border-top: 1px solid #f1f5f9;
+        background: #fafafa;
+        border-radius: 0 0 20px 20px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-recruit-submit {
+        background: linear-gradient(135deg, #2563eb, #0ea5e9);
+        border: none;
+        border-radius: 14px;
+        padding: 0.75rem 2.5rem;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: #fff;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    }
+    .btn-recruit-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        color: #fff;
+    }
+    .recruit-step-pane { display: none; }
+    .recruit-step-pane.active { display: block; animation: fadeIn 0.3s ease; }
 </style>
 {% endblock %}
 
@@ -271,84 +452,196 @@
 
 <!-- Modal: Recruit (Nouveau Employé) -->
 <div class="modal fade" id="recruitModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content rounded-24 border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold"><i class="bi bi-person-plus text-primary me-2"></i>Recruter un Nouvel Employé</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+            <!-- Premium Header -->
+            <div class="recruit-modal-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="avatar-upload-zone" onclick="document.getElementById('id_photo').click()">
+                            <div class="avatar-placeholder" id="avatar_placeholder">
+                                <i class="bi bi-camera-fill"></i>
+                                <span>PHOTO</span>
+                            </div>
+                            <img id="avatar_preview" src="" alt="Preview">
+                            <div class="avatar-overlay"><i class="bi bi-pencil-square fs-5"></i></div>
+                        </div>
+                        <div>
+                            <img src="/static/img/logo_sakinafinance.jpeg" class="recruit-logo mb-2" alt="SakinaFinance">
+                            <h4 class="recruit-modal-title">Inscription nouvel employé</h4>
+                            <p class="recruit-modal-subtitle">Génération du contrat et intégration au registre du personnel.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="mt-4">
+                    <div class="recruit-steps">
+                        <div class="recruit-step-btn active" data-step="1">
+                            <span class="step-num">1</span>
+                            <span>Identité & Contact</span>
+                        </div>
+                        <div class="recruit-step-btn" data-step="2">
+                            <span class="step-num">2</span>
+                            <span>Détails de l'emploi</span>
+                        </div>
+                        <div class="recruit-step-btn" data-step="3">
+                            <span class="step-num">3</span>
+                            <span>Banque & Social</span>
+                        </div>
+                    </div>
+                    <div class="recruit-progress">
+                        <div class="recruit-progress-fill" id="step_progress" style="width: 33%"></div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body p-4">
-                <form id="recruitForm">
+
+            <div class="modal-body p-0">
+                <form id="recruitForm" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Matricule</label>
-                            <input type="text" class="form-control rounded-12" name="employee_number" placeholder="EMP-001" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Prénom</label>
-                            <input type="text" class="form-control rounded-12" name="first_name" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Nom</label>
-                            <input type="text" class="form-control rounded-12" name="last_name" required>
+                    <!-- Hidden photo input -->
+                    <input type="file" name="photo" id="id_photo" class="d-none" accept="image/*">
+
+                    <div class="px-5 py-4">
+                        <!-- Step 1: Identity -->
+                        <div class="recruit-step-pane active" id="pane_step_1">
+                            <div class="form-section-title"><i class="bi bi-person-badge"></i> Informations Personnelles</div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <label class="form-label-enhanced field-required">Matricule</label>
+                                    <input type="text" class="form-control-enhanced" name="employee_number" placeholder="EMP-00X" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label-enhanced field-required">Genre</label>
+                                    <select class="form-select-enhanced" name="gender" required>
+                                        <option value="M">Homme</option>
+                                        <option value="F">Femme</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label-enhanced">Prénom</label>
+                                    <input type="text" class="form-control-enhanced" name="first_name" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label-enhanced">Nom</label>
+                                    <input type="text" class="form-control-enhanced" name="last_name" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced">Date de naissance</label>
+                                    <input type="date" class="form-control-enhanced" name="date_of_birth">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced">Nationalité</label>
+                                    <input type="text" class="form-control-enhanced" name="nationality" value="Sénégalaise">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced">Numéro CNI / Passeport</label>
+                                    <input type="text" class="form-control-enhanced" name="national_id">
+                                </div>
+                            </div>
+
+                            <div class="form-section-title"><i class="bi bi-envelope-at"></i> Coordonnées & Contact</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced field-required">Email Professionnel</label>
+                                    <input type="email" class="form-control-enhanced" name="email" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced field-required">Téléphone</label>
+                                    <input type="text" class="form-control-enhanced" name="phone" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label-enhanced">Adresse de résidence</label>
+                                    <textarea class="form-control-enhanced" name="address" rows="2"></textarea>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Genre</label>
-                            <select class="form-select rounded-12" name="gender">
-                                <option value="M">Homme</option>
-                                <option value="F">Femme</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Date de naissance</label>
-                            <input type="date" class="form-control rounded-12" name="date_of_birth">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Date d'embauche</label>
-                            <input type="date" class="form-control rounded-12" name="hire_date" required>
+                        <!-- Step 2: Employment -->
+                        <div class="recruit-step-pane" id="pane_step_2">
+                            <div class="form-section-title"><i class="bi bi-briefcase"></i> Structure & Affectation</div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced field-required">Département</label>
+                                    <select class="form-select-enhanced" name="department" id="recruitDeptSelect" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced field-required">Poste de travail</label>
+                                    <select class="form-select-enhanced" name="position" id="recruitPositionSelect" required></select>
+                                </div>
+                            </div>
+
+                            <div class="form-section-title"><i class="bi bi-file-earmark-text"></i> Conditions du Contrat</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced field-required">Type de contrat</label>
+                                    <select class="form-select-enhanced" name="contract_type">
+                                        <option value="cdi">CDI (Contrat Indéterminé)</option>
+                                        <option value="cdd">CDD (Contrat Déterminé)</option>
+                                        <option value="interim">Intérim</option>
+                                        <option value="freelance">Freelance / Consultant</option>
+                                        <option value="apprenticeship">Apprentissage / Stage</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced field-required">Date d'embauche</label>
+                                    <input type="date" class="form-control-enhanced" name="hire_date" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced">Salaire de Base (Mensuel)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" class="form-control-enhanced w-75" name="base_salary" value="0.00">
+                                        <input type="text" class="form-control-enhanced w-25 text-center bg-light" name="currency" value="XOF" readonly>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Email</label>
-                            <input type="email" class="form-control rounded-12" name="email">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Téléphone</label>
-                            <input type="text" class="form-control rounded-12" name="phone">
-                        </div>
+                        <!-- Step 3: Banking & Social -->
+                        <div class="recruit-step-pane" id="pane_step_3">
+                            <div class="form-section-title"><i class="bi bi-bank"></i> Informations Bancaires</div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-5">
+                                    <label class="form-label-enhanced">Nom de la Banque</label>
+                                    <input type="text" class="form-control-enhanced" name="bank_name" placeholder="Ex: BOA, SGBS, CBAO">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label-enhanced">Numéro de compte / IBAN</label>
+                                    <input type="text" class="form-control-enhanced" name="iban" placeholder="SN00 0000 0000...">
+                                </div>
+                                <input type="hidden" name="account_number"> <!-- Legacy fallback -->
+                            </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Département</label>
-                            <select class="form-select rounded-12" name="department" id="recruitDeptSelect" required></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Poste</label>
-                            <select class="form-select rounded-12" name="position" id="recruitPositionSelect" required></select>
-                        </div>
+                            <div class="form-section-title"><i class="bi bi-shield-check"></i> Immatriculations Sociales</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced">Numéro CNSS</label>
+                                    <input type="text" class="form-control-enhanced" name="cnss_number" placeholder="Immatriculation sécurité sociale">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced">Numéro Fiscal (TIN)</label>
+                                    <input type="text" class="form-control-enhanced" name="tax_id" placeholder="Identifiant fiscal">
+                                </div>
+                            </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Type de contrat</label>
-                            <select class="form-select rounded-12" name="contract_type">
-                                <option value="cdi">CDI</option>
-                                <option value="cdd">CDD</option>
-                                <option value="interim">Intérim</option>
-                                <option value="freelance">Freelance</option>
-                                <option value="apprenticeship">Apprentissage</option>
-                            </select>
+                            <div class="mt-5 p-3 rounded-12 bg-light border">
+                                <div class="d-flex gap-3">
+                                    <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                                    <div class="small">
+                                        <p class="mb-1 fw-bold">Note sur la conformité OHADA</p>
+                                        <p class="mb-0 text-muted">La validation de ce formulaire créera automatiquement le dossier administratif de l'employé et l'inclura dans le prochain cycle de paie. Assurez-vous que les pièces jointes (CNI, Contrat signé) sont téléchargées séparément dans l'onglet 'Documents' de sa fiche individuelle une fois créée.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Salaire de Base</label>
-                            <input type="number" step="0.01" class="form-control rounded-12" name="base_salary" value="0.00">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Devise</label>
-                            <input type="text" class="form-control rounded-12" name="currency" value="XOF" readonly>
-                        </div>
+                    </div>
 
-                        <div class="col-12 mt-4">
-                            <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Finaliser l'embauche</button>
+                    <div class="recruit-modal-footer">
+                        <button type="button" class="btn btn-outline-secondary rounded-12 fw-bold px-4" id="btn_prev_step" style="display:none">Précédent</button>
+                        <div class="ms-auto d-flex gap-2">
+                            <button type="button" class="btn btn-light rounded-12 fw-bold px-4" data-bs-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-recruit-submit px-5" id="btn_next_step">Suivant</button>
+                            <button type="submit" class="btn btn-recruit-submit px-5" id="btn_final_submit" style="display:none">Finaliser l'inscription</button>
                         </div>
                     </div>
                 </form>
@@ -752,11 +1045,93 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ── RECRUIT MULTI-STEP LOGIC ──────────────────────
+    let currentStep = 1;
+    const totalSteps = 3;
+    const btnNext = document.getElementById('btn_next_step');
+    const btnPrev = document.getElementById('btn_prev_step');
+    const btnSubmit = document.getElementById('btn_final_submit');
+    const progressBar = document.getElementById('step_progress');
+
+    function showStep(n) {
+        document.querySelectorAll('.recruit-step-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.recruit-step-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(`pane_step_${n}`).classList.add('active');
+        const activeBtn = document.querySelector(`.recruit-step-btn[data-step="${n}"]`);
+        activeBtn.classList.add('active');
+        
+        // Update footer buttons
+        btnPrev.style.display = (n === 1) ? 'none' : 'block';
+        if (n === totalSteps) {
+            btnNext.style.display = 'none';
+            btnSubmit.style.display = 'block';
+        } else {
+            btnNext.style.display = 'block';
+            btnSubmit.style.display = 'none';
+        }
+        
+        // Update progress bar
+        progressBar.style.width = `${(n / totalSteps) * 100}%`;
+        currentStep = n;
+    }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            // Basic validation for current step
+            const currentPane = document.getElementById(`pane_step_${currentStep}`);
+            const inputs = currentPane.querySelectorAll('input[required], select[required]');
+            let valid = true;
+            inputs.forEach(input => {
+                if (!input.value) {
+                    input.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            if (valid && currentStep < totalSteps) {
+                document.querySelector(`.recruit-step-btn[data-step="${currentStep}"]`).classList.add('done');
+                showStep(currentStep + 1);
+            }
+        });
+    }
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (currentStep > 1) showStep(currentStep - 1);
+        });
+    }
+
+    // Photo Preview
+    const photoInput = document.getElementById('id_photo');
+    if (photoInput) {
+        photoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatar_preview').src = e.target.result;
+                    document.getElementById('avatar_preview').style.display = 'block';
+                    document.getElementById('avatar_placeholder').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Updated Recruit Form Handler
     const recruitForm = document.getElementById('recruitForm');
     if (recruitForm) {
         recruitForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(recruitForm);
+            
+            // UI feedback
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Inscription...';
+
             try {
                 const response = await fetch('/hr/api/employees/add/', {
                     method: 'POST',
@@ -766,13 +1141,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 const res = await response.json();
                 if (res.status === 'success') {
                     bootstrap.Modal.getInstance(document.getElementById('recruitModal')).hide();
+                    
+                    // Success message
+                    alert(`Succès ! L'employé ${res.employee.name} a été intégré.`);
+                    
                     loadHRData();
                     recruitForm.reset();
+                    showStep(1); // Reset to step 1
+                    document.getElementById('avatar_preview').style.display = 'none';
+                    document.getElementById('avatar_placeholder').style.display = 'block';
+                    document.querySelectorAll('.recruit-step-btn').forEach(b => b.classList.remove('done'));
                 } else {
-                    alert(res.message + (res.errors ? '\n' + res.errors.join('\n') : ''));
+                    alert('Erreurs de validation :\n' + (res.errors ? res.errors.join('\n') : res.message));
                 }
             } catch (err) {
                 console.error('Submit error:', err);
+                alert('Une erreur est survenue lors de la communication avec le serveur.');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = 'Finaliser l\'inscription';
             }
         });
     }

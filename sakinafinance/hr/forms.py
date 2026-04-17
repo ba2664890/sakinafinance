@@ -8,10 +8,11 @@ class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
         fields = [
-            'employee_number', 'first_name', 'last_name', 'gender', 
-            'date_of_birth', 'email', 'phone', 'address', 
-            'department', 'position', 'contract_type', 'hire_date', 
-            'base_salary', 'currency'
+            'photo', 'employee_number', 'first_name', 'last_name', 'gender', 
+            'date_of_birth', 'national_id', 'nationality', 'email', 'phone', 
+            'address', 'department', 'position', 'contract_type', 'hire_date', 
+            'base_salary', 'currency', 'bank_name', 'account_number', 'iban', 
+            'cnss_number', 'tax_id'
         ]
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),

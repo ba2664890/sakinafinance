@@ -28,7 +28,7 @@ def register_view(request):
         return redirect('dashboard')
     
     if request.method == 'POST':
-        form = ComprehensiveRegistrationForm(request.POST)
+        form = ComprehensiveRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -37,8 +37,11 @@ def register_view(request):
                         name=form.cleaned_data['company_name'],
                         company_type=form.cleaned_data['company_type'],
                         registration_number=form.cleaned_data['registration_number'],
+                        tax_id=form.cleaned_data.get('tax_id'),
+                        address=form.cleaned_data.get('address'),
                         city=form.cleaned_data['city'],
                         country=form.cleaned_data['country'],
+                        logo=form.cleaned_data.get('logo'),
                         subscription_plan=form.cleaned_data.get('subscription_plan', 'free')
                     )
                     
@@ -48,6 +51,7 @@ def register_view(request):
                         password=form.cleaned_data['password1'],
                         first_name=form.cleaned_data['first_name'],
                         last_name=form.cleaned_data['last_name'],
+                        phone=form.cleaned_data.get('phone'),
                         company=company,
                         role=User.Role.ADMIN,
                         subscription_plan=form.cleaned_data.get('subscription_plan', 'free')

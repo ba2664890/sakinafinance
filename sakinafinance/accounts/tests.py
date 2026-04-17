@@ -100,3 +100,36 @@ class AccountsSecurityTests(TestCase):
             "Vous devez accepter les Conditions Générales et la Politique de Confidentialité.",
         )
         self.assertFalse(User.objects.filter(email='fatou@example.com').exists())
+    def test_successful_registration_with_new_fields(self):
+        payload = {
+            'first_name': 'Moussa',
+            'last_name': 'Sow',
+            'email': 'moussa@example.com',
+            'phone': '+221770000000',
+            'password1': 'AlphaTest99!',
+            'password2': 'AlphaTest99!',
+            'company_name': 'Sow Tech',
+            'company_type': 'pme',
+            'registration_number': 'SN-DKR-2026-B-1234',
+            'tax_id': 'NINEA-001-2233',
+            'address': 'Dakar Plateau, Immeuble Horizon',
+            'city': 'Dakar',
+            'country': 'Sénégal',
+            'subscription_plan': 'startup',
+            'accept_legal': 'on',
+        }
+
+        response = self.client.post(reverse('register'), payload, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        # Check if User created
+        user = User.objects.filter(email='moussa@example.com').first()
+        self.assertIsNotNone(user)
+        self.assertEqual(user.phone, '+221770000000')
+        self.assertEqual(user.subscription_plan, 'startup')
+        
+        # Check if Company created
+        self.assertIsNotNone(user.company)
+        self.assertEqual(user.company.name, 'Sow Tech')
+        self.assertEqual(user.company.tax_id, 'NINEA-001-2233')
+        self.assertEqual(user.company.address, 'Dakar Plateau, Immeuble Horizon')
