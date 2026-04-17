@@ -8,10 +8,10 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
-from .forms import EmployeeForm, LeaveRequestForm
+from .forms import EmployeeForm, LeaveRequestForm, RecruitmentForm
 
 from .models import (
-    Employee, Department, PayrollPeriod, Payslip,
+    Employee, Department, JobPosition, PayrollPeriod, Payslip,
     LeaveRequest, Recruitment, LeaveType, PayrollConfig
 )
 from django.views.decorators.http import require_POST
@@ -93,9 +93,44 @@ def api_hr_data(request):
             })
 
         last_period = payroll_periods.first()
+        previous_period = payroll_periods[1] if len(payroll_periods) > 1 else None
         payroll_total = float(last_period.total_gross) if last_period else 0
         avg_salary = round(payroll_total / max(total_employees, 1))
-        
+        payroll_growth = 0.0
+        payroll_variance = 0.0
+        net_ratio = 0.0
+        last_payment_date = ''
+        if last_period:
+            last_payment_date = (last_period.payment_date or last_period.period_end).strftime('%d/%m/%Y')
+            if previous_period and previous_period.total_gross > 0:
+                payroll_growth = round((float(last_period.total_gross) - float(previous_period.total_gross)) / float(previous_period.total_gross) * 100, 1)
+                payroll_variance = round((float(last_period.total_gross) - float(previous_period.total_gross)) / float(previous_period.total_gross) * 100, 1)
+            if last_period.total_gross > 0:
+                net_ratio = round(float(last_period.total_net) / float(last_period.total_gross) * 100, 1)
+
+        config = PayrollConfig.objects.filter(company=company).first()
+        if not config:
+            config = PayrollConfig(company=company)
+        social_charge_rate = float(
+            config.cnss_employee_rate + config.cnss_employer_rate +
+            config.ipres_employee_rate + config.ipres_employer_rate
+        )
+        avg_cost_per_employee = round(payroll_total / max(total_employees, 1), 2)
+
+        open_positions_count = Recruitment.objects.filter(company=company, status=Recruitment.Status.OPEN).count()
+        focus_items = []
+        if last_period:
+            if last_period.status == PayrollPeriod.Status.DRAFT:
+                focus_items.append({'title': 'Finaliser le cycle de paie en brouillon', 'status': 'Urgent', 'due': 'Dès que possible'})
+            elif last_period.status == PayrollPeriod.Status.PROCESSING:
+                focus_items.append({'title': 'Vérifier les retenues et valider la paie', 'status': 'En cours', 'due': '3 j.'})
+            elif last_period.status == PayrollPeriod.Status.VALIDATED:
+                focus_items.append({'title': 'Préparer le paiement final', 'status': 'Planifié', 'due': '1 sem.'})
+        if open_positions_count:
+            focus_items.append({'title': f'{open_positions_count} postes ouverts à prioriser', 'status': 'En cours', 'due': '1 sem.'})
+
+        positions = JobPosition.objects.filter(company=company)
+
         pending_leaves = LeaveRequest.objects.filter(employee__company=company, status='pending').count()
         approved_leaves = LeaveRequest.objects.filter(employee__company=company, status='approved').count()
         ongoing_leaves = LeaveRequest.objects.filter(
@@ -106,21 +141,17 @@ def api_hr_data(request):
         ).count()
 
         improvement_metrics = {
-            'payroll_forecast': 89,
-            'budget_utilization': 82,
-            'social_charges': 35,
-            'payroll_variance': -3.4,
-            'next_payroll_estimate': 124500,
-            'focus_items': [
-                {'title': 'Revue des heures supplémentaires', 'status': 'En cours', 'due': '2 sem.'},
-                {'title': 'Ajuster les cotisations fiscales', 'status': 'Planifié', 'due': '1 mois'},
-                {'title': 'Valider l’allocation budgets paie', 'status': 'À faire', 'due': '8 j.'},
-            ],
+            'avg_cost_per_employee': avg_cost_per_employee,
+            'net_ratio': net_ratio,
+            'social_charges': social_charge_rate,
+            'payroll_variance': payroll_variance,
+            'last_payment_date': last_payment_date,
+            'focus_items': focus_items,
             'forecast_series': [
-                {'label': 'Paie', 'value': 89},
-                {'label': 'Charges sociales', 'value': 35},
-                {'label': 'Budget', 'value': 82},
-                {'label': 'Provisions', 'value': 68},
+                {'label': 'Coût moyen', 'value': avg_cost_per_employee},
+                {'label': 'Charges', 'value': social_charge_rate},
+                {'label': 'Net/Brut', 'value': net_ratio},
+                {'label': 'Variance', 'value': abs(payroll_variance)},
             ]
         }
 
@@ -140,6 +171,7 @@ def api_hr_data(request):
         'approved_leaves': approved_leaves,
         'ongoing_leaves': ongoing_leaves,
         'departments_list': list(departments.values('id', 'name')),
+        'positions_list': list(positions.values('id', 'title')),
         'improvement': improvement_metrics,
     }
     return JsonResponse(data)
@@ -248,30 +280,29 @@ def leave_request_create(request):
 def api_hr_recruit(request):
     """API: Créer une offre de recrutement"""
     company = _get_company(request)
-    title = request.POST.get('title')
-    dept_id = request.POST.get('department')
-    description = request.POST.get('description')
-    
-    if not title:
-        return JsonResponse({'status': 'error', 'message': 'Titre requis'}, status=400)
-    
-    dept = None
-    if dept_id:
-        dept = Department.objects.filter(id=dept_id, company=company).first()
-        
-    recruit = Recruitment.objects.create(
-        company=company,
-        title=title,
-        department=dept,
-        description=description,
-        created_by=request.user
-    )
-    
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Société introuvable pour l’utilisateur.'}, status=400)
+
+    form = RecruitmentForm(request.POST, company=company)
+    if form.is_valid():
+        recruit = form.save(commit=False)
+        recruit.company = company
+        recruit.created_by = request.user
+        recruit.save()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Offre publiée',
+            'recruit': {'id': str(recruit.id), 'title': recruit.title}
+        })
+
+    errors = []
+    for field, field_errors in form.errors.items():
+        errors.append(`${field}: ${field_errors.join(', ')}`)
     return JsonResponse({
-        'status': 'success', 
-        'message': 'Offre publiée',
-        'recruit': {'id': str(recruit.id), 'title': recruit.title}
-    })
+        'status': 'error',
+        'message': 'Validation impossible.',
+        'errors': errors
+    }, status=400)
 
 
 @require_POST
