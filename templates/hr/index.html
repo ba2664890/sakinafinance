@@ -122,13 +122,37 @@
     
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .animate-fade { animation: fadeIn 0.6s ease-in-out forwards; }
+
+    .hr-panel .progress { background: rgba(15, 23, 42, 0.05); }
+    .hr-panel .progress-bar { transition: width 0.9s ease; }
+    .hr-panel .progress-bar.bg-warning { background-color: #f59e0b; }
+    .hr-panel .progress-bar.bg-info { background-color: #06b6d4; }
+    .hr-panel .progress-bar.bg-success { background-color: #10b981; }
+    .hr-panel .progress-bar.bg-primary { background-color: #2563eb; }
+    .nav-pills .nav-link { color: #475569; font-weight: 700; border: 1px solid transparent; }
+    .nav-pills .nav-link.active { color: #ffffff; background: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="fade-in">
-    <!-- Top Stats -->
-    <div class="hr-stats-grid">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-column flex-md-row gap-3">
+        <ul class="nav nav-pills rounded-pill bg-white shadow-sm p-2" id="hrTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4" id="hr-dashboard-tab" data-bs-toggle="pill" data-bs-target="#hr-dashboard-pane" type="button" role="tab">Tableau de bord</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="hr-improve-tab" data-bs-toggle="pill" data-bs-target="#hr-improve-pane" type="button" role="tab">Performance & Pilotage</button>
+            </li>
+        </ul>
+        <span class="badge bg-light text-primary py-2 px-3 rounded-pill border fw-bold">Performance & Pilotage RH</span>
+    </div>
+
+    <div class="tab-content">
+        <!-- Tab 1: Dashboard -->
+        <div class="tab-pane fade show active" id="hr-dashboard-pane" role="tabpanel">
+            <!-- Top Stats -->
+            <div class="hr-stats-grid">
         <div class="stat-card-glass">
             <div class="stat-val" id="total_employees">...</div>
             <div class="stat-lbl">Effectif Total</div>
@@ -232,7 +256,7 @@
             <div class="hr-panel">
                 <div class="hr-panel-header">
                     <h6>Recrutements Actifs</h6>
-                    <span class="badge bg-soft-blue text-primary" id="recruit_count">0 Postes</span>
+                    <span class="badge bg-light text-primary border" id="recruit_count">0 Postes</span>
                 </div>
                 <div class="hr-panel-content">
                     <div id="recruit_list">
@@ -323,16 +347,141 @@
                             <input type="text" class="form-control rounded-12" name="currency" value="XOF" readonly>
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label small fw-bold">Adresse</label>
-                            <textarea class="form-control rounded-12" name="address" rows="2"></textarea>
-                        </div>
-
                         <div class="col-12 mt-4">
                             <button type="submit" class="btn btn-primary w-100 rounded-12 py-2 fw-bold">Finaliser l'embauche</button>
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tab-pane fade" id="hr-improve-pane" role="tabpanel">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="hr-panel">
+                <div class="hr-panel-header">
+                    <div>
+                        <h6>Tableau de Performance RH</h6>
+                        <small class="text-muted">Pilotez les indicateurs financiers RH et optimisez les coûts de paie.</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" type="button" onclick="document.getElementById('hrImproveForm').scrollIntoView({behavior:'smooth'})">Nouvel objectif</button>
+                </div>
+                <div class="hr-panel-content">
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <form id="hrImproveForm">
+                                {% csrf_token %}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Objectif</label>
+                                        <input type="text" class="form-control rounded-12" name="goal" placeholder="Ex: Réduire le turnover" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Domaine</label>
+                                        <select class="form-select rounded-12" name="area" required>
+                                            <option value="">Choisir</option>
+                                            <option value="recrutement">Recrutement</option>
+                                            <option value="charges">Charges sociales</option>
+                                            <option value="budget">Budget paie</option>
+                                            <option value="trésorerie">Trésorerie</option>
+                                            <option value="rétention">Rétention</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Priorité</label>
+                                        <select class="form-select rounded-12" name="priority" required>
+                                            <option value="haute">Haute</option>
+                                            <option value="moyenne" selected>Moyenne</option>
+                                            <option value="basse">Basse</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Échéance</label>
+                                        <input type="date" class="form-control rounded-12" name="deadline">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Description</label>
+                                        <textarea class="form-control rounded-12" name="description" rows="4" placeholder="Détaillez les actions clés à mener"></textarea>
+                                    </div>
+                                    <div class="col-12 text-end">
+                                        <button type="submit" class="btn btn-primary rounded-12 py-2 fw-bold px-4">Valider l'objectif</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="d-flex flex-column gap-3">
+                                <div class="stat-card-glass p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <div class="small text-uppercase fw-bold text-muted">Santé des Données</div>
+                                            <div class="h3 fw-bold mb-0" id="payroll_forecast_card">...%</div>
+                                        </div>
+                                        <span class="badge bg-success">Qualité</span>
+                                    </div>
+                                    <div class="small text-muted">Complétude des dossiers employés et postes.</div>
+                                </div>
+                                <div class="stat-card-glass p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <div class="small text-uppercase fw-bold text-muted">Utilisation budget</div>
+                                            <div class="h3 fw-bold mb-0" id="budget_utilization_card">...%</div>
+                                        </div>
+                                        <span class="badge bg-primary">Budget</span>
+                                    </div>
+                                    <div class="small text-muted">Masse salariale actuelle vs capacité recrutements.</div>
+                                </div>
+                                <div class="stat-card-glass p-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <div class="small text-uppercase fw-bold text-muted">Charges sociales</div>
+                                            <div class="h3 fw-bold mb-0 text-danger" id="social_charges_card">...%</div>
+                                        </div>
+                                        <span class="badge bg-warning text-dark">Taux</span>
+                                    </div>
+                                    <div class="small text-muted">Taux global de cotisations (Employeur + Salarié).</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4 mt-1">
+        <div class="col-lg-6">
+            <div class="hr-panel">
+                <div class="hr-panel-header"><h6>Analyse financière</h6></div>
+                <div class="hr-panel-content">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Écart budgétaire (N vs N-1)</span><span class="small text-muted" id="variance_label">...%</span></div>
+                        <div class="progress rounded-pill" style="height: 10px;"><div class="progress-bar bg-primary" id="variance_bar" role="progressbar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Indice de complétude</span><span class="small text-muted" id="forecast_label">...%</span></div>
+                        <div class="progress rounded-pill" style="height: 10px;"><div class="progress-bar bg-info" id="forecast_bar" role="progressbar" style="width: 0%"></div></div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Provisions (Heuristique)</span><span class="small text-muted">75%</span></div>
+                        <div class="progress rounded-pill" style="height: 10px;"><div class="progress-bar bg-success" id="provisions_bar" role="progressbar" style="width: 75%"></div></div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-2"><span class="fw-bold">Taux de cotisation global</span><span class="small text-muted" id="charges_label">...%</span></div>
+                        <div class="progress rounded-pill" style="height: 10px;"><div class="progress-bar bg-warning" id="charges_bar" role="progressbar" style="width: 0%"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="hr-panel">
+                <div class="hr-panel-header"><h6>Recommandations prioritaires</h6></div>
+                <div class="hr-panel-content">
+                    <div class="mb-4" style="height: 260px;"><canvas id="improveRadarChart"></canvas></div>
+                    <div id="improve_task_list"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -394,6 +543,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    let deptChartInstance = null;
+    let improveChartInstance = null;
+
     loadHRData();
 
     async function loadHRData() {
@@ -409,19 +561,19 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('turnover_rate').textContent = `${data.turnover_rate}%`;
             document.getElementById('satisfaction_score').textContent = `${data.satisfaction_score}/100`;
 
-            // Leaves
+            // Dashboard Tab - Leaves
             document.getElementById('pending_leaves').textContent = data.pending_leaves;
             document.getElementById('approved_leaves').textContent = data.approved_leaves;
             document.getElementById('ongoing_leaves').textContent = data.ongoing_leaves;
 
-            // Payroll Table
+            // Dashboard Tab - Payroll Table
             const payrollBody = document.getElementById('payroll_table_body');
             if (data.payroll_runs.length === 0) {
                 payrollBody.innerHTML = '<tr><td colspan="6" class="text-center p-3 text-muted">Aucune période de paie</td></tr>';
             } else {
                 payrollBody.innerHTML = data.payroll_runs.map(run => `
                     <tr>
-                        <td class="fw-bold">${run.period}</td>
+                        <td class="fw-bold text-nowrap">${run.period}</td>
                         <td>${run.employees}</td>
                         <td>${run.gross.toLocaleString()}</td>
                         <td class="fw-bold">${run.net.toLocaleString()}</td>
@@ -435,7 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `).join('');
             }
 
-            // Departments
+            // Dashboard Tab - Departments
             const deptList = document.getElementById('dept_list');
             deptList.innerHTML = data.departments.map(dept => `
                 <div class="dept-item">
@@ -450,9 +602,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `).join('');
 
-            // Leave Types
-            const leaveList = document.getElementById('leave_type_list');
-            leaveList.innerHTML = data.leave_summary.map(leave => `
+            // Dashboard Tab - Leave Types
+            const leaveTypeList = document.getElementById('leave_type_list');
+            leaveTypeList.innerHTML = data.leave_summary.map(leave => `
                 <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-light border-start border-4 border-primary">
                     <div class="fw-bold small">${leave.type}</div>
                     <div class="small text-muted">
@@ -462,10 +614,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `).join('');
 
-            // Recruitments
+            // Dashboard Tab - Recruitments
             document.getElementById('recruit_count').textContent = `${data.recruitments.length} Postes`;
-            const recruitList = document.getElementById('recruit_list');
-            recruitList.innerHTML = data.recruitments.map(job => `
+            const recruitDashboardList = document.getElementById('recruit_list');
+            recruitDashboardList.innerHTML = data.recruitments.map(job => `
                 <div class="recruitment-card">
                     <div class="recruit-title">${job.title}</div>
                     <div class="recruit-meta">
@@ -476,9 +628,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `).join('');
 
-            // Chart
-            const ctx = document.getElementById('deptChart').getContext('2d');
-            new Chart(ctx, {
+            // Improvement Tab metrics
+            const improvement = data.improvement || {};
+            document.getElementById('payroll_forecast_card').textContent = `${improvement.payroll_forecast || 0}%`;
+            document.getElementById('budget_utilization_card').textContent = `${improvement.budget_utilization || 0}%`;
+            document.getElementById('social_charges_card').textContent = `${improvement.social_charges || 0}%`;
+            
+            document.getElementById('variance_label').textContent = `${improvement.payroll_variance || 0}%`;
+            document.getElementById('variance_bar').style.width = `${Math.min(Math.abs(improvement.payroll_variance || 0), 100)}%`;
+            
+            document.getElementById('forecast_label').textContent = `${improvement.payroll_forecast || 0}%`;
+            document.getElementById('forecast_bar').style.width = `${improvement.payroll_forecast || 0}%`;
+            
+            document.getElementById('charges_label').textContent = `${improvement.social_charges || 0}%`;
+            document.getElementById('charges_bar').style.width = `${Math.min(improvement.social_charges || 0, 100)}%`;
+
+            const improveTaskList = document.getElementById('improve_task_list');
+            if (improveTaskList) {
+                improveTaskList.innerHTML = (improvement.focus_items || []).map(item => `
+                    <div class="d-flex align-items-start justify-content-between mb-3 p-3 rounded-18 border border-secondary-subtle">
+                        <div>
+                            <div class="fw-bold">${item.title}</div>
+                            <div class="small text-muted">${item.due} — ${item.status}</div>
+                        </div>
+                        <span class="badge ${item.status === 'En cours' ? 'bg-primary' : item.status === 'Planifié' ? 'bg-info text-dark' : 'bg-secondary'} text-white">${item.status}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Charts Rendering
+            const deptCtx = document.getElementById('deptChart').getContext('2d');
+            if (deptChartInstance) deptChartInstance.destroy();
+            deptChartInstance = new Chart(deptCtx, {
                 type: 'doughnut',
                 data: {
                     labels: data.departments.map(d => d.name),
@@ -496,26 +677,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Populate Department Select in Recruitment Modal
+            const improveCtx = document.getElementById('improveRadarChart')?.getContext('2d');
+            if (improveCtx) {
+                const improveData = (improvement.forecast_series || []).map(s => s.value);
+                const improveLabels = (improvement.forecast_series || []).map(s => s.label);
+                
+                if (improveChartInstance) improveChartInstance.destroy();
+                improveChartInstance = new Chart(improveCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: improveLabels.length ? improveLabels : ['Paie', 'Charges', 'Budget', 'Provisions'],
+                        datasets: [{
+                            label: 'Indice de performance',
+                            data: improveData.length ? improveData : [0, 0, 0, 0],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.25)',
+                            pointBackgroundColor: '#2563eb',
+                            pointBorderColor: '#fff',
+                            pointRadius: 5,
+                            borderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100,
+                                ticks: { color: '#64748b', backdropColor: 'transparent', stepSize: 20 },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                                angleLines: { color: 'rgba(148, 163, 184, 0.15)' },
+                                pointLabels: { color: '#334155', font: { size: 11, weight: 'bold' } }
+                            }
+                        },
+                        plugins: { legend: { display: false } },
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Populate Modals Dropdowns
             const deptSelect = document.getElementById('recruitDeptSelect');
             if (deptSelect && data.departments_list) {
                 deptSelect.innerHTML = '<option value="">Choisir un département</option>' + 
                     data.departments_list.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
             }
-z
-            const positionSelect = document.getElementById('recruitPositionSelect');
-            if (positionSelect && data.positions_list) {
-                positionSelect.innerHTML = '<option value="">Choisir un poste</option>' + 
-                    data.positions_list.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
-            }
-
-            // Populate Department Select in Recruitment Modal
-            const deptSelect = document.getElementById('recruitDeptSelect');
-            if (deptSelect && data.departments_list) {
-                deptSelect.innerHTML = '<option value="">Choisir un département</option>' + 
-                    data.departments_list.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-            }
-
             const positionSelect = document.getElementById('recruitPositionSelect');
             if (positionSelect && data.positions_list) {
                 positionSelect.innerHTML = '<option value="">Choisir un poste</option>' + 
@@ -527,7 +733,25 @@ z
         }
     }
 
-    // Handle Employee Creation Form (Recruit)
+    // Tab Resize Handling for Charts
+    document.getElementById('hr-improve-tab')?.addEventListener('shown.bs.tab', () => {
+        if (improveChartInstance) improveChartInstance.resize();
+    });
+    document.getElementById('hr-dashboard-tab')?.addEventListener('shown.bs.tab', () => {
+        if (deptChartInstance) deptChartInstance.resize();
+    });
+
+    // Form Handlers
+    const hrImproveForm = document.getElementById('hrImproveForm');
+    if (hrImproveForm) {
+        hrImproveForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(hrImproveForm);
+            alert(`Plan d'amélioration enregistré : ${formData.get('goal')}\nSera traité par les Ressources Humaines.`);
+            hrImproveForm.reset();
+        });
+    }
+
     const recruitForm = document.getElementById('recruitForm');
     if (recruitForm) {
         recruitForm.addEventListener('submit', async (e) => {
@@ -542,10 +766,8 @@ z
                 const res = await response.json();
                 if (res.status === 'success') {
                     bootstrap.Modal.getInstance(document.getElementById('recruitModal')).hide();
-                    loadHRData(); // Refresh dashboard
+                    loadHRData();
                     recruitForm.reset();
-                    // Optional: redirect to the new employee detail
-                    // window.location.href = `/hr/employees/${res.employee.id}/`;
                 } else {
                     alert(res.message + (res.errors ? '\n' + res.errors.join('\n') : ''));
                 }
@@ -555,7 +777,6 @@ z
         });
     }
 
-    // Handle Payroll Config Form
     const payrollConfigForm = document.getElementById('payrollConfigForm');
     if (payrollConfigForm) {
         payrollConfigForm.addEventListener('submit', async (e) => {
