@@ -569,3 +569,46 @@ def api_trial_balance(request):
             'final_credit': float(total_final_credit),
         }
     })
+
+@login_required
+def api_general_ledger(request):
+    """API: Get General Ledger (Grand Livre) grouped by account."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Company non spécifiée'}, status=400)
+    
+    # Get all posted lines ordered by account and date
+    lines = TransactionLine.objects.filter(
+        transaction__company=company,
+        transaction__status=Transaction.TransactionStatus.POSTED
+    ).select_related('account', 'transaction', 'transaction__journal').order_by('account__code', 'transaction__date')
+    
+    ledger = {}
+    for line in lines:
+        acc_id = str(line.account.id)
+        if acc_id not in ledger:
+            ledger[acc_id] = {
+                'code': line.account.code,
+                'name': line.account.name,
+                'opening_balance': float(line.account.opening_balance),
+                'lines': [],
+                'total_debit': 0,
+                'total_credit': 0,
+            }
+        
+        line_data = {
+            'date': line.transaction.date.strftime('%d/%m/%Y'),
+            'reference': line.transaction.reference,
+            'journal': line.transaction.journal.code if line.transaction.journal else 'N/A',
+            'description': line.description or line.transaction.description,
+            'debit': float(line.debit),
+            'credit': float(line.credit),
+        }
+        ledger[acc_id]['lines'].append(line_data)
+        ledger[acc_id]['total_debit'] += float(line.debit)
+        ledger[acc_id]['total_credit'] += float(line.credit)
+    
+    # Convert to list and sort by code
+    result = sorted(ledger.values(), key=lambda x: x['code'])
+    
+    return JsonResponse({'status': 'success', 'data': result})

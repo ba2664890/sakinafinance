@@ -440,7 +440,7 @@
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 text-center py-3">
-                        <a href="#" class="text-primary fw-bold text-decoration-none small">Voir le Grand Livre Complet <i class="bi bi-arrow-right ms-1"></i></a>
+                        <a href="javascript:void(0)" id="link-grand-livre" class="text-primary fw-bold text-decoration-none small">Voir le Grand Livre Complet <i class="bi bi-arrow-right ms-1"></i></a>
                     </div>
                 </div>
             </div>
@@ -487,6 +487,27 @@
                             <!-- Totals injected via JS -->
                         </tfoot>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- GENERAL LEDGER VIEW (Grand Livre) -->
+    <div id="general-ledger-view" style="display: none;">
+        <div class="card border-0 shadow-sm rounded-16">
+            <div class="card-header bg-transparent border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1 text-primary-emphasis fw-bold">Grand Livre des Comptes</h5>
+                    <p class="text-secondary small mb-0">Détail chronologique des opérations par compte</p>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary rounded-8" onclick="toggleView('dashboard')">
+                    <i class="bi bi-arrow-left me-2"></i>Retour Dashboard
+                </button>
+            </div>
+            <div class="card-body p-4" id="general-ledger-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-secondary">Chargement du Grand Livre...</p>
                 </div>
             </div>
         </div>
@@ -1073,29 +1094,129 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Trial Balance Loading with filter
+    async function loadGeneralLedger() {
+        const container = document.getElementById('general-ledger-container');
+        if (!container) return;
+        
+        try {
+            const response = await fetch('{% url "api_general_ledger" %}');
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                if (result.data.length === 0) {
+                    container.innerHTML = '<div class="text-center py-5 text-secondary">Aucune écriture validée trouvée dans le Grand Livre.</div>';
+                    return;
+                }
+                
+                container.innerHTML = result.data.map(account => `
+                    <div class="mb-5 shadow-sm rounded-12 overflow-hidden border">
+                        <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary me-2">${account.code}</span>
+                                <span class="fw-bold text-dark">${account.name}</span>
+                            </div>
+                            <div class="small text-secondary">
+                                Solde d'ouverture: <span class="fw-bold">${fmt(account.opening_balance)}</span>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0" style="font-size: 0.85rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">Date</th>
+                                        <th>Réf</th>
+                                        <th>Jnl</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Débit</th>
+                                        <th class="text-end pe-3">Crédit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${account.lines.map(line => `
+                                        <tr>
+                                            <td class="ps-3 text-secondary">${line.date}</td>
+                                            <td class="fw-bold">${line.reference}</td>
+                                            <td><span class="badge bg-light text-dark border">${line.journal}</span></td>
+                                            <td>${line.description}</td>
+                                            <td class="text-end text-primary fw-bold">${line.debit > 0 ? fmt(line.debit) : '-'}</td>
+                                            <td class="text-end text-danger fw-bold pe-3">${line.credit > 0 ? fmt(line.credit) : '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                                <tfoot class="table-light fw-bold">
+                                    <tr>
+                                        <td colspan="4" class="text-end ps-3">TOTAL MOUVEMENTS</td>
+                                        <td class="text-end text-primary">${fmt(account.total_debit)}</td>
+                                        <td class="text-end text-danger pe-3">${fmt(account.total_credit)}</td>
+                                    </tr>
+                                    <tr class="bg-primary bg-opacity-10">
+                                        <td colspan="4" class="text-end ps-3">SOLDE FINAL</td>
+                                        <td colspan="2" class="text-center">
+                                            ${(account.opening_balance + account.total_debit - account.total_credit) >= 0 
+                                                ? `<span class="text-primary">Débiteur: ${fmt(account.opening_balance + account.total_debit - account.total_credit)}</span>`
+                                                : `<span class="text-danger">Créditeur: ${fmt(Math.abs(account.opening_balance + account.total_debit - account.total_credit))}</span>`
+                                            }
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading general ledger:', error);
+            container.innerHTML = '<div class="alert alert-danger">Erreur lors du chargement du Grand Livre.</div>';
+        }
+    }
+
+    window.toggleView = function(viewName) {
+        const dash = document.getElementById('dashboard-view');
+        const trial = document.getElementById('trial-balance-view');
+        const ledger = document.getElementById('general-ledger-view');
+        const toggleBtn = document.getElementById('btn-toggle-trial');
+        const label = document.getElementById('toggle-label');
+        
+        dash.style.display = 'none';
+        trial.style.display = 'none';
+        ledger.style.display = 'none';
+        
+        if (viewName === 'trial') {
+            trial.style.display = 'block';
+            label.textContent = 'Retour Dashboard';
+            toggleBtn.classList.remove('btn-outline-secondary');
+            toggleBtn.classList.add('btn-primary');
+            loadTrialBalance();
+        } else if (viewName === 'ledger') {
+            ledger.style.display = 'block';
+            label.textContent = 'Retour Dashboard';
+            toggleBtn.classList.remove('btn-outline-secondary');
+            toggleBtn.classList.add('btn-primary');
+            loadGeneralLedger();
+        } else {
+            dash.style.display = 'block';
+            label.textContent = 'Essai Complet';
+            toggleBtn.classList.remove('btn-primary');
+            toggleBtn.classList.add('btn-outline-secondary');
+        }
+    };
+
     // Toggle Logic
-    const toggleBtn = document.getElementById('btn-toggle-trial');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', function() {
             const dash = document.getElementById('dashboard-view');
-            const trial = document.getElementById('trial-balance-view');
-            const label = document.getElementById('toggle-label');
-            
             if (dash.style.display === 'none') {
-                dash.style.display = 'block';
-                trial.style.display = 'none';
-                label.textContent = 'Essai Complet';
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-outline-secondary');
+                toggleView('dashboard');
             } else {
-                dash.style.display = 'none';
-                trial.style.display = 'block';
-                label.textContent = 'Retour Dashboard';
-                this.classList.remove('btn-outline-secondary');
-                this.classList.add('btn-primary');
-                loadTrialBalance();
+                toggleView('trial');
             }
         });
+    }
+    
+    const linkLedger = document.getElementById('link-grand-livre');
+    if (linkLedger) {
+        linkLedger.addEventListener('click', () => toggleView('ledger'));
     }
 
     // Modal Calculation Logic
