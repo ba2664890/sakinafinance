@@ -154,7 +154,7 @@
             <button class="btn btn-sm btn-outline-secondary rounded-8 px-3" id="btn-toggle-trial">
                 <i class="bi bi-list-check me-2"></i><span id="toggle-label">Essai Complet</span>
             </button>
-            <button class="btn btn-sm btn-outline-secondary rounded-8 px-3">
+            <button class="btn btn-sm btn-outline-secondary rounded-8 px-3" id="btn-export-entries">
                 <i class="bi bi-download me-2"></i>Exporter
             </button>
             <button class="btn btn-sm btn-outline-secondary rounded-8 px-3" data-bs-toggle="modal" data-bs-target="#accountModal">
@@ -415,7 +415,7 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-custom align-middle mb-0">
+                            <table class="table table-custom align-middle mb-0" id="journal-table">
                                 <thead>
                                     <tr>
                                         <th>Date</th>
@@ -1487,8 +1487,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportBtn = document.getElementById('btn-export-entries');
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
-            alert("Exportation des données en cours (CSV/PDF)...");
+            const dash = document.getElementById('dashboard-view');
+            const trial = document.getElementById('trial-balance-view');
+            const ledger = document.getElementById('general-ledger-view');
+
+            let csvContent = "";
+            let filename = "export_sakinafinance.csv";
+
+            if (dash.style.display !== 'none') {
+                filename = "journal_comptable.csv";
+                csvContent = tableToCsv(document.getElementById('journal-table'));
+            } else if (trial.style.display !== 'none') {
+                filename = "balance_comptable.csv";
+                csvContent = tableToCsv(document.getElementById('trial-balance-table'));
+            } else if (ledger.style.display !== 'none') {
+                filename = "grand_livre_complet.csv";
+                const ledgerTables = document.querySelectorAll('#general-ledger-container table');
+                ledgerTables.forEach(table => {
+                    const title = table.closest('.mb-5')?.querySelector('h6')?.innerText || "Compte";
+                    csvContent += '"' + title + '"\n';
+                    csvContent += tableToCsv(table) + "\n\n";
+                });
+            }
+
+            if (csvContent) {
+                // BOM \ufeff for Excel UTF-8 compatibility
+                const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         });
+    }
+
+    function tableToCsv(table) {
+        if (!table) return "";
+        let rows = Array.from(table.querySelectorAll('tr'));
+        return rows.map(row => {
+            let cols = Array.from(row.querySelectorAll('td, th'));
+            return cols.map(col => {
+                let text = col.innerText.trim().replace(/"/g, '""');
+                return '"' + text + '"';
+            }).join(';'); // Semicolon for French/OHADA CSV standard
+        }).join('\n');
     }
 
     loadAccountingData();
