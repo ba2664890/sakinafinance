@@ -6,247 +6,249 @@
 
 {% block extra_css %}
 <style>
-    :root {
-        --comp-primary: #2563eb;
-        --comp-danger: #ef4444;
-        --comp-warning: #f59e0b;
-        --comp-card-bg: rgba(255, 255, 255, 0.9);
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+    .compliance-scope {
+        font-family: 'Space Grotesk', ui-sans-serif, system-ui;
     }
 
-    .compliance-kpis {
+    .compliance-hero {
+        border-radius: 24px;
+        padding: 3rem;
+        background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+        color: white;
+        box-shadow: 0 20px 40px rgba(6, 95, 70, 0.15);
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .compliance-hero::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .compliance-hero h2 { font-weight: 800; color: white; margin-bottom: 0.5rem; }
+    .compliance-hero p { color: rgba(255, 255, 255, 0.7); margin: 0; }
+
+    .hero-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+    .kpi-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1.5rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 3rem;
     }
-
-    .c-kpi-card {
-        background: var(--comp-card-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    .kpi-card {
+        background: white;
+        border: 1px solid #e2e8f0;
         border-radius: 20px;
         padding: 1.5rem;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        transition: transform 0.2s;
         text-align: center;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    .c-kpi-card:hover { transform: translateY(-5px); border-color: var(--comp-primary); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
-
-    .c-kpi-val { 
-        font-size: 2rem; 
-        font-weight: 900; 
-        color: #0f172a; 
-        margin-bottom: 0.25rem; 
-        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .c-kpi-lbl { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
-
-    .compliance-grid {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 2rem;
-    }
+    .kpi-card:hover { transform: translateY(-5px); }
+    .kpi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; font-weight: 700; margin-bottom: 0.5rem; }
+    .kpi-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; }
 
     .c-panel { 
-        background: var(--comp-card-bg); 
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.4); 
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        background: white; 
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
         border-radius: 24px; 
         overflow: hidden; 
         height: 100%; 
     }
     .c-header { 
-        padding: 1.5rem 1.75rem; 
+        padding: 1.5rem 2rem; 
         border-bottom: 1px solid #f1f5f9; 
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
-        background: rgba(248, 250, 252, 0.5);
+        background: #f8fafc;
     }
     .c-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
 
     .c-table { width: 100%; border-collapse: collapse; }
-    .c-table th { text-align: left; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 1rem; border-bottom: 1px solid #f1f5f9; letter-spacing: 0.05em; }
-    .c-table td { padding: 1.25rem 1rem; font-size: 0.875rem; border-bottom: 1px solid #f8fafc; color: #475569; font-weight: 500; }
+    .c-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 2rem; border-bottom: 1px solid #f1f5f9; }
+    .c-table td { padding: 1.25rem 2rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; color: #334155; font-weight: 500; }
 
-    .badge-deadline { padding: 0.4rem 0.8rem; border-radius: 10px; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.02em; }
-    .deadline-urgent { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; box-shadow: 0 0 10px rgba(220, 38, 38, 0.1); }
-    .deadline-normal { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+    .nav-pills .nav-link {
+        color: #64748b;
+        font-weight: 700;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.2s;
+    }
+    .nav-pills .nav-link.active {
+        background: #065f46;
+        color: white;
+        box-shadow: 0 10px 20px rgba(6, 95, 70, 0.1);
+    }
 
     .risk-item { 
-        padding: 1.25rem; 
-        border-radius: 18px; 
+        padding: 1.5rem; 
+        border-radius: 20px; 
         border: 1px solid #f1f5f9; 
         margin-bottom: 1rem; 
-        display: flex; 
-        flex-direction: column; 
-        gap: 0.6rem; 
         position: relative; 
-        border-left: 5px solid #e2e8f0; 
-        transition: all 0.2s;
+        border-left: 6px solid #e2e8f0; 
+        transition: all 0.3s;
     }
-    .risk-item:hover { transform: scale(1.02); }
-    .risk-item-danger { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.02); }
-    .risk-item-warning { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.02); }
-    .risk-item-success { border-left-color: #10b981; background: rgba(16, 185, 129, 0.02); }
+    .risk-item:hover { transform: translateX(5px); }
+    .risk-item-danger { border-left-color: #ef4444; background: #fffafb; }
+    .risk-item-warning { border-left-color: #f59e0b; background: #fffdfa; }
+    .risk-item-success { border-left-color: #10b981; background: #fafffb; }
 
-    .risk-title { font-size: 0.925rem; font-weight: 800; color: #0f172a; }
-    .risk-meta { font-size: 0.725rem; color: #64748b; display: flex; justify-content: space-between; font-weight: 600; }
-    
-    .entity-card {
-        padding: 1.25rem;
+    .regulatory-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
         margin-bottom: 1rem;
-        border-radius: 18px;
-        background: #fff;
-        border: 1px solid #f1f5f9;
-        transition: all 0.2s;
     }
-    .entity-card:hover { border-color: var(--comp-primary); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06); }
+    .reg-authority { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #065f46; background: rgba(6, 95, 70, 0.05); padding: 0.25rem 0.75rem; border-radius: 999px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="fade-in">
-    <!-- Top KPIs -->
-    <div class="compliance-kpis">
-        <div class="c-kpi-card">
-            <div class="c-kpi-val" id="comp-score">--%</div>
-            <div class="c-kpi-lbl">Score Conformité</div>
-        </div>
-        <div class="c-kpi-card">
-            <div class="c-kpi-val text-danger" id="comp-risks">--</div>
-            <div class="c-kpi-lbl">Risques Ouverts</div>
-        </div>
-        <div class="c-kpi-card">
-            <div class="c-kpi-val text-warning" id="comp-pending">--</div>
-            <div class="c-kpi-lbl">Décl. en attente</div>
-        </div>
-        <div class="c-kpi-card">
-            <div class="c-kpi-val" id="comp-provision">-- $</div>
-            <div class="c-kpi-lbl">Provision Impôts</div>
-        </div>
-        <div class="c-kpi-card">
-            <div class="c-kpi-val text-primary" id="comp-deadline">-- Jrs</div>
-            <div class="c-kpi-lbl">Prochaine Échéance</div>
-        </div>
-    </div>
-
-    <div class="compliance-grid mb-4">
-        <!-- Tax Calendar -->
-        <div class="left-col">
-            <div class="c-panel">
-                <div class="c-header">
-                    <h6>Calendrier Fiscal & Social</h6>
-                    <div class="d-flex gap-2">
-            <a href="{% url 'tax_filing_create' %}" class="btn btn-sm btn-primary rounded-8 px-3">
-                <i class="bi bi-file-earmark-plus me-2"></i>Déclarer un Impôt
-            </a>
-            <a href="{% url 'compliance_risk_create' %}" class="btn btn-sm btn-outline-danger rounded-8 px-3">
-                <i class="bi bi-exclamation-triangle me-2"></i>Signaler un Risque
-            </a>
-        </div>
+<div class="compliance-scope p-4">
+    <div class="compliance-hero">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-4">
+            <div>
+                <h2>Fiscalité & Conformité Réglementaire</h2>
+                <p>Maîtrisez vos obligations fiscales et minimisez vos risques juridiques.</p>
+                <div class="hero-actions">
+                    <a href="{% url 'tax_filing_create' %}" class="btn btn-primary px-4 py-2 rounded-12 fw-bold">
+                        <i class="bi bi-file-earmark-plus me-2"></i>Déclarer un impôt
+                    </a>
+                    <a href="{% url 'compliance_risk_create' %}" class="btn btn-outline-light px-4 py-2 rounded-12 fw-bold">
+                        <i class="bi bi-shield-exclamation me-2"></i>Signaler un risque
+                    </a>
                 </div>
-                <div class="p-0 overflow-auto">
-                    <table class="c-table">
-                        <thead>
-                            <tr>
-                                <th>Échéance</th>
-                                <th>Impôt / Taxe</th>
-                                <th>Entité</th>
-                                <th>Montant Est.</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tax_calendar_body">
-                            <!-- Dynamic -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-3 border-top text-center"><a href="#" class="small fw-bold text-primary text-decoration-none">Voir tout l'historique des déclarations</a></div>
             </div>
-        </div>
-
-        <!-- Risks & Regulation -->
-        <div class="right-col">
-            <div class="c-panel">
-                <div class="c-header"><h6>Analyse des Risques (Audit)</h6></div>
-                <div class="p-3" id="risk_container">
-                    <!-- Dynamic -->
-                </div>
-                <div class="p-3 pt-0">
-                    <button class="btn btn-outline-danger w-100 btn-sm"><i class="bi bi-shield-exclamation me-1"></i> Lancer Auto-Audit IA</button>
-                </div>
+            <div class="d-none d-lg-block text-end">
+                <div class="small opacity-75 mb-1 text-uppercase fw-bold letter-spacing-1">Score Compliance</div>
+                <div class="fs-1 fw-800" id="hero-comp-score">--%</div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Recently Filed -->
-        <div class="col-lg-8">
-            <div class="c-panel">
-                <div class="c-header"><h6>Derniers Dépôts Validés</h6></div>
-                <div class="p-0 overflow-auto">
-                    <table class="c-table">
-                        <thead>
-                            <tr>
-                                <th>Période</th>
-                                <th>Taxe</th>
-                                <th>Entité</th>
-                                <th>Montant Payé</th>
-                                <th>Date Dépôt</th>
-                                <th>Réception</th>
-                            </tr>
-                        </thead>
-                        <tbody id="filed_declarations_body">
-                            <!-- Dynamic -->
-                        </tbody>
-                    </table>
+    <div class="d-flex justify-content-center mb-5">
+        <ul class="nav nav-pills bg-white shadow-sm p-2 rounded-16" id="complianceTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="tax-tab" data-bs-toggle="pill" data-bs-target="#tax-pane">Fiscalité (Calendrier & Dépôts)</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="reg-tab" data-bs-toggle="pill" data-bs-target="#reg-pane">Réglementaire & Audit</button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content">
+        <!-- Tab: Taxation -->
+        <div class="tab-pane fade show active" id="tax-pane" role="tabpanel">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Provision Impôts</div>
+                    <div class="kpi-value" id="kpi-tax-provision">-- XOF</div>
                 </div>
-            </div>
-                        <tbody id="compliance_calendar_body">
-                            <!-- Dynamic -->
-                        </tbody>
-                    </table>
+                <div class="kpi-card">
+                    <div class="kpi-label">Décl. en attente</div>
+                    <div class="kpi-value text-warning" id="kpi-tax-pending">--</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Prochaine Échéance</div>
+                    <div class="kpi-value text-primary" id="kpi-tax-deadline">-- Jrs</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Taux de Ponctualité</div>
+                    <div class="kpi-value text-success">98%</div>
                 </div>
             </div>
 
-            <div class="right-col">
-                <div class="c-panel mb-4">
-                    <div class="c-header">
-                        <h6>Analyse des Risques</h6>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="c-panel mb-4">
+                        <div class="c-header">
+                            <h6>Calendrier Fiscal & Social</h6>
+                        </div>
+                        <div class="overflow-auto">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Échéance</th>
+                                        <th>Taxe</th>
+                                        <th>Entité</th>
+                                        <th>Montant Est.</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tax_calendar_body">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="p-3" id="compliance_risks_container">
-                        <!-- Dynamic -->
+
+                    <div class="c-panel">
+                        <div class="c-header"><h6>Derniers Dépôts Validés</h6></div>
+                        <div class="overflow-auto">
+                            <table class="c-table">
+                                <thead>
+                                    <tr>
+                                        <th>Période</th>
+                                        <th>Taxe</th>
+                                        <th>Entité</th>
+                                        <th>Montant Payé</th>
+                                        <th>Date Dépôt</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="filed_declarations_body">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="c-panel">
+                        <div class="c-header"><h6>Entités & Identifiants</h6></div>
+                        <div class="p-3" id="entities_container">
+                            <!-- Dynamic -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="regulatory-content" style="display:none;">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="c-panel">
-                    <div class="c-header">
-                        <h6>Obligations Réglementaires Activées</h6>
-                    </div>
-                    <div class="p-4" id="regulatory_container">
-                        <!-- Dynamic -->
+        <!-- Tab: Regulatory -->
+        <div class="tab-pane fade" id="reg-pane" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="c-panel mb-4">
+                        <div class="c-header"><h6>Obligations Réglementaires Activées</h6></div>
+                        <div class="p-4" id="regulatory_container">
+                            <!-- Dynamic -->
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="c-panel">
-                    <div class="c-header">
-                        <h6>Entités Enregistrées</h6>
-                    </div>
-                    <div class="p-3" id="compliance_entities_container">
-                        <!-- Dynamic -->
+                <div class="col-lg-4">
+                    <div class="c-panel">
+                        <div class="c-header"><h6>Analyse des Risques (Audit)</h6></div>
+                        <div class="p-3" id="risk_container">
+                            <!-- Dynamic -->
+                        </div>
+                        <div class="p-4 border-top">
+                            <button class="btn btn-outline-danger w-100 py-3 rounded-12 fw-bold"><i class="bi bi-shield-exclamation me-2"></i> Lancer Auto-Audit IA</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -262,92 +264,87 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadCompliance() {
         try {
-            const response = await fetch('/compliance/api/data/');
+            const response = await fetch('{% url "api_compliance_data" %}');
             const data = await response.json();
 
             // KPIs
-            const setText = (id, value) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = value;
-            };
-            const formatAmount = (amount) => Number(amount || 0).toLocaleString('fr-FR');
-
-            setText('comp-score', `${data.compliance_score || 0}%`);
-            setText('comp-risks', data.open_risks_count || 0);
-            setText('comp-pending', data.declarations_pending || 0);
-            setText('comp-provision', `${formatAmount(data.tax_provision)} XOF`);
-            setText('comp-deadline', `${data.next_deadline_days || 0} Jrs`);
+            const scoreEl = document.getElementById('hero-comp-score');
+            if (scoreEl) scoreEl.textContent = `${data.compliance_score || 0}%`;
+            
+            document.getElementById('kpi-tax-provision').textContent = new Intl.NumberFormat('fr-FR').format(data.tax_provision) + ' XOF';
+            document.getElementById('kpi-tax-pending').textContent = data.declarations_pending || 0;
+            document.getElementById('kpi-tax-deadline').textContent = data.next_deadline_days || 0 + ' Jrs';
 
             // Calendar
-            const calendarItems = data.tax_calendar || [];
-            const calendarBody = document.getElementById('tax_calendar_body') || document.getElementById('compliance_calendar_body');
-            if (calendarBody) {
-                calendarBody.innerHTML = calendarItems.length ? calendarItems.map(item => `
+            const calendarBody = document.getElementById('tax_calendar_body');
+            calendarBody.innerHTML = data.tax_calendar.length ? data.tax_calendar.map(item => `
                 <tr>
-                    <td><span class="badge-deadline ${item.urgent ? 'deadline-urgent' : 'deadline-normal'}">${item.deadline || '-'}</span></td>
-                    <td>
-                        <div class="fw-bold">${item.tax || '-'}</div>
-                        <div class="small text-muted">${item.days_left ?? 0} jours restants</div>
-                    </td>
-                    <td>${item.entity || '-'}</td>
-                    <td class="fw-bold">${formatAmount(item.amount)} XOF</td>
-                    <td><span class="badge bg-light text-dark border">${item.status || '-'}</span></td>
+                    <td><span class="badge rounded-pill ${item.urgent ? 'bg-danger' : 'bg-light text-dark border'} px-3 py-2">${item.deadline}</span></td>
+                    <td><div class="fw-bold">${item.tax}</div><div class="small text-muted">${item.days_left} jours restants</div></td>
+                    <td>${item.entity}</td>
+                    <td class="fw-bold">${new Intl.NumberFormat('fr-FR').format(item.amount)} XOF</td>
+                    <td><span class="badge bg-light text-dark border px-3">${item.status}</span></td>
                 </tr>
-                `).join('') : '<tr><td colspan="5" class="text-center py-4">Aucune déclaration à venir</td></tr>';
-            }
+            `).join('') : '<tr><td colspan="5" class="text-center py-5 text-muted">Aucune échéance à venir.</td></tr>';
 
-            // Filed declarations
-            const filedDeclarations = data.filed_declarations || [];
+            // History
             const filedBody = document.getElementById('filed_declarations_body');
-            if (filedBody) {
-                filedBody.innerHTML = filedDeclarations.length ? filedDeclarations.map(doc => `
+            filedBody.innerHTML = data.filed_declarations.length ? data.filed_declarations.map(doc => `
                 <tr>
-                    <td>${doc.period || '-'}</td>
-                    <td>${doc.tax || '-'}</td>
-                    <td>${doc.entity || '-'}</td>
-                    <td class="fw-bold">${formatAmount(doc.amount)} XOF</td>
-                    <td>${doc.filed || '-'}</td>
-                    <td class="text-mono small">${doc.receipt || 'N/A'}</td>
+                    <td>${doc.period}</td>
+                    <td>${doc.tax}</td>
+                    <td>${doc.entity}</td>
+                    <td class="fw-bold">${new Intl.NumberFormat('fr-FR').format(doc.amount)} XOF</td>
+                    <td>${doc.filed}</td>
                 </tr>
-                `).join('') : '<tr><td colspan="6" class="text-center py-4">Aucun dépôt validé</td></tr>';
-            }
+            `).join('') : '<tr><td colspan="5" class="text-center py-5 text-muted">Aucun historique disponible.</td></tr>';
 
             // Risks
-            const risks = data.risks || [];
-            const risksContainer = document.getElementById('compliance_risks_container') || document.getElementById('risk_container');
-            if (risksContainer) {
-                risksContainer.innerHTML = risks.length ? risks.map(risk => `
+            const risksContainer = document.getElementById('risk_container');
+            risksContainer.innerHTML = data.risks.length ? data.risks.map(risk => `
                 <div class="risk-item risk-item-${risk.level}">
-                    <div class="risk-title">${risk.description || 'Risque de conformité'}</div>
-                    <div class="risk-meta">
-                        <span>Impact: ${risk.impact || 'N/A'}</span>
-                        <span>Probabilité: ${risk.probability || 'N/A'}</span>
-                        <span>Statut: ${risk.status || 'N/A'}</span>
+                    <div class="risk-title">${risk.description}</div>
+                    <div class="risk-meta mt-2">
+                        <span>Impact: ${risk.impact}</span>
+                        <span>Probabilité: ${risk.probability}</span>
                     </div>
                 </div>
-                `).join('') : '<div class="text-center text-muted py-3">Aucun risque ouvert.</div>';
-            }
+            `).join('') : '<div class="text-center py-5 text-muted">Aucun risque ouvert identifié.</div>';
 
             // Entities
-            const entities = data.entities || [];
-            const entityContainer = document.getElementById('compliance_entities_container');
-            if (entityContainer) {
-                entityContainer.innerHTML = entities.length ? entities.map(ent => `
-                <div class="p-3 mb-3 border rounded shadow-sm">
+            const entityContainer = document.getElementById('entities_container');
+            entityContainer.innerHTML = data.entities.length ? data.entities.map(ent => `
+                <div class="p-3 mb-3 border rounded-16 bg-light">
                     <div class="d-flex justify-content-between mb-2">
-                        <h6 class="m-0 fw-bold">${ent.name || '-'}</h6>
-                        <span class="badge bg-success">${ent.status || '-'}</span>
+                        <h6 class="m-0 fw-bold">${ent.name}</h6>
+                        <span class="badge bg-success rounded-pill px-3">${ent.status}</span>
                     </div>
-                    <div class="small text-muted mb-1">Pays: ${ent.country || '-'}</div>
-                    <div class="small fw-bold">NIF/TIN: ${ent.tin || '-'}</div>
-                    <div class="small">TVA: ${ent.vat_reg || '-'}</div>
+                    <div class="small text-muted">NIF/TIN: ${ent.tin}</div>
+                    <div class="small text-muted">TVA: ${ent.vat_reg}</div>
                 </div>
-                `).join('') : '<div class="text-center text-muted py-3">Aucune entité enregistrée.</div>';
-            }
+            `).join('') : '<div class="text-center py-4 text-muted">Aucune entité configurée.</div>';
 
-        } catch (error) {
-            console.error('Error loading Compliance data:', error);
-        }
+            // Regulatory
+            const regContainer = document.getElementById('regulatory_container');
+            const regData = data.regulatory_requirements || [
+                { name: 'Déclaration Fiscale Annuelle', authority: 'Direction Générale des Impôts', frequency: 'Annuel', description: 'Dépôt des états financiers et liasse fiscale.' },
+                { name: 'Audit Interne de Conformité', authority: 'Comité d\'Audit', frequency: 'Semestriel', description: 'Vérification de la mise en œuvre des procédures.' }
+            ];
+            regContainer.innerHTML = regData.map(reg => `
+                <div class="regulatory-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="m-0 fw-bold">${reg.name}</h6>
+                        <span class="reg-authority">${reg.authority}</span>
+                    </div>
+                    <p class="small text-secondary mb-2">${reg.description}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <span class="small fw-bold"><i class="bi bi-clock me-1"></i> ${reg.frequency}</span>
+                        <button class="btn btn-sm btn-light border px-3">Détails</button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (error) { console.error('Error loading Compliance data:', error); }
     }
 });
 </script>
