@@ -171,15 +171,17 @@
 
         /* Top Header */
         .top-header {
-            background: white;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            padding: 0.75rem 2rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .header-left {
@@ -204,11 +206,12 @@
         }
 
         .page-title {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--text-primary);
             font-family: 'Outfit', sans-serif;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.025em;
+            margin: 0;
         }
 
         .header-right {
