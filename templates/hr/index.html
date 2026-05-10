@@ -363,6 +363,7 @@
                 <div class="hr-panel-header">
                     <h6>Historique des Paies (Payroll)</h6>
                     <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#structureModal"><i class="bi bi-diagram-3 me-1"></i> Structure</button>
                         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#payrollConfigModal"><i class="bi bi-gear me-1"></i> Paramètres</button>
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#recruitModal"><i class="bi bi-person-plus me-1"></i> Recruter</button>
                     </div>
@@ -780,6 +781,99 @@
     </div>
 </div>
 
+<!-- Modal: Structure (Départements & Postes) -->
+<div class="modal fade" id="structureModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+            <div class="recruit-modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4 class="recruit-modal-title">Structure de l'Entreprise</h4>
+                        <p class="recruit-modal-subtitle">Gérez vos départements et vos fiches de postes.</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="mt-4">
+                    <ul class="nav nav-pills recruit-steps" id="structureTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="recruit-step-btn active" id="dept-tab" data-bs-toggle="pill" data-bs-target="#dept-pane" type="button">
+                                <span class="step-num">1</span> Département
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="recruit-step-btn" id="pos-tab" data-bs-toggle="pill" data-bs-target="#pos-pane" type="button">
+                                <span class="step-num">2</span> Poste de travail
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-body p-5">
+                <div class="tab-content">
+                    <!-- Tab 1: Department -->
+                    <div class="tab-pane fade show active" id="dept-pane">
+                        <form id="departmentForm">
+                            {% csrf_token %}
+                            <div class="form-section-title"><i class="bi bi-building"></i> Nouveau Département</div>
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label-enhanced field-required">Nom du département</label>
+                                    <input type="text" class="form-control-enhanced" name="name" placeholder="Ex: Comptabilité, Logistique..." required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-enhanced">Code interne</label>
+                                    <input type="text" class="form-control-enhanced" name="code" placeholder="Ex: ACC, LOG">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label-enhanced">Centre de coût</label>
+                                    <input type="text" class="form-control-enhanced" name="cost_center" placeholder="Référence analytique">
+                                </div>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn-recruit-submit">Créer le département</button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Tab 2: Position -->
+                    <div class="tab-pane fade" id="pos-pane">
+                        <form id="positionForm">
+                            {% csrf_token %}
+                            <div class="form-section-title"><i class="bi bi-person-workspace"></i> Nouvelle Fiche de Poste</div>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label-enhanced field-required">Titre du poste</label>
+                                    <input type="text" class="form-control-enhanced" name="title" placeholder="Ex: Comptable Senior, Chauffeur..." required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced field-required">Rattachement</label>
+                                    <select class="form-select-enhanced" name="department" id="posDeptSelect" required>
+                                        <option value="">Chargement...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced">Grade / Échelon</label>
+                                    <input type="text" class="form-control-enhanced" name="grade" placeholder="Ex: Cadre, Agent de maîtrise">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced">Salaire Min</label>
+                                    <input type="number" class="form-control-enhanced" name="min_salary" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label-enhanced">Salaire Max</label>
+                                    <input type="number" class="form-control-enhanced" name="max_salary" value="0">
+                                </div>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn-recruit-submit" style="background: linear-gradient(135deg, #0f172a, #334155);">Créer le poste</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Payroll Config -->
 <div class="modal fade" id="payrollConfigModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -839,20 +933,91 @@ document.addEventListener('DOMContentLoaded', function() {
     let deptChartInstance = null;
     let improveChartInstance = null;
 
-    loadHRData();
+    // Department Form Submit
+    const deptForm = document.getElementById('departmentForm');
+    if (deptForm) {
+        deptForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const res = await fetch('{% url "api_hr_add_department" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    alert(result.message);
+                    this.reset();
+                    loadHrData();
+                } else {
+                    alert('Erreur: ' + result.message);
+                }
+            } catch (err) { alert('Erreur réseau'); }
+        });
+    }
 
-    async function loadHRData() {
+    // Position Form Submit
+    const posForm = document.getElementById('positionForm');
+    if (posForm) {
+        posForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            try {
+                const res = await fetch('{% url "api_hr_add_job_position" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    alert(result.message);
+                    this.reset();
+                    loadHrData();
+                } else {
+                    alert('Erreur: ' + result.message);
+                }
+            } catch (err) { alert('Erreur réseau'); }
+        });
+    }
+
+    // Sync Department selects
+    const syncStructureSelects = (departments) => {
+        const selects = ['recruitDeptSelect', 'posDeptSelect'];
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                const currentVal = el.value;
+                el.innerHTML = '<option value="">Choisir un département</option>' + 
+                    departments.map(d => `<option value="${d.id}" ${currentVal == d.id ? 'selected' : ''}>${d.name}</option>`).join('');
+            }
+        });
+    };
+
+    async function loadHrData() {
         try {
-            const response = await fetch('/hr/api/data/');
+            const response = await fetch('{% url "api_hr_data" %}');
             const data = await response.json();
 
             // KPIs
             document.getElementById('total_employees').textContent = data.total_employees;
             document.getElementById('new_hires_badge').textContent = `+${data.new_hires} ce mois`;
-            document.getElementById('payroll_total').textContent = `${data.payroll_total.toLocaleString()} $`;
-            document.getElementById('payroll_growth').textContent = `+${data.payroll_growth}% vs N-1`;
+            document.getElementById('payroll_total').textContent = new Intl.NumberFormat('fr-FR').format(data.payroll_total) + ' XOF';
+            document.getElementById('payroll_growth').textContent = (data.improvement.payroll_variance >= 0 ? '+' : '') + data.improvement.payroll_variance + '% vs N-1';
             document.getElementById('turnover_rate').textContent = `${data.turnover_rate}%`;
             document.getElementById('satisfaction_score').textContent = `${data.satisfaction_score}/100`;
+
+            // Sync selects
+            if (data.departments_list) {
+                syncStructureSelects(data.departments_list);
+            }
+            if (data.positions_list) {
+                const recruitPosSelect = document.getElementById('recruitPositionSelect');
+                if (recruitPosSelect) {
+                    recruitPosSelect.innerHTML = '<option value="">Choisir un poste</option>' + 
+                        data.positions_list.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+                }
+            }
 
             // Dashboard Tab - Leaves
             document.getElementById('pending_leaves').textContent = data.pending_leaves;
@@ -1009,18 +1174,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Populate Modals Dropdowns
-            const deptSelect = document.getElementById('recruitDeptSelect');
-            if (deptSelect && data.departments_list) {
-                deptSelect.innerHTML = '<option value="">Choisir un département</option>' + 
-                    data.departments_list.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-            }
-            const positionSelect = document.getElementById('recruitPositionSelect');
-            if (positionSelect && data.positions_list) {
-                positionSelect.innerHTML = '<option value="">Choisir un poste</option>' + 
-                    data.positions_list.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
-            }
-
         } catch (error) {
             console.error('Error loading HR data:', error);
         }
@@ -1133,7 +1286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Inscription...';
 
             try {
-                const response = await fetch('/hr/api/employees/add/', {
+                const response = await fetch('{% url "api_hr_employee_add" %}', {
                     method: 'POST',
                     body: formData,
                     headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
@@ -1145,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Success message
                     alert(`Succès ! L'employé ${res.employee.name} a été intégré.`);
                     
-                    loadHRData();
+                    loadHrData();
                     recruitForm.reset();
                     showStep(1); // Reset to step 1
                     document.getElementById('avatar_preview').style.display = 'none';
@@ -1170,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const formData = new FormData(payrollConfigForm);
             try {
-                const response = await fetch('/hr/api/payroll-config/', {
+                const response = await fetch('{% url "api_hr_payroll_config" %}', {
                     method: 'POST',
                     body: formData,
                     headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
@@ -1179,7 +1332,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (res.status === 'success') {
                     bootstrap.Modal.getInstance(document.getElementById('payrollConfigModal')).hide();
                     alert('Configuration sauvegardée avec succès');
-                    loadHRData();
+                    loadHrData();
                 } else {
                     alert(res.message);
                 }
@@ -1188,6 +1341,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    loadHrData();
 });
 </script>
 {% endblock %}

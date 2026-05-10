@@ -14,4 +14,6 @@ urlpatterns = [
     path('api/recruit/', views.api_hr_recruit, name='api_hr_recruit'),
     path('api/employees/add/', views.api_hr_employee_add, name='api_hr_employee_add'),
     path('api/payroll-config/', views.api_hr_payroll_config, name='api_hr_payroll_config'),
+    path('api/departments/add/', views.api_hr_add_department, name='api_hr_add_department'),
+    path('api/positions/add/', views.api_hr_add_job_position, name='api_hr_add_job_position'),
 ]

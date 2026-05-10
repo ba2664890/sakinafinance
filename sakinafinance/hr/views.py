@@ -385,3 +385,72 @@ def api_hr_payroll_config(request):
         return JsonResponse({'status': 'success', 'message': 'Configuration sauvegardée'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Erreur de validation des données : {e}'}, status=400)
+
+
+@require_POST
+@login_required
+def api_hr_add_department(request):
+    """API: Créer un département"""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Société introuvable.'}, status=400)
+    
+    name = request.POST.get('name')
+    code = request.POST.get('code', '')
+    cost_center = request.POST.get('cost_center', '')
+    
+    if not name:
+        return JsonResponse({'status': 'error', 'message': 'Le nom du département est requis.'}, status=400)
+        
+    dept = Department.objects.create(
+        company=company,
+        name=name,
+        code=code,
+        cost_center=cost_center
+    )
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Département {dept.name} créé.',
+        'department': {'id': str(dept.id), 'name': dept.name}
+    })
+
+
+@require_POST
+@login_required
+def api_hr_add_job_position(request):
+    """API: Créer un poste de travail"""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'status': 'error', 'message': 'Société introuvable.'}, status=400)
+        
+    title = request.POST.get('title')
+    dept_id = request.POST.get('department')
+    grade = request.POST.get('grade', '')
+    min_salary = Decimal(request.POST.get('min_salary', '0') or '0')
+    max_salary = Decimal(request.POST.get('max_salary', '0') or '0')
+    
+    if not title:
+        return JsonResponse({'status': 'error', 'message': 'Le titre du poste est requis.'}, status=400)
+        
+    dept = None
+    if dept_id:
+        try:
+            dept = Department.objects.get(id=dept_id, company=company)
+        except (Department.DoesNotExist, ValueError):
+            dept = None
+        
+    pos = JobPosition.objects.create(
+        company=company,
+        title=title,
+        department=dept,
+        grade=grade,
+        min_salary=min_salary,
+        max_salary=max_salary
+    )
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Poste {pos.title} créé.',
+        'position': {'id': str(pos.id), 'title': pos.title}
+    })
