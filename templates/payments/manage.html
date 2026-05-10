@@ -605,16 +605,115 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+
+<!-- Add Payment Method Modal -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="modal-title fw-800">Ajouter une carte</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4">Saisissez les informations de votre carte. Vos données sont traitées de manière sécurisée par Stripe.</p>
+                
+                <form id="payment-form">
+                    <div id="card-element" class="p-3 border rounded-4 bg-light mb-3" style="min-height: 44px;">
+                        <!-- Stripe Elements will be mounted here -->
+                    </div>
+                    <div id="card-errors" class="text-danger small mb-3" role="alert"></div>
+                    
+                    <button type="submit" id="submit-button" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow">
+                        Enregistrer la carte
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-function switchPanel(panelId, btn) {
-    // Hide all panels
-    document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
-    // Deactivate all tabs
-    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
-    // Show selected panel
-    document.getElementById(panelId).classList.add('active');
-    // Activate clicked tab
-    if (btn) btn.classList.add('active');
-}
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    const elements = stripe.elements();
+    
+    // Create and mount the card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#0f172a',
+                fontFamily: 'Inter, sans-serif',
+                '::placeholder': { color: '#94a3b8' },
+            },
+        },
+        hidePostalCode: true
+    });
+    cardElement.mount('#card-element');
+
+    // Handle modal show/hide
+    const addPaymentModal = new bootstrap.Modal(document.getElementById('addPaymentModal'));
+    
+    document.querySelectorAll('#addPaymentBtn, #addPaymentBtn2').forEach(btn => {
+        btn.addEventListener('click', () => {
+            addPaymentModal.show();
+        });
+    });
+
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    const cardErrors = document.getElementById('card-errors');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Traitement...';
+        cardErrors.textContent = '';
+
+        try {
+            const { paymentMethod, error } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+            });
+
+            if (error) {
+                cardErrors.textContent = error.message;
+                submitButton.disabled = false;
+                submitButton.textContent = 'Enregistrer la carte';
+            } else {
+                // Send paymentMethod.id to your server
+                const response = await fetch('{% url "add_payment_method" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ payment_method_id: paymentMethod.id }),
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    window.location.reload();
+                } else {
+                    cardErrors.textContent = result.message || 'Une erreur est survenue.';
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Enregistrer la carte';
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            cardErrors.textContent = 'Une erreur technique est survenue.';
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enregistrer la carte';
+        }
+    });
+
+    function switchPanel(panelId, btn) {
+        document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(panelId).classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
 </script>
-{% endblock %}
