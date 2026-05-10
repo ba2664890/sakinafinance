@@ -14,6 +14,7 @@ from sakinafinance.accounting.models import FinancialStatement, Transaction
 from sakinafinance.accounting.services import (
     ZERO,
     build_balance_sheet_snapshot,
+    calculate_reliability_score,
     posted_lines_queryset,
 )
 
@@ -193,8 +194,11 @@ def api_reporting_data(request):
         else "Aucune écriture validée n'alimente encore le reporting. Les tableaux restent volontairement vides pour éviter des chiffres fictifs."
     )
 
+    reliability_score = calculate_reliability_score(company)
+
     data = {
         'income_statement': statement_rows if has_posted_entries else [],
+        'reliability_score': reliability_score,
         'ratios': [
             {'label': 'Liquidité générale', 'value': f'{liquidity_ratio}' if liquidity_ratio is not None else 'N/A', 'benchmark': '> 1.0', 'status': 'good' if liquidity_ratio is not None and liquidity_ratio >= 1 else 'warning'},
             {'label': 'Liquidité réduite', 'value': f'{quick_ratio}' if quick_ratio is not None else 'N/A', 'benchmark': '> 0.8', 'status': 'good' if quick_ratio is not None and quick_ratio >= 0.8 else 'warning'},

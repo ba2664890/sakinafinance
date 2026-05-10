@@ -320,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('kpi-net-income').textContent = new Intl.NumberFormat('fr-FR').format(data.net_income) + ' XOF';
             document.getElementById('kpi-net-margin').innerHTML = `<i class="bi bi-percent"></i> Marge: ${data.ebitda_margin || 0}%`;
             document.getElementById('kpi-revenue-growth').innerHTML = `<i class="bi bi-graph-up"></i> Croissance: ${data.revenue_growth || 0}%`;
+            document.getElementById('kpi-reliability').textContent = `${data.reliability_score}%`;
             
             const netCash = data.cash_flows?.length ? data.cash_flows[data.cash_flows.length - 1].amount : 0;
             document.getElementById('kpi-net-cash').textContent = new Intl.NumberFormat('fr-FR').format(netCash) + ' XOF';

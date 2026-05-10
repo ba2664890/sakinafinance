@@ -346,3 +346,45 @@ def post_transaction(transaction, user=None):
     refresh_current_balances(transaction.company)
 
     return transaction
+
+
+def calculate_reliability_score(company):
+    """
+    Calcule un score de fiabilité (0-100) basé sur :
+    - La présence d'écritures validées (50 pts)
+    - L'équilibre débit/crédit (30 pts)
+    - La conformité SYSCOHADA (20 pts)
+    """
+    score = 0
+    if not company:
+        return 0
+
+    # 1. Présence d'écritures (50 pts)
+    posted_count = Transaction.objects.filter(company=company, status=Transaction.TransactionStatus.POSTED).count()
+    if posted_count > 0:
+        score += 50
+    else:
+        # Si aucune écriture n'est validée, on ne peut pas vraiment parler de fiabilité
+        return 5
+
+    # 2. Équilibre Débit/Crédit (30 pts)
+    lines = posted_lines_queryset(company)
+    totals = lines.aggregate(td=Sum('debit'), tc=Sum('credit'))
+    total_debit = totals['td'] or ZERO
+    total_credit = totals['tc'] or ZERO
+
+    if total_debit == total_credit:
+        score += 30
+    else:
+        # Écart majeur = pénalité
+        score -= 10
+
+    # 3. Conformité Plan Comptable (20 pts)
+    total_accounts, issues = syscohada_account_compliance(company)
+    if total_accounts > 0:
+        penalty = min(len(issues) * 2, 20)
+        score += (20 - penalty)
+    else:
+        score += 5 # Minimum pour avoir initialisé un plan
+
+    return max(0, min(100, score))
