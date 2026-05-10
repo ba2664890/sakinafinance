@@ -9,6 +9,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from .managers import UserManager
+from sakinafinance.core.choices import COUNTRY_CHOICES
 
 
 LANGUAGE_CHOICES = [
@@ -252,7 +253,7 @@ class Company(models.Model):
     # Address
     address = models.TextField(blank=True)
     city = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, default='Sénégal')
+    country = models.CharField(max_length=100, choices=COUNTRY_CHOICES, default='Sénégal')
     postal_code = models.CharField(max_length=20, blank=True)
     
     # Contact
@@ -358,7 +359,7 @@ class Entity(models.Model):
     # Location
     address = models.TextField(blank=True)
     city = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, default='Sénégal')
+    country = models.CharField(max_length=100, choices=COUNTRY_CHOICES, default='Sénégal')
     
     # Accounting
     local_currency = models.CharField(max_length=3, default='XOF')

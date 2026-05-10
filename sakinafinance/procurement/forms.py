@@ -14,6 +14,7 @@ class SupplierForm(forms.ModelForm):
         ]
         widgets = {
             'address': forms.Textarea(attrs={'rows': 2}),
+            'country': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):

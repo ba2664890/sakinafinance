@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError as DjangoValidationError
+from sakinafinance.core.choices import COUNTRY_CHOICES
 
 
 class SupplierCategory(models.Model):
@@ -62,7 +63,7 @@ class Supplier(models.Model):
     website = models.URLField(blank=True)
     address = models.TextField(blank=True)
     city = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, default='Sénégal')
+    country = models.CharField(max_length=100, choices=COUNTRY_CHOICES, default='Sénégal')
 
     # Commercial terms
     payment_terms_days = models.IntegerField(default=30)

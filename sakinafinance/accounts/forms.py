@@ -5,6 +5,7 @@ Forms for Accounts Module
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User, Company
+from sakinafinance.core.choices import COUNTRY_CHOICES
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -72,7 +73,7 @@ class ComprehensiveRegistrationForm(forms.Form):
     tax_id = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NINEA / ID Fiscal'}))
     address = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Siège social', 'rows': 2}))
     city = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ville'}))
-    country = forms.CharField(max_length=100, initial='Sénégal', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Pays'}))
+    country = forms.ChoiceField(choices=COUNTRY_CHOICES, initial='Sénégal', widget=forms.Select(attrs={'class': 'form-select'}))
     logo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
     
     # User Phone
@@ -148,7 +149,7 @@ class CompanyForm(forms.ModelForm):
             'vat_number': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
-            'country': forms.TextInput(attrs={'class': 'form-control'}),
+            'country': forms.Select(attrs={'class': 'form-select'}, choices=COUNTRY_CHOICES),
             'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),

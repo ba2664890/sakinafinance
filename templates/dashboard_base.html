@@ -7,16 +7,17 @@
         <a href="{% url 'dashboard' %}" class="sidebar-brand">
             <div class="brand-logo">
                 {% if request.user.company and request.user.company.logo %}
-                    <img src="{{ request.user.company.logo.url }}" alt="{{ request.user.company.name }}" />
+                <img src="{{ request.user.company.logo.url }}" alt="{{ request.user.company.name }}" />
                 {% else %}
-                    <span class="brand-initials">{{ request.user.company.name|default:'SF'|slice:':2'|upper }}</span>
+                <span class="brand-initials">{{ request.user.company.name|default:'SF'|slice:':2'|upper }}</span>
                 {% endif %}
             </div>
             <div>
                 <span class="brand-text">{{ request.user.company.name|default:'SakinaFinance' }}</span>
                 {% if request.user.company %}
                 <small class="company-details text-white-50 d-block" style="font-size:0.8rem; line-height:1.2;">
-                    {{ request.user.company.get_company_type_display }} • {{ request.user.company.get_subscription_status_display }}
+                    {{ request.user.company.get_company_type_display }} • {{
+                    request.user.company.get_subscription_status_display }}
                 </small>
                 {% endif %}
             </div>
