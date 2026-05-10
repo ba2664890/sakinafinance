@@ -16,8 +16,7 @@
                 <span class="brand-text">{{ request.user.company.name|default:'SakinaFinance' }}</span>
                 {% if request.user.company %}
                 <small class="company-details text-white-50 d-block" style="font-size:0.8rem; line-height:1.2;">
-                    {{ request.user.company.get_company_type_display }} • {{
-                    request.user.company.get_subscription_status_display }}
+                    {{ request.user.company.get_company_type_display }} • {{ request.user.company.get_subscription_status_display }}
                 </small>
                 {% endif %}
             </div>
