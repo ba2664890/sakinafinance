@@ -179,6 +179,17 @@ def api_hr_data(request):
             ]
         }
 
+        employees_list = []
+        for emp in employees.order_by('-created_at')[:5]:
+            employees_list.append({
+                'id': str(emp.id),
+                'name': emp.get_full_name(),
+                'photo': emp.photo.url if emp.photo else None,
+                'position': emp.position.title if emp.position else 'Sans poste',
+                'dept': emp.department.name if emp.department else 'N/A',
+                'status': emp.get_status_display(),
+            })
+
     data = {
         'total_employees': total_employees,
         'new_hires': new_hires,
@@ -191,6 +202,7 @@ def api_hr_data(request):
         'payroll_runs': payroll_runs,
         'leave_summary': leave_summary,
         'recruitments': recruitments,
+        'employees_list': employees_list,
         'pending_leaves': pending_leaves,
         'approved_leaves': approved_leaves,
         'ongoing_leaves': ongoing_leaves,

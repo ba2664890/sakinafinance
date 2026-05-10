@@ -433,18 +433,20 @@
             </div>
         </div>
 
-        <!-- Recruitments -->
+        <!-- Employees -->
         <div class="col-lg-6">
             <div class="hr-panel">
                 <div class="hr-panel-header">
-                    <h6>Recrutements Actifs</h6>
-                    <span class="badge bg-light text-primary border" id="recruit_count">0 Postes</span>
+                    <h6>Registre des Employés</h6>
+                    <a href="{% url 'employee_list' %}" class="text-primary fw-bold small text-decoration-none">Voir tout</a>
                 </div>
-                <div class="hr-panel-content">
-                    <div id="recruit_list">
-                        <!-- Dynamic -->
+                <div class="hr-panel-content p-0">
+                    <div id="dashboard_employee_list">
+                        <div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>
                     </div>
-                    <button class="btn btn-outline-primary w-100 btn-sm mt-2">Gérer le portail carrière</button>
+                    <div class="p-3 border-top text-center">
+                        <button class="btn btn-light btn-sm w-100 rounded-12 fw-bold" onclick="location.href='{% url 'employee_list' %}'">Gérer tout le personnel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1072,19 +1074,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `).join('');
 
-            // Dashboard Tab - Recruitments
-            document.getElementById('recruit_count').textContent = `${data.recruitments.length} Postes`;
-            const recruitDashboardList = document.getElementById('recruit_list');
-            recruitDashboardList.innerHTML = data.recruitments.map(job => `
-                <div class="recruitment-card">
-                    <div class="recruit-title">${job.title}</div>
-                    <div class="recruit-meta">
-                        <span><i class="bi bi-building me-1"></i>${job.dept}</span>
-                        <span><i class="bi bi-people me-1"></i>${job.candidates} Candidats</span>
-                        <span class="fw-bold text-primary">${job.stage}</span>
-                    </div>
-                </div>
-            `).join('');
+            // Dashboard Tab - Employees
+            const empDashboardList = document.getElementById('dashboard_employee_list');
+            if (empDashboardList && data.employees_list) {
+                if (data.employees_list.length === 0) {
+                    empDashboardList.innerHTML = '<div class="text-center py-5 text-muted small">Aucun employé enregistré</div>';
+                } else {
+                    empDashboardList.innerHTML = data.employees_list.map(emp => `
+                        <div class="d-flex align-items-center gap-3 p-3 border-bottom" onclick="location.href='/hr/employees/${emp.id}/'" style="cursor:pointer">
+                            <div class="flex-shrink-0">
+                                ${emp.photo 
+                                    ? `<img src="${emp.photo}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">`
+                                    : `<div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px;">${emp.name.charAt(0)}</div>`
+                                }
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-dark small">${emp.name}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">${emp.position} • ${emp.dept}</div>
+                            </div>
+                            <div>
+                                <span class="badge bg-success bg-opacity-10 text-success" style="font-size: 0.6rem;">${emp.status}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
 
             // Improvement Tab metrics
             const improvement = data.improvement || {};
