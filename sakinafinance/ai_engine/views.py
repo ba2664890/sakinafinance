@@ -3,12 +3,15 @@ AI Engine Views — SakinaFinance
 Dashboard IA avec Prophet forecasting
 """
 import json
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
-from .models import AIAnalysis, CashFlowForecast, AIInsight, AnomalyDetection, KnowledgeDocument, KnowledgeChunk
+from .models import (
+    AIAnalysis, CashFlowForecast, AIInsight, AnomalyDetection,
+    KnowledgeDocument, KnowledgeChunk, ChatSession, ChatMessage
+)
 from .services_rag import RAGService
 from sakinafinance.accounting.models import Transaction, TransactionLine, Invoice
 from django.db.models import Sum, Count, Q
@@ -20,6 +23,116 @@ logger = logging.getLogger('sakinafinance')
 
 def _get_company(request):
     return getattr(request.user, 'company', None)
+
+
+def _json_body(request):
+    try:
+        return json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return None
+
+
+def _serialize_chat_message(message):
+    return {
+        'id': str(message.id),
+        'role': message.role,
+        'content': message.content,
+        'type': message.response_type,
+        'payload': message.payload,
+        'sources': message.sources,
+        'created_at': message.created_at.strftime('%d/%m/%Y %H:%M'),
+    }
+
+
+def _serialize_chat_session(session):
+    last_message = session.messages.order_by('-created_at').first()
+    return {
+        'id': str(session.id),
+        'title': session.title,
+        'summary': session.summary,
+        'last_intent': session.last_intent,
+        'updated_at': session.updated_at.strftime('%d/%m/%Y %H:%M'),
+        'message_count': session.messages.count(),
+        'last_message': last_message.content[:120] if last_message else '',
+    }
+
+
+def _get_or_create_chat_session(request, company, session_id=None, first_message=''):
+    if session_id:
+        return get_object_or_404(
+            ChatSession,
+            id=session_id,
+            company=company,
+            user=request.user,
+            is_archived=False,
+        )
+
+    title = first_message.strip()[:80] or 'Nouvelle discussion'
+    return ChatSession.objects.create(
+        company=company,
+        user=request.user,
+        title=title,
+    )
+
+
+def _conversation_context(session, limit=8):
+    messages = list(session.messages.order_by('-created_at')[:limit])
+    messages.reverse()
+    if not messages:
+        return ""
+    labels = {
+        ChatMessage.Role.USER: "Utilisateur",
+        ChatMessage.Role.ASSISTANT: "Sakina",
+        ChatMessage.Role.SYSTEM: "Système",
+    }
+    return "\n".join(
+        f"{labels.get(message.role, message.role)}: {message.content[:900]}"
+        for message in messages
+    )
+
+
+def _detect_intent(message):
+    lowered = message.lower()
+    if any(k in lowered for k in ['cash', 'trésorerie', 'forecast', 'prévision']):
+        return 'cashflow'
+    if any(k in lowered for k in ['ebitda', 'marge', 'profit', 'rentabilité']):
+        return 'profitability'
+    if any(k in lowered for k in ['burn', 'runway', 'autonomie', 'dépense']):
+        return 'burn_rate'
+    if any(k in lowered for k in ['risk', 'risque', 'alerte', 'anomalie']):
+        return 'risk'
+    return 'rag'
+
+
+def _save_assistant_message(session, response):
+    payload = {
+        'chart_type': response.get('chart_type'),
+        'data': response.get('data'),
+        'items': response.get('items'),
+        'insights': response.get('insights'),
+        'suggestions': response.get('suggestions'),
+    }
+    payload = {key: value for key, value in payload.items() if value not in [None, [], {}]}
+    return ChatMessage.objects.create(
+        session=session,
+        role=ChatMessage.Role.ASSISTANT,
+        content=response.get('text', ''),
+        response_type=response.get('type', 'text'),
+        payload=payload,
+        sources=response.get('sources', []),
+    )
+
+
+def _chat_response(session, response, status=200):
+    assistant_message = _save_assistant_message(session, response)
+    session.updated_at = timezone.now()
+    session.save(update_fields=['updated_at'])
+    response = {
+        **response,
+        'session': _serialize_chat_session(session),
+        'message': _serialize_chat_message(assistant_message),
+    }
+    return JsonResponse(response, status=status)
 
 
 def _generate_prophet_forecast(company, horizon_months=12):
@@ -185,20 +298,105 @@ def ai_forecast_api(request):
 
 
 @login_required
+def api_chat_sessions(request):
+    """API: liste ou crée les sessions de discussion IA."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    if request.method == 'GET':
+        sessions = ChatSession.objects.filter(
+            company=company,
+            user=request.user,
+            is_archived=False,
+        ).prefetch_related('messages')[:30]
+        return JsonResponse({'sessions': [_serialize_chat_session(session) for session in sessions]})
+
+    if request.method == 'POST':
+        body = _json_body(request)
+        if body is None:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        title = (body.get('title') or 'Nouvelle discussion').strip()[:160]
+        session = ChatSession.objects.create(
+            company=company,
+            user=request.user,
+            title=title or 'Nouvelle discussion',
+        )
+        return JsonResponse({'session': _serialize_chat_session(session)}, status=201)
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@login_required
+def api_chat_session_detail(request, session_id):
+    """API: charge ou archive une session IA."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    session = get_object_or_404(ChatSession, id=session_id, company=company, user=request.user)
+
+    if request.method == 'GET':
+        messages = session.messages.order_by('created_at')
+        return JsonResponse({
+            'session': _serialize_chat_session(session),
+            'messages': [_serialize_chat_message(message) for message in messages],
+        })
+
+    if request.method == 'DELETE':
+        session.is_archived = True
+        session.save(update_fields=['is_archived', 'updated_at'])
+        return JsonResponse({'status': 'archived'})
+
+    if request.method == 'PATCH':
+        body = _json_body(request)
+        if body is None:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        title = (body.get('title') or '').strip()
+        if title:
+            session.title = title[:160]
+            session.save(update_fields=['title', 'updated_at'])
+        return JsonResponse({'session': _serialize_chat_session(session)})
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@login_required
 def api_ai_chat(request):
     """API: AI Chat Assistant — Analyzes real ERP data"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST method required'}, status=405)
 
-    try:
-        body = json.loads(request.body)
-        message = body.get('message', '').lower()
-    except json.JSONDecodeError:
+    body = _json_body(request)
+    if body is None:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    raw_message = (body.get('message') or '').strip()
+    if not raw_message:
+        return JsonResponse({'error': 'Message vide'}, status=400)
+    message = raw_message.lower()
 
     company = _get_company(request)
     if not company:
         return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    session = _get_or_create_chat_session(
+        request,
+        company,
+        session_id=body.get('session_id'),
+        first_message=raw_message,
+    )
+    ChatMessage.objects.create(
+        session=session,
+        role=ChatMessage.Role.USER,
+        content=raw_message,
+        response_type='text',
+    )
+    intent = _detect_intent(raw_message)
+    session.last_intent = intent
+    if session.title == 'Nouvelle discussion':
+        session.title = raw_message[:80]
+    session.save(update_fields=['last_intent', 'title', 'updated_at'])
 
     # 1. Fetch Key Metrics
     today = timezone.now().date()
@@ -243,7 +441,7 @@ def api_ai_chat(request):
         forecast, confidence = _generate_prophet_forecast(company, 6)
         if not forecast: forecast, confidence = _simulated_forecast(6)
         
-        return JsonResponse({
+        return _chat_response(session, {
             'text': f"L'analyse prédictive de votre trésorerie sur 6 mois indique une trajectoire **{'positive' if cash > 0 else 'à surveiller'}**. Votre solde actuel est de **{float(cash):,.0f} XOF**.",
             'type': 'chart',
             'chart_type': 'line',
@@ -258,7 +456,7 @@ def api_ai_chat(request):
     # EBITDA & MARGINS
     if any(k in message for k in ['ebitda', 'marge', 'profit', 'rentabilité']):
         margin = (float(revenue - expenses) / float(revenue) * 100) if revenue > 0 else 0
-        return JsonResponse({
+        return _chat_response(session, {
             'text': f"Votre marge d'exploitation sur le mois en cours est estimée à **{margin:.1f}%**. Le résultat d'exploitation net est de **{float(revenue - expenses):,.0f} XOF**.",
             'type': 'chart',
             'chart_type': 'bar',
@@ -276,7 +474,7 @@ def api_ai_chat(request):
     # BURN RATE & RUNWAY
     if any(k in message for k in ['burn', 'runway', 'autonomie', 'dépense']):
         runway = (float(cash) / float(avg_burn)) if avg_burn > 0 else 99
-        return JsonResponse({
+        return _chat_response(session, {
             'text': f"Votre **Burn Rate** moyen (3 mois) est de **{float(avg_burn):,.0f} XOF/mois**. Avec votre cash actuel, votre autonomie financière est de **{runway:.1f} mois**.",
             'type': 'list',
             'items': [
@@ -301,7 +499,7 @@ def api_ai_chat(request):
         if not items:
             items.append({'title': 'Aucun risque majeur', 'desc': 'Tous les indicateurs de contrôle sont au vert.'})
 
-        return JsonResponse({
+        return _chat_response(session, {
             'text': f"L'audit IA a identifié **{len(items)} points d'attention**.",
             'type': 'list',
             'items': items,
@@ -314,11 +512,17 @@ def api_ai_chat(request):
 
     # Generate answer with Gemini (now with SQL + RAG context)
     user_name = request.user.first_name or 'Partenaire'
-    rag_answer = rag.generate_rag_answer(message, context_items, company=company, user_name=user_name)
+    rag_answer = rag.generate_rag_answer(
+        raw_message,
+        context_items,
+        company=company,
+        user_name=user_name,
+        conversation_context=_conversation_context(session),
+    )
 
     if rag_answer:
         sources = list({c['filename'] for c in context_items}) if context_items else []
-        return JsonResponse({
+        return _chat_response(session, {
             'text': rag_answer,
             'type': 'text',
             'sources': sources,
@@ -328,13 +532,13 @@ def api_ai_chat(request):
     if context_items:
         # Réponse basique avec le contexte sans LLM
         best = context_items[0]
-        return JsonResponse({
+        return _chat_response(session, {
             'text': f"**[Source: {best['filename']}]**\n\n{best['content'][:600]}...",
             'type': 'text',
             'sources': [c['filename'] for c in context_items],
         })
 
-    return JsonResponse({
+    return _chat_response(session, {
         'text': f"Bonjour {user_name}. Le Sakina Neural Core est opérationnel. Je peux analyser votre trésorerie, vos marges ou détecter des risques financiers.",
         'type': 'text',
         'suggestions': ["Forecast Trésorerie", "Analyse Marge EBITDA", "Calcul Burn Rate", "Détection Risques"],

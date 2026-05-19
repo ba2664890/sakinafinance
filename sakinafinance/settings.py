@@ -380,12 +380,13 @@ ML_MODEL_PATH = BASE_DIR / 'ml_models'
 
 # Gemini Configuration (RAG LLM Inference)
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', os.getenv('GOOGLE_API_KEY', ''))
-GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash-lite')
 GEMINI_FALLBACK_MODELS = [
     model.strip()
-    for model in os.getenv('GEMINI_FALLBACK_MODELS', 'gemini-1.5-flash').split(',')
+    for model in os.getenv('GEMINI_FALLBACK_MODELS', 'gemini-2.5-flash,gemini-2.0-flash-lite,gemini-2.0-flash').split(',')
     if model.strip()
 ]
+GEMINI_CACHE_TTL = int(os.getenv('GEMINI_CACHE_TTL', 900))
 
 # HuggingFace Configuration (RAG embeddings)
 HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')

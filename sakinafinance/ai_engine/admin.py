@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from sakinafinance.core.admin_mixins import CompanyScopedAdminMixin
 from .models import (
     AIAnalysis, CashFlowForecast, AIInsight,
-    DocumentOCR, AnomalyDetection
+    DocumentOCR, AnomalyDetection, ChatSession, ChatMessage
 )
 
 
@@ -110,3 +110,27 @@ class AnomalyDetectionAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
         queryset.update(is_false_positive=True, reviewed_by=request.user, reviewed_at=timezone.now())
         self.message_user(request, f"{queryset.count()} faux positif(s) marqué(s).")
     mark_false_positive.short_description = "Marquer comme faux positif"
+
+
+class ChatMessageInline(admin.TabularInline):
+    model = ChatMessage
+    extra = 0
+    readonly_fields = ['role', 'content', 'response_type', 'sources', 'created_at']
+    can_delete = False
+
+
+@admin.register(ChatSession)
+class ChatSessionAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+    list_display = ['title', 'company', 'user', 'last_intent', 'is_archived', 'updated_at']
+    list_filter = ['is_archived', 'last_intent', 'company']
+    search_fields = ['title', 'summary', 'user__email', 'messages__content']
+    readonly_fields = ['created_at', 'updated_at', 'metadata']
+    inlines = [ChatMessageInline]
+
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ['session', 'role', 'response_type', 'created_at']
+    list_filter = ['role', 'response_type', 'created_at']
+    search_fields = ['content', 'session__title']
+    readonly_fields = ['session', 'role', 'content', 'response_type', 'payload', 'sources', 'created_at']

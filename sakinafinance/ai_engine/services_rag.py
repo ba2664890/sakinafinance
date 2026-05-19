@@ -12,6 +12,7 @@ from time import sleep
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from .models import KnowledgeDocument, KnowledgeChunk
 
 # File extractors
@@ -60,12 +61,15 @@ class RAGService:
 - Expert en Finance d'Entreprise, Comptabilité OHADA, Gestion de Trésorerie et Contrôle de Gestion
 - Tu analyses les données financières réelles de l'entreprise (transactions, factures, trésorerie)
 - Tu utilises les documents de la base de connaissances pour répondre avec précision
+- Tu tiens compte de l'historique récent de la session pour rester cohérente dans le fil de discussion
+- Tu aides l'utilisateur à décider : priorités, risques, actions concrètes, prochaine étape
 
 **Processus de Réflexion (CRITIQUE) :**
 Avant de donner ta réponse finale, tu dois obligatoirement analyser la question internement pour garantir la cohérence :
 1. Identifier l'intention réelle de l'utilisateur.
 2. Vérifier quelles données (SQL réelles vs Documents PDF) sont les plus fiables pour ce cas.
 3. Construire un raisonnement logique avant de conclure.
+4. Vérifier si la question fait référence à un message précédent, puis utiliser la mémoire récente.
 
 **Règles de réponse :**
 1. Réponds TOUJOURS en français, de manière professionnelle et concise
@@ -74,6 +78,8 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
 4. Si l'information n'est pas dans le contexte fourni, utilise tes connaissances générales mais précise-le
 5. Les montants sont en XOF (Franc CFA) sauf mention contraire
 6. Adapte le niveau de détail au contexte (opérationnel vs stratégique)
+7. Ne répète pas toute l'analyse si l'utilisateur demande un suivi; réponds en continuité
+8. Termine par une action recommandée quand c'est utile
 
 **Domaines de compétence :**
 - Trésorerie : DSO, DPO, DIO, Cash Conversion Cycle, Burn Rate, Runway
@@ -86,8 +92,9 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
         self.hf_token = getattr(settings, 'HUGGINGFACE_API_TOKEN', '')
         self.hf_embed_model = "sentence-transformers/all-MiniLM-L6-v2"
         self.gemini_api_key = getattr(settings, 'GEMINI_API_KEY', '')
-        self.gemini_model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
+        self.gemini_model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash-lite')
         self.gemini_fallback_models = getattr(settings, 'GEMINI_FALLBACK_MODELS', [])
+        self.gemini_cache_ttl = getattr(settings, 'GEMINI_CACHE_TTL', 900)
         self._hf_client = None
 
     def _get_hf_client(self):
@@ -379,7 +386,14 @@ Factures Récentes :
     # Génération de réponse RAG via Gemini
     # -----------------------------------------------------------------------
 
-    def generate_rag_answer(self, query: str, context_items: list[dict], company=None, user_name: str = "utilisateur") -> str | None:
+    def generate_rag_answer(
+        self,
+        query: str,
+        context_items: list[dict],
+        company=None,
+        user_name: str = "utilisateur",
+        conversation_context: str = "",
+    ) -> str | None:
         """
         Génère une réponse en utilisant :
         1. Le contexte SQL (données réelles)
@@ -410,14 +424,22 @@ Factures Récentes :
             f"=== CONTEXTE GÉNÉRAL ===\n"
             f"Utilisateur : {user_name}\n"
             f"Compagnie : {company.name if company else 'Inconnue'}\n\n"
+            f"=== MÉMOIRE RÉCENTE DE LA DISCUSSION ===\n{conversation_context if conversation_context else 'Aucun échange récent.'}\n\n"
             f"=== DONNÉES FINANCIÈRES RÉELLES (SQL) ===\n{sql_context if sql_context else 'Aucune donnée SQL disponible.'}\n\n"
             f"{rag_context}\n\n"
             f"=== QUESTION ===\n{query}\n\n"
             f"INSTRUCTIONS :\n"
             f"1. Analyse d'abord la question dans ta tête pour comprendre l'intention.\n"
             f"2. Produis une réponse cohérente en utilisant les chiffres réels en priorité.\n"
-            f"3. Si la question est ambiguë, demande précision."
+            f"3. Tiens compte de la mémoire récente pour éviter de répéter inutilement.\n"
+            f"4. Si la question est ambiguë, demande précision."
         )
+
+        cache_key = self._gemini_cache_key(user_prompt)
+        cached_answer = cache.get(cache_key)
+        if cached_answer:
+            logger.info("Réponse RAG Gemini servie depuis le cache.")
+            return cached_answer
 
         try:
             response = self._call_gemini(
@@ -428,6 +450,7 @@ Factures Récentes :
             )
             if response:
                 logger.info(f"Gemini RAG réponse générée ({len(response)} chars).")
+                cache.set(cache_key, response, self.gemini_cache_ttl)
             return response
         except Exception as e:
             logger.error(f"Erreur Gemini inference: {e}")
@@ -442,6 +465,12 @@ Factures Récentes :
         models = [self.gemini_model, *self.gemini_fallback_models]
         seen = set()
         return [model for model in models if model and not (model in seen or seen.add(model))]
+
+    def _gemini_cache_key(self, prompt: str) -> str:
+        """Construit une clé de cache stable sans stocker le prompt complet en clé."""
+        import hashlib
+        digest = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        return f"rag:gemini:{self.gemini_model}:{digest}"
 
     def _call_gemini_model(
         self,
@@ -476,7 +505,7 @@ Factures Récentes :
         }
         response = requests.post(
             url,
-            params={"key": self.gemini_api_key},
+            headers={"x-goog-api-key": self.gemini_api_key},
             json=payload,
             timeout=45,
         )
@@ -491,7 +520,7 @@ Factures Récentes :
             sleep(wait_seconds)
             response = requests.post(
                 url,
-                params={"key": self.gemini_api_key},
+                headers={"x-goog-api-key": self.gemini_api_key},
                 json=payload,
                 timeout=45,
             )
@@ -507,6 +536,12 @@ Factures Récentes :
                 model,
                 error_detail[:500],
             )
+            if response.status_code == 429:
+                break_quota_message = (
+                    "Quota Gemini épuisé ou non activé pour ce projet. "
+                    "Active la facturation, change de projet API, ou configure un modèle disponible."
+                )
+                logger.warning(break_quota_message)
             return None
 
         data = response.json()

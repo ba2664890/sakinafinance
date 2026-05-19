@@ -132,6 +132,281 @@
         border-radius: 50%;
         flex-shrink: 0;
     }
+
+    .advisor-shell {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 1rem;
+        margin-top: 1.25rem;
+    }
+
+    .chat-panel {
+        background: #fff;
+        border: 1px solid #e6eaf0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(16, 24, 40, 0.04);
+    }
+
+    .chat-sidebar {
+        min-height: 620px;
+    }
+
+    .chat-header {
+        padding: 1rem;
+        border-bottom: 1px solid #edf0f4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        background: #fbfcfe;
+    }
+
+    .chat-title {
+        margin: 0;
+        font-weight: 800;
+        color: #101828;
+        font-size: .98rem;
+    }
+
+    .session-list {
+        padding: .75rem;
+        display: grid;
+        gap: .5rem;
+        max-height: 560px;
+        overflow: auto;
+    }
+
+    .session-item {
+        border: 1px solid #edf0f4;
+        background: #fff;
+        border-radius: 8px;
+        padding: .75rem;
+        text-align: left;
+        width: 100%;
+        color: #344054;
+        transition: border-color .2s, background .2s;
+    }
+
+    .session-item:hover,
+    .session-item.active {
+        border-color: #2563eb;
+        background: #f5f8ff;
+    }
+
+    .session-name {
+        font-weight: 800;
+        color: #101828;
+        font-size: .9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .session-meta {
+        margin-top: .25rem;
+        font-size: .75rem;
+        color: #667085;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .chat-main {
+        min-height: 620px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+    }
+
+    .chat-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        border: 1px solid #d0d5dd;
+        border-radius: 999px;
+        padding: .35rem .65rem;
+        font-size: .76rem;
+        color: #475467;
+        font-weight: 700;
+    }
+
+    .chat-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #12b76a;
+    }
+
+    .message-list {
+        padding: 1rem;
+        overflow-y: auto;
+        max-height: 560px;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: .85rem;
+    }
+
+    .message-row {
+        display: flex;
+        gap: .7rem;
+        max-width: 88%;
+    }
+
+    .message-row.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: #e8f2ff;
+        color: #175cd3;
+    }
+
+    .message-row.user .message-avatar {
+        background: #eef8f5;
+        color: #047857;
+    }
+
+    .message-bubble {
+        background: #fff;
+        border: 1px solid #e6eaf0;
+        border-radius: 10px;
+        padding: .85rem .95rem;
+        color: #344054;
+        line-height: 1.55;
+        box-shadow: 0 6px 16px rgba(16, 24, 40, 0.035);
+    }
+
+    .message-row.user .message-bubble {
+        background: #16846b;
+        border-color: #16846b;
+        color: #fff;
+    }
+
+    .message-bubble p:last-child {
+        margin-bottom: 0;
+    }
+
+    .message-time {
+        margin-top: .35rem;
+        font-size: .72rem;
+        color: #98a2b3;
+    }
+
+    .message-row.user .message-time {
+        color: rgba(255, 255, 255, .72);
+    }
+
+    .source-list,
+    .chat-insights {
+        margin-top: .7rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+    }
+
+    .source-pill,
+    .insight-pill {
+        border-radius: 999px;
+        background: #eef2f6;
+        color: #475467;
+        padding: .25rem .55rem;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
+    .chat-items {
+        display: grid;
+        gap: .5rem;
+        margin-top: .7rem;
+    }
+
+    .chat-item-card {
+        border: 1px solid #edf0f4;
+        border-radius: 8px;
+        padding: .7rem;
+        background: #fbfcfe;
+    }
+
+    .chat-composer {
+        padding: .9rem;
+        border-top: 1px solid #edf0f4;
+        background: #fff;
+    }
+
+    .quick-prompts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem;
+        margin-bottom: .65rem;
+    }
+
+    .quick-prompts button {
+        border: 1px solid #d0d5dd;
+        background: #fff;
+        border-radius: 999px;
+        padding: .32rem .65rem;
+        color: #475467;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    .composer-row {
+        display: flex;
+        gap: .6rem;
+        align-items: flex-end;
+    }
+
+    .composer-row textarea {
+        resize: none;
+        min-height: 46px;
+        max-height: 130px;
+        border-radius: 8px;
+    }
+
+    .typing {
+        display: inline-flex;
+        gap: .25rem;
+        align-items: center;
+    }
+
+    .typing span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #98a2b3;
+        animation: typingPulse 1s infinite ease-in-out;
+    }
+
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes typingPulse {
+        0%, 80%, 100% { opacity: .3; transform: translateY(0); }
+        40% { opacity: 1; transform: translateY(-3px); }
+    }
+
+    @media (max-width: 992px) {
+        .advisor-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .chat-sidebar,
+        .chat-main {
+            min-height: auto;
+        }
+
+        .message-row {
+            max-width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -276,6 +551,57 @@
         </div>
     </div>
     {% endif %}
+
+    <section class="advisor-shell">
+        <aside class="chat-panel chat-sidebar">
+            <div class="chat-header">
+                <h6 class="chat-title">Discussions</h6>
+                <button class="btn btn-sm btn-primary fw-bold" id="newChatBtn" type="button">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+            <div class="session-list" id="chatSessions">
+                <div class="text-muted small p-2">Chargement...</div>
+            </div>
+        </aside>
+
+        <div class="chat-panel chat-main">
+            <div class="chat-header">
+                <div>
+                    <h6 class="chat-title" id="activeChatTitle">Sakina Advisor</h6>
+                    <div class="text-muted small" id="activeChatMeta">Mémoire conversationnelle activée</div>
+                </div>
+                <span class="chat-status"><span class="chat-dot"></span>Contexte ERP + RAG</span>
+            </div>
+
+            <div class="message-list" id="chatMessages">
+                <div class="message-row assistant">
+                    <div class="message-avatar"><i class="bi bi-robot"></i></div>
+                    <div>
+                        <div class="message-bubble">
+                            Bonjour, je suis Sakina. Je peux analyser votre trésorerie, vos marges, vos risques ou répondre à partir de vos documents indexés.
+                        </div>
+                        <div class="message-time">Prêt</div>
+                    </div>
+                </div>
+            </div>
+
+            <form class="chat-composer" id="chatForm">
+                <div class="quick-prompts">
+                    <button type="button" data-prompt="Analyse ma trésorerie et donne-moi les priorités.">Trésorerie</button>
+                    <button type="button" data-prompt="Explique ma marge EBITDA du mois.">Marge EBITDA</button>
+                    <button type="button" data-prompt="Quels risques financiers dois-je surveiller ?">Risques</button>
+                    <button type="button" data-prompt="Résume les documents de connaissance disponibles.">Documents</button>
+                </div>
+                <div class="composer-row">
+                    <textarea class="form-control" id="chatInput" rows="1" placeholder="Posez une question financière, comptable ou réglementaire..."></textarea>
+                    <button class="btn btn-primary fw-bold px-4" id="sendChatBtn" type="submit">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
 {% endblock %}
 
@@ -372,6 +698,257 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         renderForecastChart(forecastData);
+    });
+
+    const chatState = {
+        sessions: [],
+        activeSessionId: null,
+        pending: false,
+    };
+
+    const chatUrls = {
+        sessions: '{% url "api_chat_sessions" %}',
+        chat: '{% url "api_ai_chat" %}',
+    };
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[char]);
+    }
+
+    function markdownLite(text) {
+        let safe = escapeHtml(text);
+        safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        safe = safe.replace(/\n- /g, '<br>• ');
+        safe = safe.replace(/\n/g, '<br>');
+        return safe;
+    }
+
+    function sessionUrl(sessionId) {
+        return `${chatUrls.sessions}${sessionId}/`;
+    }
+
+    async function apiFetch(url, options = {}) {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                ...(options.headers || {}),
+            },
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+            throw new Error(error.error || 'Erreur API');
+        }
+        return response.json();
+    }
+
+    function renderSessions() {
+        const container = document.getElementById('chatSessions');
+        if (!container) return;
+        if (!chatState.sessions.length) {
+            container.innerHTML = '<div class="text-muted small p-2">Aucune discussion.</div>';
+            return;
+        }
+        container.innerHTML = chatState.sessions.map(session => `
+            <button class="session-item ${session.id === chatState.activeSessionId ? 'active' : ''}" type="button" data-session-id="${session.id}">
+                <div class="session-name">${escapeHtml(session.title)}</div>
+                <div class="session-meta">${escapeHtml(session.last_message || session.updated_at)} · ${session.message_count} msg</div>
+            </button>
+        `).join('');
+        container.querySelectorAll('[data-session-id]').forEach(button => {
+            button.addEventListener('click', () => loadSession(button.dataset.sessionId));
+        });
+    }
+
+    function renderMessages(messages) {
+        const container = document.getElementById('chatMessages');
+        if (!container) return;
+        if (!messages.length) {
+            container.innerHTML = `
+                <div class="message-row assistant">
+                    <div class="message-avatar"><i class="bi bi-robot"></i></div>
+                    <div>
+                        <div class="message-bubble">Nouvelle discussion prête. Donnez-moi un objectif financier ou une question précise.</div>
+                        <div class="message-time">Maintenant</div>
+                    </div>
+                </div>`;
+            return;
+        }
+        container.innerHTML = messages.map(renderMessage).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function renderMessage(message) {
+        const isUser = message.role === 'user';
+        const payload = message.payload || {};
+        const sources = message.sources || [];
+        const icon = isUser ? 'bi-person' : 'bi-robot';
+        const extras = isUser ? '' : renderAssistantExtras(message, payload, sources);
+        return `
+            <div class="message-row ${isUser ? 'user' : 'assistant'}">
+                <div class="message-avatar"><i class="bi ${icon}"></i></div>
+                <div>
+                    <div class="message-bubble">
+                        <div>${markdownLite(message.content)}</div>
+                        ${extras}
+                    </div>
+                    <div class="message-time">${escapeHtml(message.created_at || '')}</div>
+                </div>
+            </div>`;
+    }
+
+    function renderAssistantExtras(message, payload, sources) {
+        const sourceHtml = sources.length ? `
+            <div class="source-list">
+                ${sources.map(source => `<span class="source-pill"><i class="bi bi-file-earmark-text me-1"></i>${escapeHtml(source)}</span>`).join('')}
+            </div>` : '';
+        const insights = payload.insights || [];
+        const insightHtml = insights.length ? `
+            <div class="chat-insights">
+                ${insights.map(item => `<span class="insight-pill">${escapeHtml(item)}</span>`).join('')}
+            </div>` : '';
+        const items = payload.items || [];
+        const itemHtml = items.length ? `
+            <div class="chat-items">
+                ${items.map(item => `
+                    <div class="chat-item-card">
+                        <div class="fw-bold small">${escapeHtml(item.title)}</div>
+                        <div class="small text-muted">${escapeHtml(item.desc)}</div>
+                    </div>
+                `).join('')}
+            </div>` : '';
+        return `${itemHtml}${insightHtml}${sourceHtml}`;
+    }
+
+    function showTyping() {
+        const container = document.getElementById('chatMessages');
+        const typing = document.createElement('div');
+        typing.className = 'message-row assistant';
+        typing.id = 'typingRow';
+        typing.innerHTML = `
+            <div class="message-avatar"><i class="bi bi-robot"></i></div>
+            <div><div class="message-bubble"><span class="typing"><span></span><span></span><span></span></span></div></div>`;
+        container.appendChild(typing);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function removeTyping() {
+        document.getElementById('typingRow')?.remove();
+    }
+
+    async function loadSessions(selectFirst = true) {
+        const data = await apiFetch(chatUrls.sessions);
+        chatState.sessions = data.sessions || [];
+        if (selectFirst && !chatState.activeSessionId && chatState.sessions.length) {
+            chatState.activeSessionId = chatState.sessions[0].id;
+            await loadSession(chatState.activeSessionId);
+            return;
+        }
+        renderSessions();
+    }
+
+    async function createSession() {
+        const data = await apiFetch(chatUrls.sessions, {
+            method: 'POST',
+            body: JSON.stringify({ title: 'Nouvelle discussion' }),
+        });
+        chatState.activeSessionId = data.session.id;
+        await loadSessions(false);
+        renderSessions();
+        renderMessages([]);
+        document.getElementById('activeChatTitle').textContent = data.session.title;
+        document.getElementById('activeChatMeta').textContent = '0 message';
+    }
+
+    async function loadSession(sessionId) {
+        const data = await apiFetch(sessionUrl(sessionId));
+        chatState.activeSessionId = sessionId;
+        document.getElementById('activeChatTitle').textContent = data.session.title;
+        document.getElementById('activeChatMeta').textContent = `${data.session.message_count} message(s) · ${data.session.updated_at}`;
+        renderMessages(data.messages || []);
+        renderSessions();
+    }
+
+    async function sendChatMessage(text) {
+        if (chatState.pending || !text.trim()) return;
+        chatState.pending = true;
+        document.getElementById('sendChatBtn').disabled = true;
+        const optimistic = {
+            role: 'user',
+            content: text,
+            created_at: 'Maintenant',
+            payload: {},
+            sources: [],
+        };
+        const currentMessages = Array.from(document.querySelectorAll('.message-row')).length ? null : [];
+        if (currentMessages !== null) renderMessages(currentMessages);
+        document.getElementById('chatMessages').insertAdjacentHTML('beforeend', renderMessage(optimistic));
+        showTyping();
+
+        try {
+            const data = await apiFetch(chatUrls.chat, {
+                method: 'POST',
+                body: JSON.stringify({
+                    message: text,
+                    session_id: chatState.activeSessionId,
+                }),
+            });
+            chatState.activeSessionId = data.session.id;
+            removeTyping();
+            document.getElementById('chatMessages').insertAdjacentHTML('beforeend', renderMessage(data.message));
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+            await loadSessions(false);
+            renderSessions();
+        } catch (error) {
+            removeTyping();
+            document.getElementById('chatMessages').insertAdjacentHTML('beforeend', renderMessage({
+                role: 'assistant',
+                content: `Impossible de traiter la demande : ${error.message}`,
+                created_at: 'Maintenant',
+                payload: {},
+                sources: [],
+            }));
+        } finally {
+            chatState.pending = false;
+            document.getElementById('sendChatBtn').disabled = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSessions().catch(() => {
+            document.getElementById('chatSessions').innerHTML = '<div class="text-danger small p-2">Sessions indisponibles.</div>';
+        });
+
+        document.getElementById('newChatBtn')?.addEventListener('click', createSession);
+        document.getElementById('chatForm')?.addEventListener('submit', event => {
+            event.preventDefault();
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            input.value = '';
+            sendChatMessage(text);
+        });
+        document.querySelectorAll('.quick-prompts button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.getElementById('chatInput').value = button.dataset.prompt;
+                document.getElementById('chatInput').focus();
+            });
+        });
+        document.getElementById('chatInput')?.addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                document.getElementById('chatForm').requestSubmit();
+            }
+        });
     });
 </script>
 {% endblock %}

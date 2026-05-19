@@ -330,3 +330,62 @@ class KnowledgeChunk(models.Model):
 
     def __str__(self):
         return f"Chunk {self.index_in_doc} from {self.document.filename}"
+
+
+class ChatSession(models.Model):
+    """Session de discussion entre un utilisateur et Sakina."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        'accounts.Company', on_delete=models.CASCADE, related_name='ai_chat_sessions'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_chat_sessions'
+    )
+    title = models.CharField(max_length=160, default='Nouvelle discussion')
+    summary = models.TextField(blank=True)
+    last_intent = models.CharField(max_length=50, blank=True)
+    is_archived = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['company', 'user', '-updated_at']),
+            models.Index(fields=['company', 'is_archived']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} — {self.user}"
+
+
+class ChatMessage(models.Model):
+    """Message stocké dans une session IA."""
+
+    class Role(models.TextChoices):
+        USER = 'user', _('Utilisateur')
+        ASSISTANT = 'assistant', _('Assistant')
+        SYSTEM = 'system', _('Système')
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session = models.ForeignKey(
+        ChatSession, on_delete=models.CASCADE, related_name='messages'
+    )
+    role = models.CharField(max_length=20, choices=Role.choices)
+    content = models.TextField()
+    response_type = models.CharField(max_length=30, default='text')
+    payload = models.JSONField(default=dict, blank=True)
+    sources = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['session', 'created_at']),
+            models.Index(fields=['role']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_role_display()} — {self.session.title}"
