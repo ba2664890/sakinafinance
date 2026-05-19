@@ -180,26 +180,26 @@ class TestDocumentExtraction(TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Test de connexion HuggingFace (SKIP si token absent)
+# Test de connexion Gemini (SKIP si clé absente)
 # ---------------------------------------------------------------------------
 
-class TestHuggingFaceConnection(TestCase):
-    """Valide le token HuggingFace et l'inférence Mistral-7B."""
+class TestGeminiConnection(TestCase):
+    """Valide la clé Gemini utilisée par le RAG."""
 
-    def test_hf_token_connection(self):
+    def test_gemini_connection(self):
         """
-        Test réel de l'API HuggingFace.
-        Skip si HUGGINGFACE_API_TOKEN n'est pas défini.
+        Test réel de l'API Gemini.
+        Skip si GEMINI_API_KEY n'est pas défini.
         """
         from django.conf import settings
-        token = getattr(settings, 'HUGGINGFACE_API_TOKEN', '')
-        if not token:
-            self.skipTest("HUGGINGFACE_API_TOKEN non configuré — test HF ignoré.")
+        api_key = getattr(settings, 'GEMINI_API_KEY', '')
+        if not api_key:
+            self.skipTest("GEMINI_API_KEY non configuré — test Gemini ignoré.")
 
         rag = RAGService()
-        result = rag.test_hf_connection()
+        result = rag.test_gemini_connection()
         self.assertEqual(
             result['status'], 'ok',
-            f"Connexion HuggingFace échouée: {result.get('message', '')}"
+            f"Connexion Gemini échouée: {result.get('message', '')}"
         )
         self.assertIn('message', result)

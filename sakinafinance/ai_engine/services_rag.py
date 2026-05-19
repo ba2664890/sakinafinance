@@ -3,12 +3,13 @@ RAG Service — SakinaFinance
 Retrieval-Augmented Generation avec :
   - Embeddings : sentence-transformers/all-MiniLM-L6-v2 (local, gratuit)
   - Vector Store : ChromaDB (persistant sur disque)
-  - LLM Inference : HuggingFace Inference API — Mistral-7B-Instruct-v0.2
+  - LLM Inference : Gemini API
 """
 import os
 import logging
 from pathlib import Path
 
+import requests
 from django.conf import settings
 from .models import KnowledgeDocument, KnowledgeChunk
 
@@ -49,7 +50,7 @@ class RAGService:
     Service RAG complet :
       - Indexation des documents (extract → chunk → embed → store in ChromaDB)
       - Retrieval sémantique via ChromaDB
-      - Génération de réponse via HuggingFace Inference API (Mistral-7B)
+      - Génération de réponse via Gemini
     """
 
     SYSTEM_PROMPT = """Tu es **Sakina**, l'IA Advisor de SakinaFinance — une plateforme ERP financière de nouvelle génération, conçue pour les PME africaines opérant dans le cadre réglementaire OHADA.
@@ -82,8 +83,9 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
 
     def __init__(self):
         self.hf_token = getattr(settings, 'HUGGINGFACE_API_TOKEN', '')
-        self.hf_llm_model = "mistralai/Mistral-7B-Instruct-v0.2"
         self.hf_embed_model = "sentence-transformers/all-MiniLM-L6-v2"
+        self.gemini_api_key = getattr(settings, 'GEMINI_API_KEY', '')
+        self.gemini_model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
         self._hf_client = None
 
     def _get_hf_client(self):
@@ -372,7 +374,7 @@ Factures Récentes :
             return "Attention : Impossible de charger les données financières réelles pour le moment."
 
     # -----------------------------------------------------------------------
-    # Génération de réponse RAG via HuggingFace
+    # Génération de réponse RAG via Gemini
     # -----------------------------------------------------------------------
 
     def generate_rag_answer(self, query: str, context_items: list[dict], company=None, user_name: str = "utilisateur") -> str | None:
@@ -380,10 +382,10 @@ Factures Récentes :
         Génère une réponse en utilisant :
         1. Le contexte SQL (données réelles)
         2. Le contexte RAG (documents uploadés)
-        3. Le LLM HuggingFace Mistral
+        3. Le LLM Gemini
         """
-        client = self._get_hf_client()
-        if client is None:
+        if not self.gemini_api_key:
+            logger.warning("GEMINI_API_KEY non défini. Génération RAG Gemini désactivée.")
             return None
 
         # 1. Récupérer le contexte SQL si la company est fournie
@@ -415,60 +417,92 @@ Factures Récentes :
             f"3. Si la question est ambiguë, demande précision."
         )
 
-        messages = [
-            {"role": "system", "content": self.SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ]
-
         try:
-            response = client.chat_completion(
-                messages=messages,
-                model=self.hf_llm_model,
+            response = self._call_gemini(
+                system_prompt=self.SYSTEM_PROMPT,
+                user_prompt=user_prompt,
                 max_tokens=800,
                 temperature=0.3,
-                stream=False,
             )
-            answer = response.choices[0].message.content.strip()
-            logger.info(f"HuggingFace RAG réponse générée ({len(answer)} chars).")
-            return answer
+            if response:
+                logger.info(f"Gemini RAG réponse générée ({len(response)} chars).")
+            return response
         except Exception as e:
-            logger.error(f"Erreur HuggingFace inference: {e}")
+            logger.error(f"Erreur Gemini inference: {e}")
             return None
 
     # -----------------------------------------------------------------------
-    # Validation du token HuggingFace
+    # Gemini — Appel et diagnostic
     # -----------------------------------------------------------------------
 
-    def test_hf_connection(self) -> dict:
+    def _call_gemini(self, system_prompt: str, user_prompt: str, max_tokens: int = 800, temperature: float = 0.3) -> str | None:
+        """Appelle Gemini GenerateContent via REST."""
+        if not self.gemini_api_key:
+            return None
+
+        url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{self.gemini_model}:generateContent"
+        )
+        payload = {
+            "systemInstruction": {
+                "parts": [{"text": system_prompt}]
+            },
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": user_prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+            }
+        }
+        response = requests.post(
+            url,
+            params={"key": self.gemini_api_key},
+            json=payload,
+            timeout=45,
+        )
+        response.raise_for_status()
+        data = response.json()
+        candidates = data.get("candidates") or []
+        if not candidates:
+            logger.error(f"Gemini response sans candidat: {data}")
+            return None
+
+        parts = candidates[0].get("content", {}).get("parts", [])
+        text = "".join(part.get("text", "") for part in parts).strip()
+        return text or None
+
+    def test_gemini_connection(self) -> dict:
         """
-        Teste la connexion à l'API HuggingFace.
+        Teste la connexion à l'API Gemini.
         Retourne {'status': 'ok'/'error', 'message': str}
         """
-        if not self.hf_token:
-            return {'status': 'error', 'message': 'HUGGINGFACE_API_TOKEN non défini dans les paramètres.'}
+        if not self.gemini_api_key:
+            return {'status': 'error', 'message': 'GEMINI_API_KEY non défini dans les paramètres.'}
 
         try:
-            client = self._get_hf_client()
-            if not client:
-                return {'status': 'error', 'message': 'Impossible d\'initialiser le client HuggingFace.'}
-
-            # Test minimal : complétion courte
-            response = client.chat_completion(
-                messages=[
-                    {"role": "system", "content": "Tu es un assistant financier."},
-                    {"role": "user", "content": "Dis juste 'OK' en réponse à ce test de connexion."},
-                ],
-                model=self.hf_llm_model,
+            reply = self._call_gemini(
+                system_prompt="Tu es un assistant financier.",
+                user_prompt="Dis juste 'OK' en réponse à ce test de connexion.",
                 max_tokens=10,
                 temperature=0,
             )
-            reply = response.choices[0].message.content.strip()
+            if not reply:
+                return {'status': 'error', 'message': 'Gemini n\'a pas retourné de texte.'}
             return {
                 'status': 'ok',
-                'message': f"Token HuggingFace valide. Modèle LLM: {self.hf_llm_model}. Réponse: {reply[:50]}",
+                'message': f"Clé Gemini valide. Modèle LLM: {self.gemini_model}. Réponse: {reply[:50]}",
             }
         except Exception as e:
-            return {'status': 'error', 'message': f"Erreur HuggingFace: {str(e)}"}
+            return {'status': 'error', 'message': f"Erreur Gemini: {str(e)}"}
+
+    def test_hf_connection(self) -> dict:
+        """Compatibilité historique: le diagnostic LLM pointe maintenant vers Gemini."""
+        return self.test_gemini_connection()
 
     def test_embedding(self) -> dict:
         """Teste que le modèle d'embedding fonctionne et retourne des vecteurs de 384 dims."""

@@ -378,7 +378,11 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'SakinaFinance <onboarding@
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 ML_MODEL_PATH = BASE_DIR / 'ml_models'
 
-# HuggingFace Configuration (RAG + LLM Inference)
+# Gemini Configuration (RAG LLM Inference)
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', os.getenv('GOOGLE_API_KEY', ''))
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+
+# HuggingFace Configuration (RAG embeddings)
 HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
 
 # ChromaDB — Vector Store persistence path

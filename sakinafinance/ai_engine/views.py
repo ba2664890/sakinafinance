@@ -308,23 +308,23 @@ def api_ai_chat(request):
             'insights': ["Renforcement recommandé du suivi de recouvrement."]
         })
 
-    # 3. RAG Context Retrieval via ChromaDB + HuggingFace
+    # 3. RAG Context Retrieval via ChromaDB + Gemini
     rag = RAGService()
     context_items = rag.retrieve_context(message, company, top_k=5)
 
-    # Generate answer with HuggingFace Mistral (now with SQL + RAG context)
+    # Generate answer with Gemini (now with SQL + RAG context)
     user_name = request.user.first_name or 'Partenaire'
-    hf_answer = rag.generate_rag_answer(message, context_items, company=company, user_name=user_name)
+    rag_answer = rag.generate_rag_answer(message, context_items, company=company, user_name=user_name)
 
-    if hf_answer:
+    if rag_answer:
         sources = list({c['filename'] for c in context_items}) if context_items else []
         return JsonResponse({
-            'text': hf_answer,
+            'text': rag_answer,
             'type': 'text',
             'sources': sources,
         })
 
-    # 4. Fallback si HF indisponible
+    # 4. Fallback si Gemini indisponible
     if context_items:
         # Réponse basique avec le contexte sans LLM
         best = context_items[0]
@@ -342,12 +342,12 @@ def api_ai_chat(request):
 
 @login_required
 def api_test_rag_service(request):
-    """API: Diagnostics complets du service RAG — HF token, embeddings, ChromaDB"""
+    """API: Diagnostics complets du service RAG — Gemini, embeddings, ChromaDB"""
     from .services_rag import RAGService
     rag = RAGService()
 
     results = {
-        'hf_token': rag.test_hf_connection(),
+        'gemini': rag.test_gemini_connection(),
         'embedding': rag.test_embedding(),
         'chromadb': _test_chromadb(),
     }
