@@ -1,0 +1,2215 @@
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+DOCUMENT STRATÉGIQUE — ÉDITION ENTERPRISE
+
+FinanceOS IA
+Le Système d'Intelligence Financière Universel
+Pour Startups · PME · Entreprises Formelles · Groupes Multi-Entités
+Django · Intelligence Artificielle · Machine Learning · OHADA/IFRS
+
+Sommaire Exécutif
+FinanceOS IA est un système d'intelligence financière de nouvelle génération conçu pour
+répondre aux besoins de toutes les structures — de la startup de 3 personnes au groupe
+industriel multi-filiales. Contrairement aux ERP classiques lourds et coûteux, et aux tableurs
+manuels insuffisants, FinanceOS IA propose une troisième voie : une plateforme modulaire,
+intelligente, adaptée à chaque stade de maturité de l'entreprise, construite sur Django et
+propulsée par l'IA.
+
+73%
+
+60K€
+
+−40%
+
+des entreprises africaines
+
+coût annuel moyen
+
+de temps administratif
+
+gèrent leurs finances sur Excel
+
+d'un ERP classique (PME)
+
+avec FinanceOS IA vs manuel
+
+Ce document présente la vision complète de la plateforme : architecture technique, modules
+métiers, couverture de tous les types d'entreprises, intégration de l'IA à chaque niveau
+décisionnel, et feuille de route de mise en oeuvre.
+
+1. Les 5 Profils d'Entreprises Ciblés
+FinanceOS IA ne s'adresse pas à un seul type d'organisation. Sa modularité lui permet de
+s'adapter à chaque stade de maturité, chaque secteur, chaque niveau de complexité
+financière. Les cinq profils ci-dessous couvrent l'intégralité du spectre entrepreneurial.
+
+STARTUP
+
+PME
+
+ETI
+
+0–5 ans · < 50 ETP
+
+5–250 ETP · < 50M€
+
+250–5000 ETP
+
+© 2026 FinanceOS IA — Tous droits réservésPage 1
+
+GRANDE
+ENTREPRISE
+> 5000 ETP
+
+GROUPE /
+HOLDING
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Multi-filiales /
+Multi-pays
+
+Profil
+
+Enjeux financiers principaux
+
+Modules prioritaires
+
+Complexité
+
+Startup
+
+Survie trésorerie, runway,
+métriques SaaS, levée de
+fonds
+
+Dashboard IA,
+Forecasting, Investor
+Relations
+
+Faible → Moyenne
+
+PME formelle
+
+Comptabilité
+OHADA/SYSCOHADA, TVA,
+paie, BFR, bank relation
+
+Comptabilité, Trésorerie,
+RH/Paie, Achats
+
+Moyenne
+
+ETI
+
+Contrôle de gestion, budget
+consolidé, multi-sites, audit
+
+Contrôle de gestion,
+Projets, Multi-entités
+
+Moyenne → Élevée
+
+Grande
+Entreprise
+
+IFRS, consolidation, dette
+corporate, reporting
+réglementaire
+
+Consolidation,
+Conformité, Trésorerie
+corporate
+
+Élevée
+
+Groupe /
+Holding
+
+Élimination interco,
+multi-devises, reporting
+groupe IFRS 10
+
+Multi-entités,
+Consolidation, Change
+management
+
+Très élevée
+
+même donnée financière — un flux de trésorerie — a une signification différente
+❝La
+pour un fondateur qui compte ses mois de runway, un DAF qui pilote le BFR, et un
+directeur de groupe qui consolide en IFRS. FinanceOS IA parle toutes ces langues.
+— Principe d'universalité FinanceOS IA
+
+2. Le Défi Financier — Réalités par Segment
+2.1 Startups & Scale-ups
+Les startups opèrent dans un contexte d'incertitude radicale où la moindre erreur de pilotage
+financier peut être fatale. Leur principal défi : avoir une vision claire de leur santé financière
+sans équipe finance dédiée, tout en produisant les métriques que les investisseurs exigent.
+
+Problèmes critiques des startups
+▸ 82% échouent à cause d'une mauvaise gestion de trésorerie (CB Insights, 2024)
+▸ Runway calculé de manière statique — sans prendre en compte la vélocité réelle des
+dépenses
+▸ Métriques SaaS (LTV, CAC, NRR) calculées manuellement une fois par trimestre
+▸ Data room préparée en 3 jours avant chaque due diligence investisseur
+▸ Absence d'alertes proactives : les problèmes sont détectés après le dommage
+
+2.2 PME Formelles
+© 2026 FinanceOS IA — Tous droits réservésPage 2
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Les PME font face à des obligations légales strictes (déclarations fiscales, comptabilité
+OHADA, paie, cotisations sociales) tout en manquant souvent de ressources pour un service
+financier structuré. L'enjeu : se conformer sans se noyer dans l'administratif, et garder un
+oeil sur la rentabilité réelle.
+
+Problèmes critiques des PME
+▸ Tenue comptable en retard systématique — les états financiers arrivent trop tard pour
+décider
+▸ TVA et IS calculés manuellement avec risque d'erreur et de pénalités fiscales
+▸ Gestion de la paie complexe : CNSS, impôts sur salaires, bulletins, congés
+▸ Relations bancaires difficiles : pas de reporting standardisé pour les demandes de crédit
+▸ BFR (Besoin en Fonds de Roulement) invisible : trésorerie tendue malgré une activité
+rentable
+
+2.3 ETI & Entreprises Formelles
+Les entreprises de taille intermédiaire ont des structures financières complexes (multi-sites,
+multi-activités) mais ne disposent pas toujours des outils des grandes entreprises. Elles
+doivent concilier rigueur comptable, pilotage opérationnel et reporting dirigeants.
+
+Problèmes critiques des ETI
+▸ Budget annuel construit en 2 mois de négociations — difficile à réviser en cours d'année
+▸ Contrôle de gestion fragmenté : chaque direction pilote ses propres indicateurs
+▸ Achats non centralisés : politique fournisseurs non respectée, doublons de contrats
+▸ Reporting dirigeants préparé manuellement — prise de décision sur données de N-1
+▸ Audit interne réactif : les anomalies sont détectées lors de l'audit annuel, pas en temps
+réel
+
+2.4 Grandes Entreprises & Groupes
+Les grandes organisations font face à des enjeux de consolidation, de conformité
+réglementaire internationale, et de pilotage de la performance à grande échelle. La
+complexité est systémique : multi-devises, multi-normes comptables, multiples parties
+prenantes.
+
+Problèmes critiques des grandes entreprises
+▸ Consolidation groupe : 30 à 90 jours pour produire les états financiers consolidés
+▸ Multi-normes : IFRS pour le groupe, OHADA/local GAAP pour les filiales
+▸ Risque de change non couvert : exposition multi-devises non pilotée en temps réel
+▸ Transactions intra-groupe mal suivies : risque fiscal (prix de transfert) et comptable
+▸ Reporting réglementaire lourd : BCEAO, AMF, banques centrales, commissaires aux
+comptes
+
+© 2026 FinanceOS IA — Tous droits réservésPage 3
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+3. Vision FinanceOS IA — Les 6 Piliers
+FinanceOS IA repose sur six piliers fondamentaux qui définissent son positionnement
+unique sur le marché. Ces piliers ne sont pas des fonctionnalités isolées — ils forment un
+système cohérent où chaque composante renforce les autres.
+
+VOIR
+
+PRÉDIRE
+
+ALERTER
+
+Tableaux de bord temps réel. Zéro
+friction.
+
+ML forecasting. Cash flow à 18
+mois.
+
+Anomalies et dérives
+instantanées.
+
+CONSEILLER
+
+CONFORMER
+
+CONSOLIDER
+
+IA générative sur vos données
+réelles.
+
+OHADA, IFRS, fiscal,
+réglementaire.
+
+Multi-entités, multi-devises,
+groupe.
+
+4. Modules d'Intelligence Artificielle
+4.1 Prévision de Trésorerie par Machine Learning
+Le module de forecasting est universel — il s'adapte à la nature de l'entreprise : flux
+récurrents SaaS pour les startups, saisonnalité commerciale pour les PME, cycles
+budgétaires pour les grands groupes. Plusieurs modèles travaillent en parallèle et fusionnent
+leurs prédictions.
+Modèle ML
+
+Horizon
+
+Points forts
+
+Cas d'usage entreprise
+
+Prophet (Meta)
+
+3–18 mois
+
+Saisonnalité, jours fériés,
+effets calendaires
+
+PME commerciale, retail,
+saisonnalité marquée
+
+LSTM (Deep
+Learning)
+
+1–6 mois
+
+Patterns non-linéaires,
+mémoire longue
+
+Groupes avec cycles
+complexes multi-activités
+
+ARIMA / SARIMA
+
+1–3 mois
+
+Séries stationnaires,
+précision court terme
+
+Trésorerie quotidienne ETI
+
+XGBoost
+Regressor
+
+Court terme
+
+Rapidité, résistance aux
+outliers
+
+Alertes burn rate startup
+
+Ensemble Stacking
+
+Tout horizon
+
+Réduction variance erreur
+~35%
+
+Prédiction principale
+affichée dans dashboard
+
+4.2 Détection d'Anomalies Financières
+
+© 2026 FinanceOS IA — Tous droits réservésPage 4
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Le moteur d'anomalies surveille 24h/24 l'ensemble des mouvements financiers et détecte
+automatiquement les comportements inhabituels — qu'il s'agisse d'une dépense suspecte
+dans une startup ou d'une transaction intra-groupe incorrecte dans un groupe coté.
+Type d'anomalie
+
+Algorithme
+
+Profil
+concerné
+
+Action automatique
+
+Dépense inhabituelle
+
+Isolation Forest
+
+Tous
+
+Alerte + catégorisation forcée +
+demande justification
+
+Doublon de
+transaction
+
+Similarité cosinus
+
+PME, ETI
+
+Blocage + notification comptable
+
+Budget dépassé
+
+Z-score + règle
+
+Tous
+
+Alerte temps réel + projection fin
+de mois
+
+Écart prix de transfert
+
+Benchmark
+sectoriel ML
+
+Groupes
+
+Rapport risque fiscal
+automatique
+
+Fraude potentielle
+
+Autoencoder
+LSTM
+
+Tous
+
+Blocage + audit trail + alerte DSI
+
+Anomalie comptable
+
+Contrôle de
+cohérence
+
+PME, ETI,
+Groupe
+
+Signalement au comptable +
+suggestion correction
+
+Dérive BFR
+
+Régression
+temporelle
+
+PME, ETI
+
+Alerte DAF + projection impact
+trésorerie
+
+Risque de change
+
+Modèle VaR
+
+Groupes, ETI
+
+Rapport exposition + suggestion
+couverture
+
+4.3 Catégorisation Automatique — NLP Multilingue
+▸​ Modèle : Fine-tuning CamemBERT (français) + AraBERT (arabe) + BERT (anglais)
+— 3 modèles en production
+▸​ Précision : 94,7% après 30 jours (apprentissage continu par correction utilisateur)
+▸​ Normes : Catégorisation alignée sur le Plan Comptable OHADA, IFRS, et
+SYSCOHADA selon le profil
+▸​ Multi-langue : Français, Anglais, Arabe, Wolof — adapté à l'Afrique de l'Ouest et
+francophone
+
+4.4 Conseiller IA — Intelligence en Langage Naturel
+L'assistant conversationnel répond à des questions financières complexes en langage
+naturel, avec accès direct aux données de l'entreprise via RAG (Retrieval-Augmented
+Generation). Il ne fabrique aucun chiffre — toutes ses réponses sont ancrées dans les
+données réelles.
+
+Exemples de questions selon le profil
+STARTUP : "Si je recrute 3 personnes en mars, quand vais-je manquer de cash ?"
+PME
+
+: "Ma TVA collectée vs déductible de ce mois — suis-je en situation créditrice ?"
+
+ETI
+
+: "Quel département a le plus dépassé son budget ce trimestre et pourquoi ?"
+
+© 2026 FinanceOS IA — Tous droits réservésPage 5
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+GROUPE
+DAF
+
+: "Quelle filiale plombe la performance EBITDA consolidée du groupe ?"
+
+: "Génère-moi le tableau de flux de trésorerie selon la méthode directe OHADA."
+
+AUDITEUR : "Y a-t-il des transactions entre entités liées qui n'ont pas été éliminées ?"
+
+5. Module Comptabilité Formelle & Normes Comptables
+Ce module est le socle légal de FinanceOS IA. Il permet à toute entreprise formelle — PME,
+ETI, grande entreprise — de tenir une comptabilité conforme aux normes en vigueur, de
+produire des états financiers réglementaires, et de préparer les déclarations fiscales sans
+effort manuel excessif.
+
+5.1 Normes Comptables Supportées
+Norme
+
+Zone d'application
+
+États produits
+
+Particularités
+
+SYSCOHADA
+révisé
+
+Afrique
+subsaharienne (17
+pays)
+
+Bilan, CR, Tableau flux,
+Annexes
+
+Plan de comptes 1–8,
+états financiers BCEAO
+
+OHADA général
+
+Zones OHADA
+
+Bilan simplifiée /
+développée
+
+Systèmes minimal, allégé,
+normal selon taille
+
+IFRS complets
+
+Groupes cotés,
+filiales internationales
+
+IAS 1, IAS 7, IAS 12,
+IFRS 16...
+
+Juste valeur, dépréciation,
+leasing IFRS 16
+
+IFRS PME
+
+PME avec exigences
+internationales
+
+États financiers
+simplifiés IFRS
+
+35 sections, pas de justes
+valeurs complexes
+
+PCGE Maroc
+
+Maroc
+
+Bilan, CPC, ESG, TFT
+
+Spécificités fiscales
+marocaines
+
+SYSCOA
+
+UEMOA renforcé
+
+Conforme exigences
+BCEAO
+
+Intégration déclarations
+fiscales UEMOA
+
+5.2 Journaux Comptables Automatisés
+Journal des achats
+
+Enregistrement automatique des factures
+fournisseurs avec rapprochement bons de
+commande et TVA déductible
+
+Journal des ventes
+
+Facturation client, TVA collectée, lettrage
+automatique avec les encaissements reçus
+
+Journal de banque
+
+Import automatique des relevés bancaires
+(CSV/OFX), rapprochement bancaire IA avec
+taux > 98%
+
+Journal de caisse
+
+Suivi des espèces avec justificatifs, alertes
+d'écarts entre solde théorique et physique
+
+© 2026 FinanceOS IA — Tous droits réservésPage 6
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Journal des opérations diverses
+
+OD de régularisation, amortissements,
+provisions — générés automatiquement en
+fin de période
+
+Grand Livre automatique
+
+Compilation en temps réel de tous les
+journaux — consultation par compte, par
+tiers, par date
+
+5.3 États Financiers Automatiques
+FinanceOS IA génère les états financiers réglementaires à la demande ou selon un
+calendrier automatique, directement depuis les données comptables — sans saisie
+supplémentaire.
+▸​ Bilan comptable : Actif/Passif selon SYSCOHADA ou IFRS, avec comparatif N-1 et
+variations commentées par l'IA
+▸​ Compte de résultat : Par nature ou par fonction, marges intermédiaires (MCA, EBE,
+REX, RAF) calculées automatiquement
+▸​ Tableau de flux de trésorerie : Méthode directe ET indirecte, flux
+opérationnels/investissement/financement
+▸​ Tableau de variation des capitaux propres : Mouvements de l'exercice, résultat,
+dividendes, augmentation de capital
+▸​ Annexes comptables : Générées automatiquement avec notes explicatives sur les
+postes significatifs
+▸​ Balances comptables : Balance générale, balance âgée clients/fournisseurs,
+balance de vérification
+
+5.4 Clôture Comptable Assistée par IA
+Processus de clôture mensuelle automatisé
+1. Vérification des journaux : contrôle de cohérence, détection des saisies manquantes ou
+incohérentes
+2. Rapprochement bancaire automatique : lettrage IA sur 98% des écritures
+3. Calcul automatique des amortissements selon les tableaux d'immobilisations
+4. Génération des écritures de provision (congés, litiges, dépréciation)
+5. Contrôle des comptes interco pour les groupes (élimination intra-groupe)
+6. Validation IA : score de cohérence comptable 0-100 avant soumission à la direction
+7. Génération des états financiers provisoires et envoi automatique aux parties prenantes
+
+6. Module Trésorerie & Cash Management
+La trésorerie est le sang de toute organisation. Ce module couvre les besoins de toutes les
+structures : du fondateur qui surveille son compte unique jusqu'au trésorier corporate qui
+pilote des dizaines de comptes dans plusieurs devises et pays.
+
+© 2026 FinanceOS IA — Tous droits réservésPage 7
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+6.1 Gestion Multi-Comptes & Multi-Banques
+Tableau de trésorerie consolidé
+
+Vision temps réel de tous les comptes
+bancaires — classiques, mobile money
+(Wave, Orange Money), comptes titres
+
+Import automatique des relevés
+
+Connexion directe avec les banques
+partenaires ou import CSV/OFX/MT940 —
+rapprochement automatique IA
+
+Position de trésorerie
+
+Position nette par entité, par devise, par
+banque — mise à jour quotidienne à
+l'ouverture des marchés
+
+Prévision J+1 à J+90
+
+Modèle de prévision court terme basé sur les
+échéances connues + historique des
+comportements de paiement
+
+Cash pooling
+
+Simulation et suivi du cash pooling fictif ou
+réel pour les groupes — optimisation des
+intérêts de groupe
+
+Seuils d'alerte
+
+Alertes configurables si le solde passe sous
+un seuil — par compte, par devise, par entité
+
+6.2 Gestion du BFR (Besoin en Fonds de Roulement)
+Le BFR est souvent la cause cachée de crises de trésorerie dans les entreprises rentables.
+FinanceOS IA calcule, analyse et prédit l'évolution du BFR en temps réel.
+▸​ Calcul automatique : BFR = Stocks + Créances clients - Dettes fournisseurs — mis
+à jour à chaque transaction
+▸​ Décomposition : BFR opérationnel vs BFR hors exploitation — identification des
+leviers d'action
+▸​ Délais de paiement : DSO (Days Sales Outstanding), DPO (Days Payable
+Outstanding), DIO (Days Inventory Outstanding)
+▸​ Prévision BFR : Modèle ML qui prédit l'évolution du BFR sur 3 mois selon les cycles
+saisonniers et les termes contractuels
+▸​ Recommandations IA : Suggestions d'optimisation : négocier des délais
+fournisseurs, accélérer les encaissements clients, réduire les stocks
+
+6.3 Gestion des Risques de Change
+Pour les entreprises opérant en multi-devises (exportateurs, importateurs, groupes
+internationaux), le risque de change est un enjeu financier majeur souvent sous-estimé.
+Devise
+
+Fonctionnalité
+
+Méthode
+
+Alerte
+
+EUR/XOF/MA
+D
+
+Taux de change temps
+réel via API
+
+Taux ECB + BCEAO +
+banques centrales
+
+Variation > seuil configuré
+
+© 2026 FinanceOS IA — Tous droits réservésPage 8
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Exposition
+nette
+
+Calcul exposition par
+devise
+
+Actifs - Passifs en
+devise
+
+Rapport hebdomadaire
+DAF
+
+Couverture
+(hedging)
+
+Suivi des instruments
+de couverture
+
+Forward, options,
+swaps
+
+Expiration imminente
+
+Simulation de
+risque
+
+Calcul VaR (Value at
+Risk)
+
+Monte Carlo 95%
+confidence
+
+Perte potentielle > budget
+
+Réévaluation
+
+Écriture de réévaluation
+automatique
+
+Taux de clôture IFRS
+IAS 21
+
+Fin de période comptable
+
+6.4 Financement & Relations Bancaires
+FinanceOS IA centralise la gestion des financements bancaires et génère automatiquement
+les documents nécessaires aux demandes de crédit.
+▸​ Tableau de la dette : Suivi de tous les emprunts, lignes de crédit, obligations —
+échéanciers, taux, garanties
+▸​ Simulation de financement : Calculateur d'impact : quel financement est optimal
+selon la trésorerie prévisionnelle ?
+▸​ Dossier bancaire auto : Génération du dossier de demande de crédit (bilan, CR,
+flux, prévisionnels) en format banque
+▸​ Covenants financiers : Suivi automatique des ratios imposés par les banques
+(leverage, DSCR, gearing) avec alertes
+▸​ Score bancaire IA : Estimation du rating implicite basé sur les ratios financiers —
+préparation aux négociations
+
+7. Module Contrôle de Gestion
+Le contrôle de gestion est le pont entre la comptabilité (ce qui s'est passé) et la décision
+stratégique (ce qui doit se passer). Ce module est particulièrement adapté aux ETI et
+grandes entreprises qui ont besoin de pilotage par axes d'analyse — centres de coût,
+centres de profit, lignes de produits, régions.
+
+7.1 Budget & Prévisions
+Budget annuel participatif
+
+Construction bottom-up : chaque
+responsable de département saisit son
+budget dans l'outil, consolidé
+automatiquement
+
+Budget révisé (rolling forecast)
+
+Mise à jour mensuelle du budget en fonction
+des réalisations — le budget n'est plus figé
+en janvier
+
+Analyse des écarts (Variance Analysis)
+
+Comparaison systématique Budget vs Réel
+vs N-1 avec identification automatique des
+causes d'écart
+
+© 2026 FinanceOS IA — Tous droits réservésPage 9
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Scénarios budgétaires
+
+3 versions simultanées : pessimiste, base,
+optimiste — switchables en temps réel pour
+le COMEX
+
+Alertes de dérive
+
+Notification automatique si un poste dépasse
+X% de son budget — configurable par
+direction
+
+Re-forecasting IA
+
+Le système recalcule le forecast de fin
+d'année en temps réel selon le rythme de
+consommation actuel
+
+7.2 Comptabilité Analytique & Centres de Responsabilité
+La comptabilité analytique permet de savoir non seulement combien l'entreprise a dépensé,
+mais où, pour quoi, et avec quel résultat. FinanceOS IA implémente une analytique
+multi-axes flexible.
+Axe analytique
+
+Exemple
+
+Usage
+
+Calcul automatique
+
+Centre de coût
+
+IT, RH, Marketing,
+Finance
+
+Suivi dépenses par
+fonction
+
+Répartition automatique des
+charges indirectes
+
+Centre de profit
+
+Produit A, BU
+Europe, Agence
+Dakar
+
+P&L par activité
+
+Marge contribution, EBITDA
+par centre
+
+Projet
+
+Projet X, Chantier
+Y, Campagne Z
+
+Coût complet par
+initiative
+
+ROI, variance budget/réel,
+taux d'avancement
+
+Canal de vente
+
+Direct, Partenaires,
+E-commerce
+
+Rentabilité par canal
+
+CAC, LTV, marge nette par
+canal
+
+Client / Segment
+
+Grands comptes,
+PME, Particuliers
+
+Profitabilité client
+
+Chiffre d'affaires net, coût de
+service, marge
+
+Géographie
+
+Dakar, Abidjan,
+Paris, Dubai
+
+Performance
+régionale
+
+Contribution régionale au
+CA et à l'EBITDA
+
+7.3 Tableaux de Bord Dirigeants
+Des tableaux de bord dédiés par profil — CEO, DAF, DG, COMEX — présentant les
+indicateurs pertinents avec le bon niveau de granularité.
+
+Tableau de bord CEO — 5 métriques en 30 secondes
+1. Score de performance global (0-100) avec tendance — rouge/orange/vert
+2. EBITDA réel vs budget — écart en valeur et en % avec explication IA en 1 phrase
+3. Trésorerie nette — position consolidée + prévision J+30 + alerte si seuil dépassé
+4. Croissance du chiffre d'affaires — vs N-1 vs budget, top 3 contributeurs et top 3
+décrocheurs
+5. Top 3 risques financiers du moment — identifiés par l'IA avec probabilité et impact
+estimé
+
+© 2026 FinanceOS IA — Tous droits réservésPage 10
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+8. Module Achats & Gestion Fournisseurs (Procure-to-Pay)
+Les achats représentent en moyenne 60 à 70% des coûts d'une entreprise industrielle. Une
+gestion rigoureuse du cycle purchase-to-pay — de la demande d'achat jusqu'au paiement —
+est un levier majeur d'économies et de conformité financière.
+
+8.1 Cycle Complet Procure-to-Pay
+Demande d'achat (DA)
+
+Workflow de validation multi-niveaux avec
+budget disponible vérifié en temps réel avant
+approbation
+
+Bon de commande (BC)
+
+Génération automatique, envoi fournisseur,
+suivi statut (envoyé, confirmé, livré, facturé)
+
+Réception marchandises
+
+Enregistrement réception avec
+rapprochement automatique BC/facture/bon
+de livraison (3-way match)
+
+Validation factures fournisseurs
+
+OCR IA sur les factures papier/PDF —
+extraction automatique des données avec
+taux de précision > 96%
+
+Circuit d'approbation
+
+Workflow configurable selon montant, type
+d'achat, département — signature
+électronique intégrée
+
+Paiement fournisseur
+
+Ordres de virement groupés, ségrégation des
+tâches (émetteur ≠ valideur), traçabilité
+complète
+
+8.2 Intelligence IA sur les Achats
+Ce que l'IA fait automatiquement sur vos achats
+▸ Détection des doublons de facture : similarité > 92% déclenchée sur montant +
+fournisseur + date
+▸ Benchmark prix : comparaison automatique du prix payé vs prix marché pour les
+catégories d'achat fréquentes
+▸ Identification des fournisseurs stratégiques vs remplaçables — scoring risque fournisseur
+▸ Prévision des dépenses fournisseurs : anticipation des factures récurrentes sur les 30
+prochains jours
+▸ Analyse spend : cartographie automatique des dépenses par catégorie, fournisseur,
+département
+▸ Alerte concentrations : si un seul fournisseur représente > 30% des achats d'une
+catégorie critique
+
+© 2026 FinanceOS IA — Tous droits réservésPage 11
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+8.3 Catalogue & Référentiel Fournisseurs
+▸​ Fiche fournisseur : RCCM, NIF, NINEA, coordonnées, conditions de paiement,
+historique des commandes et incidents
+▸​ Évaluation fournisseur : Score automatique basé sur les délais de livraison, la
+qualité, les réclamations, la conformité
+▸​ Agréement fournisseur : Workflow d'homologation : document requis, validation
+DAF, direction qualité, direction achat
+▸​ Alerte expiration : Contrats, agréments, certifications fournisseurs — alertes
+30/60/90 jours avant expiration
+
+9. Module Ressources Humaines & Masse Salariale
+La masse salariale est généralement le premier ou deuxième poste de charge d'une
+entreprise. Une gestion rigoureuse — de l'embauche jusqu'à la clôture de paie — est
+indispensable pour la conformité sociale, le pilotage des coûts et la prise de décision RH.
+
+9.1 Gestion de la Paie
+Le module paie de FinanceOS IA est conçu pour les réalités africaines et françaises —
+intégrant les spécificités des cotisations CNSS, IPRES, CGRAE, impôt sur les salaires
+(IRPP), et les conventions collectives locales.
+Fonctionnalité
+
+Description
+
+Normes supportées
+
+Automatisation
+
+Bulletin de paie
+
+Calcul automatique net
+imposable, net à payer,
+charges patronales et
+salariales
+
+OHADA, droit du
+travail
+Sénégal/CI/Maroc
+
+100% automatique
+après paramétrage
+
+Cotisations
+sociales
+
+CNSS, IPRES, CGRAE,
+CMU selon le pays —
+télédéclaration
+automatique
+
+Chaque pays selon
+législation
+
+Déclaration
+mensuelle auto
+
+IRPP / Impôt
+salaires
+
+Calcul retenue à la source
+mensuelle et
+régularisation annuelle
+
+Code général des
+impôts local
+
+Barème mis à jour
+automatiquement
+
+Congés &
+absences
+
+Compteur congés
+automatique, gestion des
+absences, impact paie
+
+Droit du travail local
+
+Intégré au bulletin
+
+13e mois & primes
+
+Calcul automatique,
+provisionnement
+mensuel, paiement selon
+calendrier
+
+Conventions
+collectives
+
+Provisionnement IA
+continu
+
+Tableau de bord
+RH
+
+Masse salariale par
+département, évolution N
+vs N-1, coût moyen ETP
+
+Multi-devises
+
+Mis à jour en temps
+réel
+
+© 2026 FinanceOS IA — Tous droits réservésPage 12
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+9.2 Pilotage de la Masse Salariale
+Suivi masse salariale vs budget
+
+Comparaison mensuelle masse salariale
+réelle / budget par direction et par poste —
+écart expliqué
+
+Simulation de recrutement
+
+Impact financier d'un recrutement : coût total
+employeur (salaire + charges + matériel +
+formation) et impact runway
+
+Effectifs & turnover
+
+Suivi des entrées/sorties, taux de turnover
+par département, coût moyen d'un
+départ/remplacement
+
+Provision congés payés
+
+Calcul automatique de la provision mensuelle
+— impacte le résultat de manière lissée
+
+Forecast masse salariale
+
+Projection de la masse salariale sur 12 mois
+intégrant les prévisions de recrutement et
+d'augmentations
+
+Analyse coût/ETP
+
+Coût par équivalent temps plein par
+département — benchmark interne et
+sectoriel
+
+10. Module Conformité Fiscale & Réglementaire
+La conformité fiscale est une obligation non négociable pour toute entreprise formelle. Les
+erreurs ou les retards dans les déclarations exposent l'entreprise à des pénalités, des
+redressements, et une dégradation de la relation avec l'administration fiscale. FinanceOS IA
+automatise la grande majorité de ces obligations.
+
+10.1 Calendrier Fiscal Automatique
+Chaque entreprise dispose d'un calendrier fiscal personnalisé selon son pays d'implantation,
+sa forme juridique, son régime fiscal et son secteur d'activité.
+Obligation fiscale
+
+Fréquence
+
+Pays couverts
+
+Automatisation
+FinanceOS
+
+Déclaration TVA
+
+Mensuelle ou
+trimestrielle
+
+Sénégal, CI, Maroc,
+France, UEMOA
+
+Calcul automatique TVA
+brute, déductible, à payer
+
+Acomptes IS
+
+Trimestriel
+(selon régime)
+
+Tous pays supportés
+
+Calcul acompte sur base
+N-1 ou N-1 ajusté
+
+IRPP retenu à la source
+
+Mensuelle
+
+Tous pays supportés
+
+Intégré au module paie —
+déclaration auto
+
+Contributions sociales
+
+Mensuelle
+(CNSS,
+IPRES...)
+
+Sénégal, CI,
+Cameroun, Maroc
+
+Calcul depuis module RH +
+déclaration
+
+© 2026 FinanceOS IA — Tous droits réservésPage 13
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Taxe foncière /
+professionnelle
+
+Annuelle
+
+Selon pays
+
+Rappel + calcul estimatif
+
+Liasse fiscale
+
+Annuelle
+
+SYSCOHADA, DGI
+
+Génération automatique
+depuis états comptables
+
+Prix de transfert
+
+Annuelle si
+groupe
+
+International
+
+Documentation automatique
+selon OCDE BEPS
+
+10.2 Contrôle Fiscal Interne (Tax Health Check)
+Avant chaque déclaration ou contrôle fiscal, FinanceOS IA effectue automatiquement un
+audit fiscal interne pour identifier les risques potentiels.
+
+Contrôles effectués automatiquement
+▸ Cohérence TVA : total TVA collectée comptabilisée vs total factures HT × taux TVA
+▸ Déductibilité des charges : vérification des justificatifs requis pour les charges
+déductibles > seuil
+▸ Charges mixtes : identification des charges à usage mixte (pro/perso) nécessitant une
+réintégration
+▸ Amortissements non déductibles : détection des biens à usage privatif ou hors taux
+légaux
+▸ Conventions réglementées : identification des transactions entre dirigeants et société
+nécessitant approbation
+▸ Liasse fiscale cohérence : vérification de l'articulation entre états comptables et
+déclarations fiscales
+
+10.3 Veille Réglementaire par IA
+▸​ Suivi législatif : Alerte automatique lors de modifications des lois fiscales et sociales
+dans les pays d'implantation
+▸​ Impact analyse : L'IA évalue automatiquement l'impact d'une nouvelle loi sur les
+charges et obligations de l'entreprise
+▸​ Plan d'action : Liste des ajustements à effectuer dans FinanceOS IA suite à un
+changement réglementaire
+
+11. Module Gestion de Projets — Finance par Initiative
+Toute organisation investit sur des projets : lancement produit, construction d'infrastructure,
+campagne marketing, transformation digitale, chantier industriel. FinanceOS IA connecte
+chaque projet à sa réalité financière — permettant de savoir précisément combien chaque
+initiative coûte, génère, et si elle crée de la valeur.
+
+11.1 Modèles de Données Projets
+
+© 2026 FinanceOS IA — Tous droits réservésPage 14
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Modèle Django
+
+Champs clés
+
+Relation
+
+Profil concerné
+
+Project
+
+nom, statut, budget_initial,
+budget_révisé, chef_projet,
+date_début/fin, priorité, tags
+
+1:N →
+Transaction,
+Milestone,
+Budget
+
+Tous
+
+ProjectBudget
+
+poste_budgétaire,
+montant_alloué, engagé,
+consommé, variance_%
+
+FK → Project
+
+ETI, Grande
+Entreprise
+
+Milestone
+
+titre, date_cible, date_réelle,
+coût_associé, statut,
+retard_jours
+
+FK → Project
+
+Tous
+
+ProjectROI
+
+revenus_attribuables,
+coûts_totaux, roi_réel,
+roi_prévu, payback_period
+
+FK → Project
+
+Startup, PME, ETI
+
+ResourceAllocation
+
+type, ressource_id,
+coût_unitaire, quantité, période
+
+FK → Project
+
+ETI, GE
+
+ProjectRisk
+
+titre, probabilité,
+impact_financier,
+plan_mitigation, statut
+
+FK → Project
+
+GE, Groupe
+
+11.2 Fonctionnalités Projets
+Gantt financier
+
+Timeline des jalons enrichie des flux de
+trésorerie associés — visualisation de
+l'impact sur le runway/BFR
+
+Budget burndown
+
+Courbe de consommation réelle vs planifiée
+— détection précoce des dérives 3 à 6
+semaines à l'avance
+
+Attribution automatique
+
+Tagging NLP des transactions vers les
+projets — facture AWS → Projet Infra Cloud
+(précision 91%)
+
+Analyse de variance
+
+Pour chaque poste : écart entre prévu et réel
+avec explication IA des causes principales
+
+Calcul ROI automatique
+
+Pour projets générateurs de revenus :
+corrélation dépenses projet vs variation
+MRR/CA
+
+Benchmark portefeuille
+
+Heatmap coût/valeur : identifier les projets à
+stopper, accélérer ou réorienter
+
+IA Prédictive sur les Projets
+▸ Détection de dérive : le ML prédit avec 78% de précision si un budget sera dépassé — 4
+à 6 semaines avant
+▸ Priorisation automatique : scoring des projets sur critères ROI historique × alignement
+objectifs × impact runway
+
+© 2026 FinanceOS IA — Tous droits réservésPage 15
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+▸ Recommandation de réallocation : si un projet est en retard, l'IA suggère comment
+redistribuer les ressources
+▸ Intégrations : Jira, Linear, Asana, Notion, GitHub — chaque ticket a un coût réel calculé
+automatiquement
+
+12. Module Relations Investisseurs & Financement
+Que ce soit pour lever des fonds en capital-risque, solliciter un crédit bancaire, ou rendre
+compte à des actionnaires, la capacité à présenter des données financières fiables,
+structurées et convaincantes est un avantage compétitif décisif. FinanceOS IA automatise
+cette fonction.
+
+68%
+
+47h
+
+8 min
+
+des levées échouent
+
+préparation due diligence
+
+avec FinanceOS IA
+
+par manque de clarté métriques
+
+moyenne entreprise non équipée
+
+data room complet généré
+
+12.1 Data Room Automatique
+Document
+
+Contenu
+
+Format
+
+Délai génération
+
+P&L complet
+
+Compte de résultat 24 mois
+avec variations commentées
+IA
+
+PDF + Excel
+
+< 30 sec
+
+Cash Flow Statement
+
+Flux
+opérationnels/investissemen
+t/financement — méthode
+directe et indirecte
+
+PDF + Excel
+
+< 30 sec
+
+Métriques SaaS
+(startups)
+
+MRR/ARR, Churn,
+LTV/CAC, NRR, Burn
+Multiple — historique 18
+mois
+
+PDF + Excel
+
+< 60 sec
+
+Budget vs Réel
+
+Comparaison plan/réel avec
+analyse des écarts
+
+PDF + Excel
+
+< 45 sec
+
+Analyse de cohortes
+
+Rétention revenue par
+cohorte client — 12 mois
+
+PDF +
+graphiques
+
+< 90 sec
+
+Prévisions
+financières
+
+Projections 18-36 mois, 3
+scénarios, intervalles de
+confiance ML
+
+PDF +
+graphiques
+
+< 2 min
+
+Dossier de crédit
+bancaire
+
+Ratios financiers, tableaux
+de remboursement,
+garanties
+
+PDF format
+banque
+
+< 3 min
+
+Rapport IFRS
+
+États conformes IFRS
+complets ou IFRS PME
+selon le profil
+
+PDF
+audit-ready
+
+< 5 min
+
+© 2026 FinanceOS IA — Tous droits réservésPage 16
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+12.2 Board Pack & Reporting Périodique
+Structure du Board Pack mensuel auto-généré
+1. Executive Summary rédigé par IA — synthèse du mois en langage naturel, basée sur
+les données réelles
+2. KPI Dashboard — métriques clés avec comparatifs et graphiques de tendance
+3. Highlights / Lowlights — détectés automatiquement par analyse des écarts significatifs
+4. Analyse des dépenses par catégorie et par projet — vs budget alloué
+5. Cash Flow prévisionnel 6 mois — scénarios pessimiste / base / optimiste
+6. État des risques financiers actifs — identifiés par le moteur d'alertes IA
+7. Questions suggérées pour le board — générées par l'IA sur les points nécessitant
+décision
+
+12.3 CRM Investisseurs & Pipeline de Levée
+Pipeline kanban investisseurs
+
+Suivi par stade : Identifié → Contacté →
+Meeting → Term sheet → Due diligence →
+Closing
+
+Scoring IA des prospects
+
+Score de fit investisseur basé sur secteur
+préférentiel, ticket moyen, stade
+d'investissement
+
+Portail investisseur dédié
+
+Accès sécurisé personnalisé : métriques
+temps réel, board packs archivés, covenant
+monitoring
+
+Simulation de dilution
+
+Calculateur cap table : impact de chaque
+scénario de valorisation sur la participation
+des fondateurs
+
+Comparaison term sheets
+
+Import multi-term sheets, comparaison
+automatique des conditions clés côte-à-côte
+
+Preparation Q&A VC
+
+IA génère les 50 questions les plus
+fréquentes posées par les VCs avec
+réponses basées sur vos données
+
+13. Module Multi-Entités & Consolidation de Groupe
+Ce module est le plus complexe et le plus stratégique pour les groupes d'entreprises. Il
+permet de consolider les états financiers de multiples entités juridiques en une vision groupe
+cohérente, en éliminant les transactions internes et en gérant les différences de normes
+comptables entre filiales.
+
+© 2026 FinanceOS IA — Tous droits réservésPage 17
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+13.1 Architecture Multi-Entités
+Structure arborescente
+
+Définition de la hiérarchie groupe : maison
+mère → sous-holdings → filiales →
+succursales
+
+Pourcentages de contrôle
+
+Intégration globale (> 50%), intégration
+proportionnelle, mise en équivalence
+(20-50%)
+
+Multi-normes par entité
+
+Chaque filiale peut tenir sa comptabilité selon
+sa norme locale (OHADA, PCG, IFRS) —
+conversion auto
+
+Multi-devises
+
+Chaque entité dans sa devise fonctionnelle
+— conversion en devise de présentation
+groupe
+
+Multi-sites
+
+Gestion de plusieurs établissements par
+entité avec imputations analytiques séparées
+
+Contrôle d'accès granulaire
+
+Chaque entité voit uniquement ses données
+— le groupe consolidateur voit tout selon le
+rôle
+
+13.2 Processus de Consolidation Automatisé
+Les 7 étapes de la consolidation assistée par IA
+1. Collecte : chaque filiale clôture sa comptabilité locale dans FinanceOS IA
+2. Retraitements IFRS : conversion automatique des écritures locales en IFRS groupe
+(IFRS 16, IAS 19...)
+3. Conversion de devises : taux cours moyen (CR) et cours de clôture (CTA) selon IAS 21
+4. Élimination des transactions intra-groupe : ventes, achats, prêts, dividendes entre
+entités du groupe
+5. Élimination des titres de participation et des capitaux propres
+6. Calcul des intérêts minoritaires selon IFRS 10
+7. Production des états consolidés : bilan, CR, flux, variation capitaux propres, annexes
+
+13.3 Gestion des Transactions Intra-Groupe
+Les transactions entre entités d'un même groupe doivent être documentées, tarifées aux prix
+de marché (conformité OCDE BEPS), et éliminées lors de la consolidation. FinanceOS IA
+automatise ce processus.
+▸​ Détection automatique : Le système identifie toutes les transactions entre entités
+liées dans la structure du groupe
+▸​ Matching interco : Rapprochement automatique : la facture émise par l'entité A doit
+correspondre à la réception chez l'entité B
+▸​ Prix de transfert : Vérification que les prix pratiqués sont dans la fourchette des
+comparables de marché (règle arm's length)
+
+© 2026 FinanceOS IA — Tous droits réservésPage 18
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+▸​ Documentation OCDE : Génération automatique du dossier de prix de transfert
+pour les groupes soumis à l'obligation
+▸​ Élimination comptable : Écriture d'élimination générée automatiquement lors de la
+consolidation — zéro manuel
+
+13.4 Reporting Groupe & Gouvernance
+Tableau de bord groupe temps réel
+
+Vision consolidée instantanée : CA groupe,
+EBITDA, dette nette, trésorerie groupe — par
+devise de présentation
+
+Contribution des filiales
+
+Classement des filiales par contribution au
+résultat, CA, EBITDA — identification des
+bonnes et mauvaises performances
+
+Reporting aux actionnaires
+
+États financiers consolidés conformes IFRS +
+commentaires IA sur les faits marquants
+
+Rapports réglementaires
+
+BCEAO, COBAC, AMF, banques centrales —
+formats conformes générés automatiquement
+
+Pactes d'actionnaires
+
+Suivi des clauses financières des pactes :
+dividendes, seuils, obligations d'information
+
+Gouvernance et board groupe
+
+Consolidation des board packs de toutes les
+filiales en un seul document groupe cohérent
+
+14. Architecture Technique — Stack Complète
+14.1 Technologies par Couche
+Couche
+
+Technologie
+
+Version
+
+Justification
+
+Framework web
+
+Django
+
+4.2 LTS
+
+Robustesse, ORM puissant,
+admin auto, sécurité
+éprouvée
+
+Base de données
+principale
+
+PostgreSQL
+
+15+
+
+ACID, partitionnement,
+pgvector pour embeddings
+IA
+
+Entrepôt de données
+
+TimescaleDB
+
+Latest
+
+Extension PostgreSQL pour
+séries temporelles
+financières
+
+Cache & Message
+broker
+
+Redis
+
+7.x
+
+Sessions, cache requêtes
+répétitives, broker Celery
+
+File d'attente async
+
+Celery + Celery Beat
+
+5.x
+
+Calculs ML, clôtures
+automatiques, alertes batch
+
+ML / Data Science
+
+scikit-learn, statsmodels
+
+Latest
+
+Isolation Forest, régression,
+clustering
+
+© 2026 FinanceOS IA — Tous droits réservésPage 19
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Deep Learning
+
+PyTorch + Transformers
+
+2.x
+
+LSTM, fine-tuning NLP
+CamemBERT/AraBERT
+
+Prévision temporelle
+
+Prophet + Sktime
+
+Latest
+
+Séries temporelles avec
+saisonnalité et tendance
+
+RAG / Embeddings
+
+pgvector +
+sentence-transformers
+
+Latest
+
+Recherche sémantique pour
+Conseiller IA
+
+LLM Conseiller IA
+
+Anthropic Claude API
+
+claude-sonn
+et-4
+
+Réponses en langage
+naturel sur données réelles
+
+OCR factures
+
+Tesseract + PaddleOCR
+
+Latest
+
+Extraction automatique
+données factures
+fournisseurs
+
+Frontend
+
+HTMX + Alpine.js +
+Bootstrap 5
+
+Latest
+
+Interactivité sans SPA —
+SSR Django natif
+
+Graphiques
+
+Chart.js + Observable
+Plot
+
+4.x
+
+Visualisations interactives
+haute performance
+
+Rapports PDF
+
+WeasyPrint + Jinja2
+
+Latest
+
+PDF investor-ready, liasse
+fiscale, bulletins paie
+
+Excel / Export
+
+openpyxl + xlsxwriter
+
+Latest
+
+Data room Excel, tableaux
+de bord téléchargeables
+
+Authentification
+
+Django Allauth + 2FA +
+RBAC
+
+Latest
+
+MFA obligatoire, gestion des
+rôles par entité
+
+Workflow
+
+django-viewflow
+
+Latest
+
+Circuits de validation achats,
+paie, approbations
+
+API externe
+
+Django REST Framework
+
+3.x
+
+API pour intégrations ERP,
+banques, partenaires
+
+Déploiement
+
+Docker + Kubernetes +
+Helm
+
+Latest
+
+Scalabilité horizontale,
+isolation, rolling updates
+
+CI/CD
+
+GitHub Actions + ArgoCD
+
+Latest
+
+Tests auto, déploiement
+continu, rollback
+automatique
+
+Monitoring
+
+Sentry + Prometheus +
+Grafana
+
+Latest
+
+Erreurs, performances,
+alertes infra
+
+Logs & Audit
+
+ELK Stack (Elasticsearch)
+
+Latest
+
+Audit trail immuable,
+recherche dans les logs
+
+14.2 Modèles de Données Clés
+Modèle
+
+Champs critiques
+
+Multi-enti
+té
+
+Usage IA
+
+Company
+
+nom, type, secteur,
+norme_comptable,
+devise_fonctionnelle, pays,
+groupe_parent
+
+Oui (FK
+groupe)
+
+Contexte IA, benchmark
+sectoriel
+
+© 2026 FinanceOS IA — Tous droits réservésPage 20
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Transaction
+
+montant, devise, type, date,
+description, compte_OHADA,
+embedding_vector,
+is_anomaly, project
+
+Oui (FK
+entité)
+
+Base toutes analyses ML
+
+AccountingEntry
+
+journal, débit_compte,
+crédit_compte, montant,
+lettrage, exercice
+
+Oui
+
+Comptabilité formelle
+conforme
+
+Budget
+
+exercice, version, poste,
+montant_initial,
+montant_révisé,
+analytique_axe
+
+Oui
+
+Contrôle de gestion
+
+Employee
+
+NIF, CNSS, salaire_brut,
+catégorie, date_entrée,
+contrat_type
+
+Oui
+
+Module paie, masse
+salariale
+
+Supplier
+
+RCCM, NIF, pays,
+conditions_paiement,
+score_risque, agréé
+
+Oui
+
+Procure-to-pay, benchmark
+achats
+
+Consolidation
+
+exercice, méthode,
+taux_contrôle,
+retraitements_json, statut
+
+Groupe
+
+Consolidation automatisée
+
+FiscalObligation
+
+type, pays, fréquence,
+prochaine_échéance, statut,
+montant_déclaré
+
+Oui
+
+Compliance fiscale
+
+15. Feuille de Route de Développement
+La roadmap est structurée en 6 phases progressives, permettant de livrer de la valeur dès la
+Phase 1 tout en construisant la complexité des modules enterprise en parallèle.
+Phase
+
+Durée
+
+Modules livrés
+
+KPI de
+validation
+
+Phase 0 —
+Fondations
+
+2 semaines
+
+Architecture Django, PostgreSQL, Redis,
+Celery, authentification RBAC, CI/CD,
+modèles de base
+
+Tests coverage >
+80%
+
+Phase 1 — Core
+Finance
+
+3 semaines
+
+Dashboard, transactions, budget, alertes
+basiques, graphiques — valeur immédiate
+pour startups et PME
+
+Onboarding < 15
+min
+
+Phase 2 —
+Comptabilité
+
+3 semaines
+
+Journaux SYSCOHADA/IFRS, grand
+livre, bilan auto, états financiers,
+rapprochement bancaire IA
+
+Précision
+rapprochement >
+97%
+
+Phase 3 — IA v1
+
+3 semaines
+
+Catégorisation NLP, détection anomalies,
+forecasting Prophet, score santé,
+métriques SaaS
+
+MAPE forecast <
+15%
+
+© 2026 FinanceOS IA — Tous droits réservésPage 21
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Phase 4 —
+Modules Métiers
+
+4 semaines
+
+Trésorerie corporate, achats P2P,
+RH/paie, contrôle de gestion, conformité
+fiscale
+
+Couverture
+CNSS/TVA auto
+
+Phase 5 —
+Enterprise IA
+
+3 semaines
+
+Conseiller IA (RAG + Claude),
+multi-entités, consolidation, investor
+relations, data room auto
+
+NPS > 8/10
+
+Phase 6 —
+Production
+
+2 semaines
+
+Docker/K8s, monitoring, documentation,
+onboarding, sécurité pentest, SLA
+
+Uptime > 99.5%
+
+16. Stratégie de Monétisation par Segment
+Plan
+
+Prix / mois
+
+Profil cible
+
+Modules inclus
+
+Starter —
+Gratuit
+
+0€
+
+Startup early-stage,
+auto-entrepreneur
+
+Dashboard, 500 transactions/mois,
+alertes basiques, 1 utilisateur
+
+Growth —
+PME
+
+79€
+
+Startups actives, PME
+< 20 ETP
+
+Tout Starter + comptabilité OHADA,
+forecasting ML, métriques SaaS,
+rapports PDF
+
+Business —
+ETI
+
+299€
+
+ETI, PME 20-200 ETP
+
+Tout Growth + contrôle de gestion,
+achats P2P, RH/paie, conformité
+fiscale, 10 utilisateurs
+
+Enterprise
+— Groupe
+
+799€
+
+Grandes entreprises,
+groupes
+
+Tout Business + Conseiller IA,
+multi-entités, consolidation, data
+room, API, utilisateurs illimités
+
+Custom —
+On-premise
+
+Sur devis
+
+Banques, assurances,
+État
+
+Déploiement on-premise, normes
+spécifiques, SLA garanti 99.9%, CSM
+dédié, intégrations ERP
+
+meilleur système financier n'est pas le plus complexe — c'est celui que chaque
+❝Le
+décideur utilise vraiment, parce qu'il lui donne l'information dont il a besoin, au moment
+où il en a besoin, dans la langue qu'il comprend.
+— Vision Produit FinanceOS IA
+
+17. Sécurité, Confidentialité & Conformité
+17.1 Sécurité des Données Financières
+▸​ Chiffrement : AES-256 au repos, TLS 1.3 en transit — chiffrement au niveau
+colonne pour les données ultra-sensibles (salaires, IBAN)
+▸​ Multi-tenancy : Isolation stricte par organisation via Row Level Security PostgreSQL
+— zéro risque de contamination entre clients
+
+© 2026 FinanceOS IA — Tous droits réservésPage 22
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+▸​ Authentification : MFA obligatoire (TOTP/SMS), sessions JWT courtes 15 min,
+refresh tokens rotatifs, SSO SAML2/OAuth2
+▸​ Audit Trail : Chaque action sur une donnée financière est loguée, horodatée et
+signée cryptographiquement — non répudiable
+▸​ Ségrégation des tâches : Impossible pour un même utilisateur d'initier ET valider un
+paiement (principe des 4 yeux)
+▸​ Sauvegarde : Backup automatique toutes les 6 heures, rétention 90 jours,
+restauration testée mensuellement
+
+17.2 Conformité Réglementaire
+▸​ RGPD / Loi 08-12 Sénégal : Droit à l'oubli, portabilité des données, consentement
+granulaire, DPO désigné
+▸​ ISO 27001 : Architecture conçue pour la certification — contrôles de sécurité
+documentés
+▸​ SOC 2 Type II : Cible pour les clients entreprises — disponibilité, intégrité,
+confidentialité
+▸​ OHADA / BCEAO : Conformité aux exigences de conservation des pièces
+comptables (10 ans minimum)
+
+17.3 Éthique de l'IA Financière
+▸​ Explicabilité : Chaque recommandation IA inclut le raisonnement — pas de black
+box sur des décisions financières
+▸​ Supervision humaine : L'IA conseille, l'humain décide — aucune action financière
+déclenchée automatiquement sans validation
+▸​ Biais : Audit semestriel des modèles pour détecter les biais sectoriels,
+géographiques ou temporels
+▸​ Incertitude : Les prévisions affichent toujours les intervalles de confiance — jamais
+de fausse précision
+
+18. Conclusion & Vision à 5 Ans
+FinanceOS IA représente une rupture fondamentale dans la façon dont les organisations —
+de la startup de 5 personnes au groupe multinational de 50 000 employés — gèrent leur
+intelligence financière. En construisant sur Django une plateforme modulaire, IA-native et
+conforme aux normes locales, nous adressons un marché massif et sous-équipé : les
+millions d'entreprises africaines et mondiales qui méritent des outils à la hauteur de leurs
+ambitions.
+La puissance du projet réside dans son universalité : un seul système, une seule base de
+code Django, mais une capacité d'adaptation à chaque profil d'entreprise. Le fondateur qui
+compte ses mois de runway et le DAF d'un groupe industriel qui consolide 40 filiales utilisent
+le même moteur d'intelligence — avec des interfaces et des modules adaptés à leur réalité.
+
+© 2026 FinanceOS IA — Tous droits réservésPage 23
+
+FinanceOS IA — Système d'Intelligence Financière Universel | Document Stratégique — Édition
+Enterprise2026
+
+Vision à 5 ans
+▸​ Open Banking Africa : connexion directe avec 200+ banques africaines via API —
+zéro saisie manuelle
+▸​ IA prédictive de valorisation : estimation en temps réel de la valeur de l'entreprise
+selon ses métriques
+▸​ Marketplace d'experts : connexion avec comptables, auditeurs, avocats fiscalistes
+certifiés FinanceOS IA
+▸​ FinanceOS Mobile : app iOS/Android avec résumé vocal quotidien et alertes push
+intelligentes
+▸​ Intégrations ERP : SAP, Oracle, Sage, Dynamics — FinanceOS IA comme couche IA
+sur les ERP existants
+▸​ FinanceOS Public : version dédiée aux administrations publiques et collectivités
+territoriales
+
+Ce que ce projet démontre
+▸ Maîtrise complète de Django dans un contexte enterprise — pas seulement académique
+▸ Intégration pertinente et éthique de l'IA dans un domaine à fort enjeu (finance)
+▸ Compréhension des besoins financiers de TOUS les types d'entreprises
+▸ Architecture scalable, multi-tenant, multi-normes — pensée pour la production réelle
+▸ Vision produit globale avec logique de monétisation multi-segments cohérente
+▸ Ancrage dans les réalités africaines (OHADA, CNSS, Wave, Mobile Money,
+multi-langues)
+
+FinanceOS IA — Une seule plateforme. Cinq profils d'entreprises. Une intelligence
+commune.
+
+Document préparé par Groupe 1 • Projet Django • 2026 — Édition Enterprise v3.0
+Confidentiel — Distribution restreinte aux parties prenantes autorisées
+
+© 2026 FinanceOS IA — Tous droits réservésPage 24
+
+

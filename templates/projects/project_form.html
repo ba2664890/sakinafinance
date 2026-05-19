@@ -119,10 +119,10 @@
         <div class="form-container">
             <div class="form-header">
                 <h2>{{ page_title }}</h2>
-                <p>Renseignez les informations essentielles pour {{ action|lower }} un projet performant.</p>
+                <p>Renseignez les informations essentielles pour {{ action|lower }} cet élément.</p>
             </div>
 
-            <form method="post" novalidate>
+            <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
                 {% if form.non_field_errors %}
                 <div class="alert alert-danger">{{ form.non_field_errors }}</div>
@@ -194,7 +194,7 @@
                     <h6>Informations</h6>
                     <div class="form-grid">
                         {% for field in form.visible_fields %}
-                            <div class="{% if field.name == 'description' or field.name == 'notes' %}full{% endif %}">
+                            <div class="{% if field.name == 'description' or field.name == 'impact_description' or field.name == 'mitigation_plan' or field.name == 'notes' %}full{% endif %}">
                                 {{ field|as_crispy_field }}
                             </div>
                         {% endfor %}
@@ -214,6 +214,7 @@
         </div>
 
         <aside class="aside-card">
+            {% if form_type == 'project' or form_type == 'task' or form_type == 'milestone' %}
             <h5>Check-list Projet</h5>
             <p>Avant de lancer, assurez-vous que ces elements sont clairs.</p>
             <ul class="aside-list">
@@ -222,6 +223,16 @@
                 <li><i class="bi bi-graph-up-arrow"></i> Budget et reserves valides</li>
                 <li><i class="bi bi-calendar2-week"></i> Jalons et dates limites poses</li>
             </ul>
+            {% else %}
+            <h5>Bonnes pratiques</h5>
+            <p>Gardez des donnees completes, verifiables et faciles a auditer.</p>
+            <ul class="aside-list">
+                <li><i class="bi bi-check-circle"></i> Dates et montants controles</li>
+                <li><i class="bi bi-paperclip"></i> Justificatifs rattaches quand disponibles</li>
+                <li><i class="bi bi-shield-check"></i> Statut coherent avec le traitement reel</li>
+                <li><i class="bi bi-card-text"></i> Notes utiles pour les prochains controles</li>
+            </ul>
+            {% endif %}
         </aside>
     </div>
 </div>

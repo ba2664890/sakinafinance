@@ -1,254 +1,626 @@
 {% extends 'dashboard_base.html' %}
 {% load humanize %}
 
-{% block title %}Fiscalité & Conformité — SakinaFinance{% endblock %}
+{% block title %}Fiscalité & Réglementaire - SakinaFinance{% endblock %}
 {% block page_title %}Fiscalité & Réglementaire{% endblock %}
 
 {% block extra_css %}
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
-
     .compliance-scope {
-        font-family: 'Space Grotesk', ui-sans-serif, system-ui;
+        color: #14213d;
     }
 
-    .compliance-hero {
-        border-radius: 24px;
-        padding: 3rem;
-        background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
-        color: white;
-        box-shadow: 0 20px 40px rgba(6, 95, 70, 0.15);
-        margin-bottom: 3rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .compliance-hero::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(52, 211, 153, 0.2) 0%, transparent 70%);
-        border-radius: 50%;
+    .compliance-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
     }
 
-    .compliance-hero h2 { font-weight: 800; color: white; margin-bottom: 0.5rem; }
-    .compliance-hero p { color: rgba(255, 255, 255, 0.7); margin: 0; }
+    .compliance-title {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #101828;
+    }
 
-    .hero-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    .compliance-subtitle {
+        margin: .35rem 0 0;
+        color: #667085;
+        max-width: 760px;
+    }
 
-    .kpi-grid {
+    .action-row {
+        display: flex;
+        gap: .65rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .score-strip {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 3rem;
-    }
-    .kpi-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 1.5rem;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-        transition: transform 0.2s;
-        text-align: center;
-    }
-    .kpi-card:hover { transform: translateY(-5px); }
-    .kpi-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; font-weight: 700; margin-bottom: 0.5rem; }
-    .kpi-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; }
-
-    .c-panel { 
-        background: white; 
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
-        border-radius: 24px; 
-        overflow: hidden; 
-        height: 100%; 
-    }
-    .c-header { 
-        padding: 1.5rem 2rem; 
-        border-bottom: 1px solid #f1f5f9; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        background: #f8fafc;
-    }
-    .c-header h6 { margin: 0; font-weight: 800; color: #0f172a; font-size: 1rem; }
-
-    .c-table { width: 100%; border-collapse: collapse; }
-    .c-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; padding: 1.25rem 2rem; border-bottom: 1px solid #f1f5f9; }
-    .c-table td { padding: 1.25rem 2rem; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; color: #334155; font-weight: 500; }
-
-    .nav-pills .nav-link {
-        color: #64748b;
-        font-weight: 700;
-        border-radius: 12px;
-        padding: 0.75rem 1.5rem;
-        transition: all 0.2s;
-    }
-    .nav-pills .nav-link.active {
-        background: #065f46;
-        color: white;
-        box-shadow: 0 10px 20px rgba(6, 95, 70, 0.1);
-    }
-
-    .risk-item { 
-        padding: 1.5rem; 
-        border-radius: 20px; 
-        border: 1px solid #f1f5f9; 
-        margin-bottom: 1rem; 
-        position: relative; 
-        border-left: 6px solid #e2e8f0; 
-        transition: all 0.3s;
-    }
-    .risk-item:hover { transform: translateX(5px); }
-    .risk-item-danger { border-left-color: #ef4444; background: #fffafb; }
-    .risk-item-warning { border-left-color: #f59e0b; background: #fffdfa; }
-    .risk-item-success { border-left-color: #10b981; background: #fafffb; }
-
-    .regulatory-card {
-        padding: 1.5rem;
-        border-radius: 20px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        grid-template-columns: minmax(220px, 1fr) 2fr;
+        gap: 1rem;
+        align-items: stretch;
         margin-bottom: 1rem;
     }
-    .reg-authority { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #065f46; background: rgba(6, 95, 70, 0.05); padding: 0.25rem 0.75rem; border-radius: 999px; }
+
+    .score-block,
+    .insight-block,
+    .metric-card,
+    .data-panel {
+        background: #fff;
+        border: 1px solid #e6eaf0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(16, 24, 40, 0.04);
+    }
+
+    .score-block {
+        padding: 1.1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .score-ring {
+        width: 86px;
+        height: 86px;
+        flex: 0 0 86px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #101828;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: conic-gradient(#16846b var(--score, 0%), #ecf0f4 0);
+        position: relative;
+    }
+
+    .score-ring::after {
+        content: '';
+        position: absolute;
+        inset: 8px;
+        border-radius: 50%;
+        background: #fff;
+    }
+
+    .score-ring span {
+        position: relative;
+        z-index: 1;
+    }
+
+    .score-label {
+        font-size: .75rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+        color: #667085;
+        text-transform: uppercase;
+    }
+
+    .score-text {
+        margin: .25rem 0 0;
+        color: #344054;
+        font-weight: 600;
+    }
+
+    .insight-block {
+        padding: 1.1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .75rem;
+    }
+
+    .insight-item {
+        border-left: 3px solid #d0d5dd;
+        padding-left: .8rem;
+        min-width: 0;
+    }
+
+    .insight-value {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #101828;
+    }
+
+    .insight-label {
+        color: #667085;
+        font-size: .82rem;
+        font-weight: 600;
+    }
+
+    .module-tabs {
+        background: #fff;
+        border: 1px solid #e6eaf0;
+        border-radius: 8px;
+        padding: .35rem;
+        display: inline-flex;
+        gap: .35rem;
+        margin: 1rem 0;
+    }
+
+    .module-tabs .nav-link {
+        border: 0;
+        color: #475467;
+        font-weight: 800;
+        border-radius: 6px;
+        padding: .7rem 1rem;
+    }
+
+    .module-tabs .nav-link.active {
+        color: #fff;
+        background: #16846b;
+    }
+
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .metric-card {
+        padding: 1rem;
+        min-height: 116px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .metric-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .metric-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: #eef8f5;
+        color: #16846b;
+        flex: 0 0 38px;
+    }
+
+    .metric-label {
+        margin: 0;
+        color: #667085;
+        font-size: .78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+
+    .metric-value {
+        margin: .75rem 0 0;
+        color: #101828;
+        font-size: 1.45rem;
+        font-weight: 800;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+    }
+
+    .metric-note {
+        margin-top: .35rem;
+        color: #667085;
+        font-size: .82rem;
+    }
+
+    .data-panel {
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .panel-header {
+        padding: 1rem 1.1rem;
+        border-bottom: 1px solid #edf0f4;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .75rem;
+        background: #fbfcfe;
+    }
+
+    .panel-title {
+        margin: 0;
+        font-size: .98rem;
+        font-weight: 800;
+        color: #101828;
+    }
+
+    .panel-tools {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .panel-search,
+    .panel-select {
+        border: 1px solid #d0d5dd;
+        border-radius: 6px;
+        padding: .45rem .65rem;
+        font-size: .86rem;
+        color: #344054;
+        background: #fff;
+    }
+
+    .sf-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sf-table th {
+        padding: .85rem 1rem;
+        color: #667085;
+        font-size: .72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-bottom: 1px solid #edf0f4;
+        background: #fff;
+        white-space: nowrap;
+    }
+
+    .sf-table td {
+        padding: .95rem 1rem;
+        border-bottom: 1px solid #f2f4f7;
+        color: #344054;
+        vertical-align: middle;
+    }
+
+    .sf-table tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        border-radius: 999px;
+        padding: .28rem .62rem;
+        font-size: .76rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .pill-neutral { background: #f2f4f7; color: #344054; }
+    .pill-good { background: #eaf8f1; color: #087443; }
+    .pill-warn { background: #fff4e5; color: #b54708; }
+    .pill-bad { background: #fee4e2; color: #b42318; }
+    .pill-info { background: #e8f2ff; color: #175cd3; }
+
+    .side-list {
+        display: grid;
+        gap: .75rem;
+        padding: 1rem;
+    }
+
+    .entity-row,
+    .risk-row,
+    .requirement-row {
+        border: 1px solid #e6eaf0;
+        border-radius: 8px;
+        padding: .95rem;
+        background: #fff;
+    }
+
+    .entity-row {
+        display: grid;
+        gap: .45rem;
+    }
+
+    .entity-heading,
+    .risk-heading,
+    .requirement-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: .75rem;
+        align-items: flex-start;
+    }
+
+    .item-title {
+        margin: 0;
+        color: #101828;
+        font-weight: 800;
+    }
+
+    .item-meta {
+        margin: .25rem 0 0;
+        color: #667085;
+        font-size: .84rem;
+    }
+
+    .risk-row {
+        border-left: 4px solid #d0d5dd;
+    }
+
+    .risk-low { border-left-color: #12b76a; }
+    .risk-medium { border-left-color: #f79009; }
+    .risk-high,
+    .risk-critical { border-left-color: #f04438; }
+
+    .requirement-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .8rem;
+        padding: 1rem;
+    }
+
+    .empty-state {
+        padding: 2.25rem 1rem;
+        text-align: center;
+        color: #667085;
+    }
+
+    .empty-state i {
+        display: block;
+        font-size: 1.8rem;
+        color: #98a2b3;
+        margin-bottom: .55rem;
+    }
+
+    @media (max-width: 1200px) {
+        .metric-grid,
+        .insight-block {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .compliance-scope {
+            padding: 1rem !important;
+        }
+
+        .compliance-toolbar,
+        .score-strip,
+        .panel-header {
+            display: grid;
+        }
+
+        .action-row,
+        .panel-tools {
+            justify-content: stretch;
+        }
+
+        .action-row .btn,
+        .panel-search,
+        .panel-select {
+            width: 100%;
+        }
+
+        .score-strip,
+        .metric-grid,
+        .insight-block,
+        .requirement-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .module-tabs {
+            display: grid;
+            width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="compliance-scope p-4">
-    <div class="compliance-hero">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-4">
+    <div class="compliance-toolbar">
+        <div>
+            <h2 class="compliance-title">Pilotage fiscal et réglementaire</h2>
+            <p class="compliance-subtitle">Une vue simple pour suivre les échéances, les dépôts, les identifiants des entités, les obligations actives et les risques ouverts.</p>
+        </div>
+        <div class="action-row">
+            <a href="{% url 'tax_filing_create' %}" class="btn btn-primary fw-bold">
+                <i class="bi bi-file-earmark-plus me-2"></i>Déclarer
+            </a>
+            <a href="{% url 'compliance_risk_create' %}" class="btn btn-outline-danger fw-bold">
+                <i class="bi bi-shield-exclamation me-2"></i>Risque
+            </a>
+        </div>
+    </div>
+
+    <div class="score-strip">
+        <div class="score-block">
+            <div class="score-ring" id="score-ring"><span id="hero-comp-score">--%</span></div>
             <div>
-                <h2>Fiscalité & Conformité Réglementaire</h2>
-                <p>Maîtrisez vos obligations fiscales et minimisez vos risques juridiques.</p>
-                <div class="hero-actions">
-                    <a href="{% url 'tax_filing_create' %}" class="btn btn-primary px-4 py-2 rounded-12 fw-bold">
-                        <i class="bi bi-file-earmark-plus me-2"></i>Déclarer un impôt
-                    </a>
-                    <a href="{% url 'compliance_risk_create' %}" class="btn btn-outline-light px-4 py-2 rounded-12 fw-bold">
-                        <i class="bi bi-shield-exclamation me-2"></i>Signaler un risque
-                    </a>
-                </div>
+                <div class="score-label">Score conformité</div>
+                <p class="score-text" id="score-comment">Chargement des contrôles...</p>
             </div>
-            <div class="d-none d-lg-block text-end">
-                <div class="small opacity-75 mb-1 text-uppercase fw-bold letter-spacing-1">Score Compliance</div>
-                <div class="fs-1 fw-800" id="hero-comp-score">--%</div>
+        </div>
+        <div class="insight-block">
+            <div class="insight-item">
+                <div class="insight-value" id="insight-overdue">--</div>
+                <div class="insight-label">Échéances en retard</div>
+            </div>
+            <div class="insight-item">
+                <div class="insight-value" id="insight-due-soon">--</div>
+                <div class="insight-label">À traiter sous 7 jours</div>
+            </div>
+            <div class="insight-item">
+                <div class="insight-value" id="insight-open-risks">--</div>
+                <div class="insight-label">Risques non résolus</div>
             </div>
         </div>
     </div>
 
-    <div class="d-flex justify-content-center mb-5">
-        <ul class="nav nav-pills bg-white shadow-sm p-2 rounded-16" id="complianceTabs" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active" id="tax-tab" data-bs-toggle="pill" data-bs-target="#tax-pane">Fiscalité (Calendrier & Dépôts)</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="reg-tab" data-bs-toggle="pill" data-bs-target="#reg-pane">Réglementaire & Audit</button>
-            </li>
-        </ul>
-    </div>
+    <ul class="nav module-tabs" id="complianceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'tax' %}active{% endif %}" id="tax-tab" data-bs-toggle="pill" data-bs-target="#tax-pane" type="button" role="tab">
+                <i class="bi bi-calendar2-week me-2"></i>Fiscalité
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'regulatory' %}active{% endif %}" id="reg-tab" data-bs-toggle="pill" data-bs-target="#reg-pane" type="button" role="tab">
+                <i class="bi bi-clipboard-check me-2"></i>Réglementaire & Audit
+            </button>
+        </li>
+    </ul>
 
     <div class="tab-content">
-        <!-- Tab: Taxation -->
-        <div class="tab-pane fade show active" id="tax-pane" role="tabpanel">
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-label">Provision Impôts</div>
-                    <div class="kpi-value" id="kpi-tax-provision">-- XOF</div>
+        <div class="tab-pane fade {% if active_tab == 'tax' %}show active{% endif %}" id="tax-pane" role="tabpanel" aria-labelledby="tax-tab">
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Provision impôts</p>
+                        <span class="metric-icon"><i class="bi bi-cash-stack"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-tax-provision">-- XOF</div>
+                    <div class="metric-note">Brouillons et déclarations à soumettre</div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Décl. en attente</div>
-                    <div class="kpi-value text-warning" id="kpi-tax-pending">--</div>
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">À soumettre</p>
+                        <span class="metric-icon"><i class="bi bi-hourglass-split"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-tax-pending">--</div>
+                    <div class="metric-note">Dossiers ouverts</div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Prochaine Échéance</div>
-                    <div class="kpi-value text-primary" id="kpi-tax-deadline">-- Jrs</div>
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Prochaine échéance</p>
+                        <span class="metric-icon"><i class="bi bi-alarm"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-tax-deadline">--</div>
+                    <div class="metric-note">Jours restants</div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Taux de Ponctualité</div>
-                    <div class="kpi-value text-success">98%</div>
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Ponctualité</p>
+                        <span class="metric-icon"><i class="bi bi-check2-circle"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-punctuality">--%</div>
+                    <div class="metric-note">Dépôts suivis clôturés</div>
                 </div>
             </div>
 
             <div class="row g-4">
-                <div class="col-lg-8">
-                    <div class="c-panel mb-4">
-                        <div class="c-header">
-                            <h6>Calendrier Fiscal & Social</h6>
+                <div class="col-xl-8">
+                    <div class="data-panel mb-4">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Calendrier fiscal & social</h3>
+                            <div class="panel-tools">
+                                <select class="panel-select" id="calendar-filter" aria-label="Filtrer les échéances">
+                                    <option value="all">Toutes</option>
+                                    <option value="critical">Urgentes</option>
+                                    <option value="warning">Sous 7 jours</option>
+                                    <option value="normal">Planifiées</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="overflow-auto">
-                            <table class="c-table">
+                            <table class="sf-table">
                                 <thead>
                                     <tr>
                                         <th>Échéance</th>
                                         <th>Taxe</th>
                                         <th>Entité</th>
-                                        <th>Montant Est.</th>
+                                        <th>Montant estimé</th>
                                         <th>Statut</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tax_calendar_body">
-                                    <!-- Dynamic -->
-                                </tbody>
+                                <tbody id="tax_calendar_body"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="c-panel">
-                        <div class="c-header"><h6>Derniers Dépôts Validés</h6></div>
+                    <div class="data-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Derniers dépôts validés</h3>
+                            <div class="panel-tools">
+                                <input class="panel-search" id="history-search" type="search" placeholder="Rechercher" aria-label="Rechercher un dépôt">
+                            </div>
+                        </div>
                         <div class="overflow-auto">
-                            <table class="c-table">
+                            <table class="sf-table">
                                 <thead>
                                     <tr>
                                         <th>Période</th>
                                         <th>Taxe</th>
                                         <th>Entité</th>
-                                        <th>Montant Payé</th>
-                                        <th>Date Dépôt</th>
+                                        <th>Montant payé</th>
+                                        <th>Référence</th>
                                     </tr>
                                 </thead>
-                                <tbody id="filed_declarations_body">
-                                    <!-- Dynamic -->
-                                </tbody>
+                                <tbody id="filed_declarations_body"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-4">
-                    <div class="c-panel">
-                        <div class="c-header"><h6>Entités & Identifiants</h6></div>
-                        <div class="p-3" id="entities_container">
-                            <!-- Dynamic -->
+                <div class="col-xl-4">
+                    <div class="data-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Entités & identifiants</h3>
+                            <span class="pill pill-neutral" id="entity-count">--</span>
                         </div>
+                        <div class="side-list" id="entities_container"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Regulatory -->
-        <div class="tab-pane fade" id="reg-pane" role="tabpanel">
+        <div class="tab-pane fade {% if active_tab == 'regulatory' %}show active{% endif %}" id="reg-pane" role="tabpanel" aria-labelledby="reg-tab">
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Obligations actives</p>
+                        <span class="metric-icon"><i class="bi bi-list-check"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-reg-count">--</div>
+                    <div class="metric-note">Exigences configurées</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Risques ouverts</p>
+                        <span class="metric-icon"><i class="bi bi-exclamation-octagon"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-risk-count">--</div>
+                    <div class="metric-note">Non résolus</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Critiques / élevés</p>
+                        <span class="metric-icon"><i class="bi bi-activity"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-high-risk">--</div>
+                    <div class="metric-note">Priorité audit</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-top">
+                        <p class="metric-label">Identifiants manquants</p>
+                        <span class="metric-icon"><i class="bi bi-building-exclamation"></i></span>
+                    </div>
+                    <div class="metric-value" id="kpi-missing-ids">--</div>
+                    <div class="metric-note">NIF ou TVA à compléter</div>
+                </div>
+            </div>
+
             <div class="row g-4">
-                <div class="col-lg-8">
-                    <div class="c-panel mb-4">
-                        <div class="c-header"><h6>Obligations Réglementaires Activées</h6></div>
-                        <div class="p-4" id="regulatory_container">
-                            <!-- Dynamic -->
+                <div class="col-xl-8">
+                    <div class="data-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Obligations réglementaires activées</h3>
+                            <div class="panel-tools">
+                                <input class="panel-search" id="requirement-search" type="search" placeholder="Rechercher" aria-label="Rechercher une obligation">
+                            </div>
                         </div>
+                        <div class="requirement-grid" id="regulatory_container"></div>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="c-panel">
-                        <div class="c-header"><h6>Analyse des Risques (Audit)</h6></div>
-                        <div class="p-3" id="risk_container">
-                            <!-- Dynamic -->
+                <div class="col-xl-4">
+                    <div class="data-panel">
+                        <div class="panel-header">
+                            <h3 class="panel-title">Analyse des risques</h3>
+                            <button class="btn btn-sm btn-outline-danger fw-bold" type="button" id="audit-button">
+                                <i class="bi bi-stars me-1"></i>Auto-audit IA
+                            </button>
                         </div>
-                        <div class="p-4 border-top">
-                            <button class="btn btn-outline-danger w-100 py-3 rounded-12 fw-bold"><i class="bi bi-shield-exclamation me-2"></i> Lancer Auto-Audit IA</button>
-                        </div>
+                        <div class="side-list" id="risk_container"></div>
                     </div>
                 </div>
             </div>
@@ -260,92 +632,183 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    loadCompliance();
+    const state = {
+        calendar: [],
+        history: [],
+        requirements: [],
+    };
+
+    const money = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, function(char) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char];
+    });
+
+    const emptyState = (icon, text, colspan = null) => {
+        const body = `<div class="empty-state"><i class="bi ${icon}"></i>${text}</div>`;
+        return colspan ? `<tr><td colspan="${colspan}">${body}</td></tr>` : body;
+    };
+
+    const urgencyPill = (item) => {
+        if (item.urgency === 'critical') return '<span class="pill pill-bad"><i class="bi bi-lightning-charge"></i>Urgent</span>';
+        if (item.urgency === 'warning') return '<span class="pill pill-warn"><i class="bi bi-clock"></i>Sous 7 jours</span>';
+        return '<span class="pill pill-info"><i class="bi bi-calendar-check"></i>Planifié</span>';
+    };
+
+    const scoreComment = (score) => {
+        if (score >= 85) return 'Situation maîtrisée';
+        if (score >= 65) return 'Points de vigilance actifs';
+        return 'Actions prioritaires requises';
+    };
 
     async function loadCompliance() {
         try {
             const response = await fetch('{% url "api_compliance_data" %}');
+            if (!response.ok) throw new Error('API compliance indisponible');
             const data = await response.json();
 
-            // KPIs
-            const scoreEl = document.getElementById('hero-comp-score');
-            if (scoreEl) scoreEl.textContent = `${data.compliance_score || 0}%`;
-            
-            document.getElementById('kpi-tax-provision').textContent = new Intl.NumberFormat('fr-FR').format(data.tax_provision) + ' XOF';
-            document.getElementById('kpi-tax-pending').textContent = data.declarations_pending || 0;
-            document.getElementById('kpi-tax-deadline').textContent = data.next_deadline_days || 0 + ' Jrs';
+            state.calendar = data.tax_calendar || [];
+            state.history = data.filed_declarations || [];
+            state.requirements = data.regulatory_requirements || [];
 
-            // Calendar
-            const calendarBody = document.getElementById('tax_calendar_body');
-            calendarBody.innerHTML = data.tax_calendar.length ? data.tax_calendar.map(item => `
-                <tr>
-                    <td><span class="badge rounded-pill ${item.urgent ? 'bg-danger' : 'bg-light text-dark border'} px-3 py-2">${item.deadline}</span></td>
-                    <td><div class="fw-bold">${item.tax}</div><div class="small text-muted">${item.days_left} jours restants</div></td>
-                    <td>${item.entity}</td>
-                    <td class="fw-bold">${new Intl.NumberFormat('fr-FR').format(item.amount)} XOF</td>
-                    <td><span class="badge bg-light text-dark border px-3">${item.status}</span></td>
-                </tr>
-            `).join('') : '<tr><td colspan="5" class="text-center py-5 text-muted">Aucune échéance à venir.</td></tr>';
-
-            // History
-            const filedBody = document.getElementById('filed_declarations_body');
-            filedBody.innerHTML = data.filed_declarations.length ? data.filed_declarations.map(doc => `
-                <tr>
-                    <td>${doc.period}</td>
-                    <td>${doc.tax}</td>
-                    <td>${doc.entity}</td>
-                    <td class="fw-bold">${new Intl.NumberFormat('fr-FR').format(doc.amount)} XOF</td>
-                    <td>${doc.filed}</td>
-                </tr>
-            `).join('') : '<tr><td colspan="5" class="text-center py-5 text-muted">Aucun historique disponible.</td></tr>';
-
-            // Risks
-            const risksContainer = document.getElementById('risk_container');
-            risksContainer.innerHTML = data.risks.length ? data.risks.map(risk => `
-                <div class="risk-item risk-item-${risk.level}">
-                    <div class="risk-title">${risk.description}</div>
-                    <div class="risk-meta mt-2">
-                        <span>Impact: ${risk.impact}</span>
-                        <span>Probabilité: ${risk.probability}</span>
-                    </div>
-                </div>
-            `).join('') : '<div class="text-center py-5 text-muted">Aucun risque ouvert identifié.</div>';
-
-            // Entities
-            const entityContainer = document.getElementById('entities_container');
-            entityContainer.innerHTML = data.entities.length ? data.entities.map(ent => `
-                <div class="p-3 mb-3 border rounded-16 bg-light">
-                    <div class="d-flex justify-content-between mb-2">
-                        <h6 class="m-0 fw-bold">${ent.name}</h6>
-                        <span class="badge bg-success rounded-pill px-3">${ent.status}</span>
-                    </div>
-                    <div class="small text-muted">NIF/TIN: ${ent.tin}</div>
-                    <div class="small text-muted">TVA: ${ent.vat_reg}</div>
-                </div>
-            `).join('') : '<div class="text-center py-4 text-muted">Aucune entité configurée.</div>';
-
-            // Regulatory
-            const regContainer = document.getElementById('regulatory_container');
-            const regData = data.regulatory_requirements || [
-                { name: 'Déclaration Fiscale Annuelle', authority: 'Direction Générale des Impôts', frequency: 'Annuel', description: 'Dépôt des états financiers et liasse fiscale.' },
-                { name: 'Audit Interne de Conformité', authority: 'Comité d\'Audit', frequency: 'Semestriel', description: 'Vérification de la mise en œuvre des procédures.' }
-            ];
-            regContainer.innerHTML = regData.map(reg => `
-                <div class="regulatory-card">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="m-0 fw-bold">${reg.name}</h6>
-                        <span class="reg-authority">${reg.authority}</span>
-                    </div>
-                    <p class="small text-secondary mb-2">${reg.description}</p>
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                        <span class="small fw-bold"><i class="bi bi-clock me-1"></i> ${reg.frequency}</span>
-                        <button class="btn btn-sm btn-light border px-3">Détails</button>
-                    </div>
-                </div>
-            `).join('');
-
-        } catch (error) { console.error('Error loading Compliance data:', error); }
+            renderSummary(data);
+            renderCalendar();
+            renderHistory();
+            renderEntities(data.entities || []);
+            renderRequirements();
+            renderRisks(data.risks || []);
+        } catch (error) {
+            console.error(error);
+            document.getElementById('score-comment').textContent = 'Impossible de charger les données.';
+        }
     }
+
+    function renderSummary(data) {
+        const score = Number(data.compliance_score || 0);
+        document.getElementById('score-ring').style.setProperty('--score', `${score}%`);
+        document.getElementById('hero-comp-score').textContent = `${score}%`;
+        document.getElementById('score-comment').textContent = scoreComment(score);
+
+        document.getElementById('insight-overdue').textContent = data.overdue_filings || 0;
+        document.getElementById('insight-due-soon').textContent = data.due_soon_filings || 0;
+        document.getElementById('insight-open-risks').textContent = data.open_risks_count || 0;
+
+        document.getElementById('kpi-tax-provision').textContent = `${money.format(data.tax_provision || 0)} XOF`;
+        document.getElementById('kpi-tax-pending').textContent = data.declarations_pending || 0;
+        document.getElementById('kpi-tax-deadline').textContent = data.next_deadline_days === null ? 'Aucune' : `${data.next_deadline_days} j`;
+        document.getElementById('kpi-punctuality').textContent = `${data.punctuality_rate || 0}%`;
+
+        const breakdown = data.risk_breakdown || {};
+        const highRisks = (breakdown.high || 0) + (breakdown.critical || 0);
+        const missingIds = (data.tax_health?.missing_tax_ids || 0) + (data.tax_health?.missing_vat_numbers || 0);
+        document.getElementById('kpi-reg-count').textContent = state.requirements.length;
+        document.getElementById('kpi-risk-count').textContent = data.open_risks_count || 0;
+        document.getElementById('kpi-high-risk').textContent = highRisks;
+        document.getElementById('kpi-missing-ids').textContent = missingIds;
+        document.getElementById('entity-count').textContent = `${data.tax_health?.entities_count || 0} entités`;
+    }
+
+    function renderCalendar() {
+        const filter = document.getElementById('calendar-filter').value;
+        const rows = state.calendar.filter(item => filter === 'all' || item.urgency === filter);
+        document.getElementById('tax_calendar_body').innerHTML = rows.length ? rows.map(item => `
+            <tr>
+                <td>
+                    <div class="fw-bold">${escapeHtml(item.deadline)}</div>
+                    <div class="small text-muted">${escapeHtml(item.days_left)} jours restants</div>
+                </td>
+                <td>
+                    <div class="fw-bold">${escapeHtml(item.tax)}</div>
+                    <div class="small text-muted">${escapeHtml(item.tax_code)} · ${escapeHtml(item.period)}</div>
+                </td>
+                <td>${escapeHtml(item.entity)}</td>
+                <td class="fw-bold">${money.format(item.amount || 0)} XOF</td>
+                <td>
+                    <div class="d-flex gap-2 flex-wrap">
+                        ${urgencyPill(item)}
+                        <span class="pill pill-neutral">${escapeHtml(item.status)}</span>
+                    </div>
+                </td>
+            </tr>
+        `).join('') : emptyState('bi-calendar-x', 'Aucune échéance à afficher.', 5);
+    }
+
+    function renderHistory() {
+        const query = document.getElementById('history-search').value.toLowerCase();
+        const rows = state.history.filter(item => JSON.stringify(item).toLowerCase().includes(query));
+        document.getElementById('filed_declarations_body').innerHTML = rows.length ? rows.map(doc => `
+            <tr>
+                <td>${escapeHtml(doc.period)}</td>
+                <td><span class="pill pill-good">${escapeHtml(doc.tax)}</span></td>
+                <td>${escapeHtml(doc.entity)}</td>
+                <td class="fw-bold">${money.format(doc.amount || 0)} XOF</td>
+                <td>
+                    <div class="fw-bold">${escapeHtml(doc.receipt)}</div>
+                    <div class="small text-muted">${escapeHtml(doc.filed || 'Date non renseignée')}</div>
+                </td>
+            </tr>
+        `).join('') : emptyState('bi-folder-check', 'Aucun dépôt validé disponible.', 5);
+    }
+
+    function renderEntities(entities) {
+        document.getElementById('entities_container').innerHTML = entities.length ? entities.map(entity => `
+            <div class="entity-row">
+                <div class="entity-heading">
+                    <div>
+                        <p class="item-title">${escapeHtml(entity.name)}</p>
+                        <p class="item-meta">${escapeHtml(entity.code)} · ${escapeHtml(entity.country)}</p>
+                    </div>
+                    <span class="pill ${entity.is_complete ? 'pill-good' : 'pill-warn'}">${entity.is_complete ? 'Complet' : 'À compléter'}</span>
+                </div>
+                <div class="small text-muted">NIF/TIN : <strong>${escapeHtml(entity.tin)}</strong></div>
+                <div class="small text-muted">TVA : <strong>${escapeHtml(entity.vat_reg)}</strong></div>
+            </div>
+        `).join('') : emptyState('bi-buildings', 'Aucune entité configurée.');
+    }
+
+    function renderRequirements() {
+        const query = document.getElementById('requirement-search').value.toLowerCase();
+        const rows = state.requirements.filter(item => JSON.stringify(item).toLowerCase().includes(query));
+        document.getElementById('regulatory_container').innerHTML = rows.length ? rows.map(reg => `
+            <div class="requirement-row">
+                <div class="requirement-heading">
+                    <div>
+                        <p class="item-title">${escapeHtml(reg.name)}</p>
+                        <p class="item-meta">${escapeHtml(reg.authority || 'Autorité non renseignée')}</p>
+                    </div>
+                    <span class="pill pill-info">${escapeHtml(reg.frequency)}</span>
+                </div>
+                <p class="item-meta mt-3 mb-0">${escapeHtml(reg.description || 'Aucune description.')}</p>
+            </div>
+        `).join('') : emptyState('bi-clipboard2-check', 'Aucune obligation active configurée.');
+    }
+
+    function renderRisks(risks) {
+        document.getElementById('risk_container').innerHTML = risks.length ? risks.map(risk => `
+            <div class="risk-row risk-${escapeHtml(risk.level)}">
+                <div class="risk-heading">
+                    <div>
+                        <p class="item-title">${escapeHtml(risk.title)}</p>
+                        <p class="item-meta">${escapeHtml(risk.status)} · ${escapeHtml(risk.created_at)}</p>
+                    </div>
+                    <span class="pill ${risk.level === 'critical' || risk.level === 'high' ? 'pill-bad' : risk.level === 'medium' ? 'pill-warn' : 'pill-good'}">${escapeHtml(risk.level_label)}</span>
+                </div>
+                <p class="item-meta mt-3">${escapeHtml(risk.description)}</p>
+                ${risk.impact ? `<p class="item-meta mb-0"><strong>Impact :</strong> ${escapeHtml(risk.impact)}</p>` : ''}
+                ${risk.mitigation ? `<p class="item-meta mb-0"><strong>Plan :</strong> ${escapeHtml(risk.mitigation)}</p>` : ''}
+            </div>
+        `).join('') : emptyState('bi-shield-check', 'Aucun risque ouvert identifié.');
+    }
+
+    document.getElementById('calendar-filter').addEventListener('change', renderCalendar);
+    document.getElementById('history-search').addEventListener('input', renderHistory);
+    document.getElementById('requirement-search').addEventListener('input', renderRequirements);
+    document.getElementById('audit-button').addEventListener('click', function() {
+        const score = document.getElementById('hero-comp-score').textContent;
+        document.getElementById('score-comment').textContent = `Auto-audit prêt : score actuel ${score}`;
+    });
+
+    loadCompliance();
 });
 </script>
 {% endblock %}
