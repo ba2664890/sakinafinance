@@ -39,8 +39,8 @@
                 <span>Executive View</span>
             </a>
             {% endif %}
-            <a href="{% url 'ai_advisor' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'ai_advisor' %}active{% endif %}">
+            <a href="{% url 'ai_engine_dashboard' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'ai_advisor' or request.resolver_match.url_name == 'ai_engine_dashboard' %}active{% endif %}">
                 <i class="bi bi-robot"></i>
                 <span>IA Advisor</span>
                 <span class="badge bg-primary ms-auto">NEW</span>
