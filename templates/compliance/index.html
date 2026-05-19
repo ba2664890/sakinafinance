@@ -1,8 +1,8 @@
 {% extends 'dashboard_base.html' %}
 {% load humanize %}
 
-{% block title %}Fiscalité & Réglementaire - SakinaFinance{% endblock %}
-{% block page_title %}Fiscalité & Réglementaire{% endblock %}
+{% block title %}Conformité - SakinaFinance{% endblock %}
+{% block page_title %}Conformité{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -450,19 +450,14 @@
 
     <ul class="nav module-tabs" id="complianceTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'tax' %}active{% endif %}" id="tax-tab" data-bs-toggle="pill" data-bs-target="#tax-pane" type="button" role="tab">
-                <i class="bi bi-calendar2-week me-2"></i>Fiscalité
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'regulatory' %}active{% endif %}" id="reg-tab" data-bs-toggle="pill" data-bs-target="#reg-pane" type="button" role="tab">
-                <i class="bi bi-clipboard-check me-2"></i>Réglementaire & Audit
+            <button class="nav-link active" id="compliance-tab" type="button" role="tab" aria-selected="true">
+                <i class="bi bi-shield-check me-2"></i>Conformité
             </button>
         </li>
     </ul>
 
     <div class="tab-content">
-        <div class="tab-pane fade {% if active_tab == 'tax' %}show active{% endif %}" id="tax-pane" role="tabpanel" aria-labelledby="tax-tab">
+        <div class="tab-pane fade show active" id="tax-pane" role="tabpanel" aria-labelledby="compliance-tab">
             <div class="metric-grid">
                 <div class="metric-card">
                     <div class="metric-top">
@@ -564,7 +559,7 @@
             </div>
         </div>
 
-        <div class="tab-pane fade {% if active_tab == 'regulatory' %}show active{% endif %}" id="reg-pane" role="tabpanel" aria-labelledby="reg-tab">
+        <div class="tab-pane fade show active mt-4" id="reg-pane" role="tabpanel" aria-labelledby="compliance-tab">
             <div class="metric-grid">
                 <div class="metric-card">
                     <div class="metric-top">

@@ -112,14 +112,9 @@
         <div class="nav-section">
             <div class="nav-section-title">Conformité</div>
             <a href="{% url 'taxation' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'taxation' %}active{% endif %}">
+                class="nav-link {% if request.resolver_match.url_name == 'taxation' or request.resolver_match.url_name == 'regulatory' %}active{% endif %}">
                 <i class="bi bi-shield-check"></i>
-                <span>Fiscalité</span>
-            </a>
-            <a href="{% url 'regulatory' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'regulatory' %}active{% endif %}">
-                <i class="bi bi-file-earmark-check"></i>
-                <span>Réglementaire</span>
+                <span>Conformité</span>
             </a>
         </div>
         {% endif %}

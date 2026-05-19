@@ -22,11 +22,9 @@ def _get_company(request):
 
 @login_required
 def compliance_view(request):
-    """Module Fiscalité & Réglementaire — vue principale"""
-    active_tab = 'regulatory' if request.resolver_match.url_name == 'regulatory' else 'tax'
+    """Module Conformité — vue principale"""
     return render(request, 'compliance/index.html', {
-        'page_title': 'Fiscalité & Réglementaire',
-        'active_tab': active_tab,
+        'page_title': 'Conformité',
     })
 
 @login_required
