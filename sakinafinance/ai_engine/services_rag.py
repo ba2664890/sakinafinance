@@ -8,6 +8,7 @@ Retrieval-Augmented Generation avec :
 import os
 import logging
 from pathlib import Path
+from time import sleep
 
 import requests
 from django.conf import settings
@@ -86,6 +87,7 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
         self.hf_embed_model = "sentence-transformers/all-MiniLM-L6-v2"
         self.gemini_api_key = getattr(settings, 'GEMINI_API_KEY', '')
         self.gemini_model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.0-flash')
+        self.gemini_fallback_models = getattr(settings, 'GEMINI_FALLBACK_MODELS', [])
         self._hf_client = None
 
     def _get_hf_client(self):
@@ -435,14 +437,27 @@ Factures Récentes :
     # Gemini — Appel et diagnostic
     # -----------------------------------------------------------------------
 
-    def _call_gemini(self, system_prompt: str, user_prompt: str, max_tokens: int = 800, temperature: float = 0.3) -> str | None:
-        """Appelle Gemini GenerateContent via REST."""
+    def _get_gemini_models(self) -> list[str]:
+        """Retourne le modèle principal puis les modèles de repli sans doublons."""
+        models = [self.gemini_model, *self.gemini_fallback_models]
+        seen = set()
+        return [model for model in models if model and not (model in seen or seen.add(model))]
+
+    def _call_gemini_model(
+        self,
+        model: str,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> str | None:
+        """Appelle Gemini GenerateContent via REST pour un modèle donné."""
         if not self.gemini_api_key:
             return None
 
         url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self.gemini_model}:generateContent"
+            f"{model}:generateContent"
         )
         payload = {
             "systemInstruction": {
@@ -465,7 +480,35 @@ Factures Récentes :
             json=payload,
             timeout=45,
         )
-        response.raise_for_status()
+        if response.status_code == 429:
+            retry_after = response.headers.get("Retry-After")
+            wait_seconds = min(int(retry_after), 5) if retry_after and retry_after.isdigit() else 2
+            logger.warning(
+                "Quota Gemini atteint pour le modèle %s. Nouvel essai dans %s seconde(s).",
+                model,
+                wait_seconds,
+            )
+            sleep(wait_seconds)
+            response = requests.post(
+                url,
+                params={"key": self.gemini_api_key},
+                json=payload,
+                timeout=45,
+            )
+
+        if response.status_code >= 400:
+            try:
+                error_detail = response.json().get("error", {}).get("message", response.text)
+            except ValueError:
+                error_detail = response.text
+            logger.error(
+                "Erreur Gemini HTTP %s pour le modèle %s: %s",
+                response.status_code,
+                model,
+                error_detail[:500],
+            )
+            return None
+
         data = response.json()
         candidates = data.get("candidates") or []
         if not candidates:
@@ -475,6 +518,20 @@ Factures Récentes :
         parts = candidates[0].get("content", {}).get("parts", [])
         text = "".join(part.get("text", "") for part in parts).strip()
         return text or None
+
+    def _call_gemini(self, system_prompt: str, user_prompt: str, max_tokens: int = 800, temperature: float = 0.3) -> str | None:
+        """Appelle Gemini avec modèle principal puis modèles de repli."""
+        for model in self._get_gemini_models():
+            answer = self._call_gemini_model(
+                model=model,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            if answer:
+                return answer
+        return None
 
     def test_gemini_connection(self) -> dict:
         """
