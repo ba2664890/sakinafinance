@@ -88,9 +88,27 @@ class OCRService:
         document.error_message = ""
         document.save(update_fields=["status", "error_message"])
 
+        tmp_file_path = None
         try:
-            file_path = Path(document.file.path)
-            result = self.extract_text(file_path)
+            try:
+                file_path = Path(document.file.path)
+            except NotImplementedError:
+                ext = Path(document.file.name).suffix
+                with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp_file:
+                    with document.file.open('rb') as f:
+                        shutil.copyfileobj(f, tmp_file)
+                file_path = Path(tmp_file.name)
+                tmp_file_path = file_path
+
+            try:
+                result = self.extract_text(file_path)
+            finally:
+                if tmp_file_path:
+                    try:
+                        tmp_file_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+
             if not result.text.strip():
                 raise ValueError(
                     "Aucun texte exploitable n'a pu être extrait. Configurez GEMINI_API_KEY/OPENAI_API_KEY ou installez tesseract pour les scans."
