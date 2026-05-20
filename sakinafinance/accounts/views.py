@@ -58,7 +58,13 @@ def register_view(request):
                     )
                 
                 # Send Email Confirmation (Allauth)
-                send_email_confirmation(request, user)
+                try:
+                    send_email_confirmation(request, user)
+                except Exception as email_err:
+                    import traceback
+                    print(f"Avertissement: Impossible d'envoyer l'email de confirmation: {email_err}")
+                    print(traceback.format_exc())
+                    messages.warning(request, "Votre compte a été créé, mais nous n'avons pas pu envoyer l'email de confirmation.")
 
                 # Created Welcome Notification
                 Notification.objects.create(
