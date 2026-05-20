@@ -98,7 +98,7 @@ def consolidation_view(request):
 @login_required
 def ai_advisor_view(request):
     """AI Advisor View — assistant IA premium avec RAG et données ERP."""
-    from sakinafinance.ai_engine.models import AIInsight, AnomalyDetection, KnowledgeDocument
+    from sakinafinance.ai_engine.models import AIInsight, AnomalyDetection, KnowledgeDocument, DocumentOCR
 
     user = request.user
     company = user.company
@@ -113,6 +113,7 @@ def ai_advisor_view(request):
         'insights': AIInsight.objects.filter(company=company, is_dismissed=False)[:5] if company else [],
         'anomalies': AnomalyDetection.objects.filter(company=company, is_false_positive=False)[:5] if company else [],
         'knowledge_documents': KnowledgeDocument.objects.filter(company=company).order_by('-created_at')[:8] if company else [],
+        'ocr_documents': DocumentOCR.objects.filter(company=company).order_by('-created_at')[:6] if company else [],
         'confidence': 82,
     }
     return render(request, 'core/ai_advisor.html', context)

@@ -397,6 +397,18 @@ PINECONE_INDEX_NAME = os.getenv('PINECONE_INDEX_NAME', 'sakina-vect')
 # HuggingFace Configuration (RAG embeddings)
 HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
 
+# OCR Configuration
+OCR_PROVIDER_ORDER = [
+    provider.strip()
+    for provider in os.getenv('OCR_PROVIDER_ORDER', 'native_pdf,gemini_vision,openai_vision,tesseract').split(',')
+    if provider.strip()
+]
+OCR_GEMINI_MODEL = os.getenv('OCR_GEMINI_MODEL', 'gemini-2.0-flash')
+OCR_OPENAI_MODEL = os.getenv('OCR_OPENAI_MODEL', 'gpt-4o-mini')
+OCR_MAX_PDF_PAGES = int(os.getenv('OCR_MAX_PDF_PAGES', 6))
+OCR_MIN_PDF_TEXT_CHARS = int(os.getenv('OCR_MIN_PDF_TEXT_CHARS', 160))
+OCR_TESSERACT_LANGUAGES = os.getenv('OCR_TESSERACT_LANGUAGES', 'fra+eng')
+
 # ChromaDB — Vector Store persistence path
 CHROMA_DB_PATH = str(BASE_DIR / 'chroma_db')
 

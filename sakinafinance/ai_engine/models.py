@@ -170,8 +170,13 @@ class DocumentOCR(models.Model):
 
     class DocumentType(models.TextChoices):
         INVOICE = 'invoice', _('Facture')
+        SUPPLIER_INVOICE = 'supplier_invoice', _('Facture fournisseur')
         RECEIPT = 'receipt', _('Reçu')
         BANK_STATEMENT = 'bank_statement', _('Relevé bancaire')
+        PURCHASE_ORDER = 'purchase_order', _('Bon de commande')
+        DELIVERY_NOTE = 'delivery_note', _('Bon de livraison')
+        RECEIPT_NOTE = 'receipt_note', _('Bon de réception')
+        STOCK_COUNT = 'stock_count', _('Fiche d’inventaire')
         CONTRACT = 'contract', _('Contrat')
         PAYSLIP = 'payslip', _('Bulletin de paie')
         OTHER = 'other', _('Autre')

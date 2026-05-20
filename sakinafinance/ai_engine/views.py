@@ -7,10 +7,11 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 from .models import (
     AIAnalysis, CashFlowForecast, AIInsight, AnomalyDetection,
-    KnowledgeDocument, KnowledgeChunk, ChatSession, ChatMessage
+    KnowledgeDocument, KnowledgeChunk, ChatSession, ChatMessage, DocumentOCR
 )
 from .services_rag import RAGService
 from sakinafinance.accounting.models import Transaction, TransactionLine, Invoice
@@ -19,6 +20,41 @@ from decimal import Decimal
 import logging
 
 logger = logging.getLogger('sakinafinance')
+
+
+def _serialize_ocr_document(doc):
+    allowed_actions = ['validate', 'retry']
+    if doc.document_type in {
+        DocumentOCR.DocumentType.INVOICE,
+        DocumentOCR.DocumentType.SUPPLIER_INVOICE,
+        DocumentOCR.DocumentType.RECEIPT,
+    } and not doc.linked_invoice_id:
+        allowed_actions.append('create_supplier_invoice')
+        allowed_actions.append('create_customer_invoice')
+    if doc.document_type in {
+        DocumentOCR.DocumentType.PURCHASE_ORDER,
+        DocumentOCR.DocumentType.DELIVERY_NOTE,
+        DocumentOCR.DocumentType.RECEIPT_NOTE,
+        DocumentOCR.DocumentType.STOCK_COUNT,
+    }:
+        allowed_actions.append('export_inventory_lines')
+    return {
+        'id': str(doc.id),
+        'filename': doc.filename,
+        'document_type': doc.document_type,
+        'document_type_label': doc.get_document_type_display(),
+        'status': doc.status,
+        'status_label': doc.get_status_display(),
+        'confidence_score': float(doc.confidence_score or 0),
+        'file_size': doc.file_size,
+        'raw_text': doc.raw_text,
+        'extracted_data': doc.extracted_data,
+        'error_message': doc.error_message,
+        'linked_invoice_id': str(doc.linked_invoice_id) if doc.linked_invoice_id else None,
+        'allowed_actions': allowed_actions,
+        'created_at': doc.created_at.strftime('%d/%m/%Y %H:%M'),
+        'processed_at': doc.processed_at.strftime('%d/%m/%Y %H:%M') if doc.processed_at else '',
+    }
 
 
 def _get_company(request):
@@ -605,3 +641,110 @@ def api_upload_knowledge(request):
             
     except Exception as e:
         return JsonResponse({'status': 'error', 'error': str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def api_ocr_documents(request):
+    """API OCR: liste les documents OCR ou upload + traitement immédiat."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    if request.method == 'GET':
+        documents = DocumentOCR.objects.filter(company=company).order_by('-created_at')[:30]
+        return JsonResponse({'documents': [_serialize_ocr_document(doc) for doc in documents]})
+
+    file = request.FILES.get('file')
+    if not file:
+        return JsonResponse({'error': 'Aucun fichier fourni'}, status=400)
+
+    document_type = request.POST.get('document_type') or DocumentOCR.DocumentType.INVOICE
+    valid_types = {choice[0] for choice in DocumentOCR.DocumentType.choices}
+    if document_type not in valid_types:
+        return JsonResponse({'error': 'Type de document OCR invalide'}, status=400)
+
+    max_size = 15 * 1024 * 1024
+    if file.size > max_size:
+        return JsonResponse({'error': 'Fichier trop volumineux. Limite: 15 Mo.'}, status=400)
+
+    doc = DocumentOCR.objects.create(
+        company=company,
+        document_type=document_type,
+        file=file,
+        filename=file.name,
+        file_size=file.size,
+        uploaded_by=request.user,
+    )
+
+    from .services_ocr import OCRService
+
+    doc = OCRService().process_document(doc)
+    status_code = 201 if doc.status != DocumentOCR.Status.FAILED else 422
+    return JsonResponse({'document': _serialize_ocr_document(doc)}, status=status_code)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def api_ocr_document_detail(request, document_id):
+    """API OCR: détail ou retraitement d'un document."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    doc = get_object_or_404(DocumentOCR, id=document_id, company=company)
+
+    if request.method == 'GET':
+        return JsonResponse({'document': _serialize_ocr_document(doc)})
+
+    from .services_ocr import OCRService
+
+    doc = OCRService().process_document(doc)
+    status_code = 200 if doc.status != DocumentOCR.Status.FAILED else 422
+    return JsonResponse({'document': _serialize_ocr_document(doc)}, status=status_code)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_ocr_validate_document(request, document_id):
+    """API OCR: valide les données extraites et peut créer une facture brouillon."""
+    company = _get_company(request)
+    if not company:
+        return JsonResponse({'error': 'Aucune entreprise associée'}, status=400)
+
+    doc = get_object_or_404(DocumentOCR, id=document_id, company=company)
+    body = _json_body(request)
+    if body is None:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    if body.get('extracted_data'):
+        doc.extracted_data = body['extracted_data']
+
+    create_invoice = bool(body.get('create_invoice'))
+    invoice_payload = None
+    if create_invoice:
+        from .services_ocr import OCRService
+
+        if body.get('extracted_data'):
+            doc.save(update_fields=['extracted_data'])
+
+        invoice_type = body.get('invoice_type') or Invoice.InvoiceType.SUPPLIER
+        if invoice_type not in {Invoice.InvoiceType.CUSTOMER, Invoice.InvoiceType.SUPPLIER}:
+            return JsonResponse({'error': 'Type de facture invalide'}, status=400)
+        invoice = OCRService().create_invoice_from_ocr(doc, invoice_type=invoice_type)
+        invoice_payload = {
+            'id': str(invoice.id),
+            'invoice_number': invoice.invoice_number,
+            'partner_name': invoice.partner_name,
+            'total': float(invoice.total),
+            'currency': invoice.currency,
+            'status': invoice.status,
+        }
+    else:
+        doc.status = DocumentOCR.Status.VALIDATED
+        doc.save(update_fields=['extracted_data', 'status'])
+
+    return JsonResponse({
+        'document': _serialize_ocr_document(doc),
+        'invoice': invoice_payload,
+    })

@@ -438,6 +438,136 @@
         color: var(--ai-primary);
         opacity: 0.5;
     }
+
+    .ocr-toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.65rem;
+        align-items: center;
+    }
+
+    .ocr-type-select {
+        border: 1px solid var(--ai-border);
+        border-radius: 12px;
+        padding: 0.55rem 0.7rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ai-text);
+        background: #fff;
+        min-width: 0;
+    }
+
+    .ocr-item {
+        border: 1px solid var(--ai-border);
+        background: #fff;
+        border-radius: 14px;
+        padding: 0.85rem;
+        margin-bottom: 0.65rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .ocr-item:hover {
+        border-color: var(--ai-primary);
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+    }
+
+    .ocr-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.58rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+    }
+
+    .ocr-status.extracted,
+    .ocr-status.validated {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .ocr-status.processing,
+    .ocr-status.uploaded {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .ocr-status.failed {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .ocr-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .ocr-field {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.55rem;
+        min-width: 0;
+    }
+
+    .ocr-field span {
+        display: block;
+        color: #64748b;
+        font-size: 0.55rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .ocr-field strong {
+        display: block;
+        color: #0f172a;
+        font-size: 0.72rem;
+        margin-top: 0.15rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ocr-actions {
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+
+    .ocr-action-btn {
+        border: 1px solid #dbeafe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 999px;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.63rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .ocr-action-btn.success {
+        background: #ecfdf5;
+        border-color: #bbf7d0;
+        color: #047857;
+    }
+
+    .ocr-action-btn.warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+    }
+
+    .ocr-action-btn:disabled {
+        opacity: 0.55;
+        cursor: wait;
+    }
 </style>
 {% endblock %}
 
@@ -590,6 +720,82 @@
                 <div class="small fw-bold">Analyse en cours...</div>
             </div>
             {% endfor %}
+        </div>
+
+        <!-- OCR Documents -->
+        <div class="premium-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="text-muted small fw-800 tracking-widest uppercase mb-1">OCR Financier</h6>
+                    <div class="text-muted" style="font-size: 0.64rem">Factures, reçus, relevés bancaires</div>
+                </div>
+                <button class="btn btn-sm btn-primary rounded-circle" style="width: 28px; height: 28px; padding: 0"
+                    onclick="document.getElementById('ocrFile').click()" title="Analyser un document">
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                </button>
+            </div>
+
+            <div class="ocr-toolbar mb-3">
+                <select id="ocrType" class="ocr-type-select">
+                    <option value="invoice">Facture</option>
+                    <option value="supplier_invoice">Facture fournisseur</option>
+                    <option value="receipt">Reçu</option>
+                    <option value="bank_statement">Relevé bancaire</option>
+                    <option value="purchase_order">Bon de commande</option>
+                    <option value="delivery_note">Bon de livraison</option>
+                    <option value="receipt_note">Bon de réception</option>
+                    <option value="stock_count">Fiche d’inventaire</option>
+                    <option value="contract">Contrat</option>
+                    <option value="payslip">Bulletin de paie</option>
+                    <option value="other">Autre</option>
+                </select>
+                <input type="file" id="ocrFile" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp,.txt,.csv"
+                    onchange="uploadOCR(this)">
+            </div>
+
+            <div id="ocrList">
+                {% for doc in ocr_documents %}
+                <div class="ocr-item" onclick="showOCRFromData(this)" data-id="{{ doc.id }}">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="overflow-hidden">
+                            <div class="small fw-900 text-dark text-truncate" style="max-width: 210px">{{ doc.filename }}</div>
+                            <div class="text-muted" style="font-size: 0.62rem">{{ doc.get_document_type_display }}</div>
+                        </div>
+                        <span class="ocr-status {{ doc.status }}">{{ doc.get_status_display|upper }}</span>
+                    </div>
+                    <div class="ocr-summary">
+                        <div class="ocr-field">
+                            <span>Total</span>
+                            <strong>{{ doc.extracted_data.summary.total|default:"-" }}</strong>
+                        </div>
+                        <div class="ocr-field">
+                            <span>Confiance</span>
+                            <strong>{{ doc.confidence_score|floatformat:0 }}%</strong>
+                        </div>
+                    </div>
+                    <div class="ocr-actions">
+                        {% if doc.document_type == 'invoice' or doc.document_type == 'supplier_invoice' or doc.document_type == 'receipt' %}
+                            {% if not doc.linked_invoice_id %}
+                            <button class="ocr-action-btn success" onclick="event.stopPropagation(); createInvoiceFromOCR('{{ doc.id }}', 'supplier', this)">
+                                Créer facture
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                        <button class="ocr-action-btn" onclick="event.stopPropagation(); validateOCR('{{ doc.id }}', this)">Valider</button>
+                        <button class="ocr-action-btn warning" onclick="event.stopPropagation(); retryOCR('{{ doc.id }}', this)">Relancer</button>
+                        {% if doc.document_type == 'purchase_order' or doc.document_type == 'delivery_note' or doc.document_type == 'receipt_note' or doc.document_type == 'stock_count' %}
+                        <button class="ocr-action-btn" onclick="event.stopPropagation(); exportOCRLines('{{ doc.id }}', this)">Export CSV</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="upload-zone" onclick="document.getElementById('ocrFile').click()">
+                    <i class="bi bi-file-earmark-text mb-2"></i>
+                    <div class="small fw-800 text-muted">Analyser un document</div>
+                    <div class="text-muted" style="font-size: 0.6rem">PDF, image, TXT ou CSV</div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Knowledge Base -->
@@ -752,6 +958,280 @@
         } catch (e) {
             tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i><div>Erreur réseau</div>`;
         }
+    }
+
+    function renderOCRItem(doc) {
+        const summary = doc.extracted_data?.summary || {};
+        const statusClass = doc.status || 'uploaded';
+        const total = summary.total || '-';
+        const confidence = Math.round(doc.confidence_score || 0);
+        const payload = JSON.stringify(doc.extracted_data || {}).replaceAll("'", "&#39;");
+        const rawText = (doc.raw_text || '').slice(0, 900).replaceAll("'", "&#39;");
+        const canCreateInvoice = (doc.allowed_actions || []).includes('create_supplier_invoice');
+        const canExportInventory = (doc.allowed_actions || []).includes('export_inventory_lines');
+        return `<div class="ocr-item" onclick="showOCRFromPayload('${encodeURIComponent(payload)}','${encodeURIComponent(rawText)}','${encodeURIComponent(doc.filename || '')}','${statusClass}','${confidence}')">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div class="overflow-hidden">
+                    <div class="small fw-900 text-dark text-truncate" style="max-width: 210px">${doc.filename}</div>
+                    <div class="text-muted" style="font-size: 0.62rem">${doc.document_type_label || doc.document_type}</div>
+                </div>
+                <span class="ocr-status ${statusClass}">${doc.status_label || statusClass}</span>
+            </div>
+            <div class="ocr-summary">
+                <div class="ocr-field"><span>Total</span><strong>${total}</strong></div>
+                <div class="ocr-field"><span>Confiance</span><strong>${confidence}%</strong></div>
+            </div>
+            <div class="ocr-actions">
+                ${canCreateInvoice ? `<button class="ocr-action-btn success" onclick="event.stopPropagation(); createInvoiceFromOCR('${doc.id}', 'supplier', this)">Créer facture</button>` : ''}
+                <button class="ocr-action-btn" onclick="event.stopPropagation(); validateOCR('${doc.id}', this)">Valider</button>
+                <button class="ocr-action-btn warning" onclick="event.stopPropagation(); retryOCR('${doc.id}', this)">Relancer</button>
+                ${canExportInventory ? `<button class="ocr-action-btn" onclick="event.stopPropagation(); exportOCRLines('${doc.id}', this)">Export CSV</button>` : ''}
+            </div>
+        </div>`;
+    }
+
+    async function uploadOCR(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('document_type', document.getElementById('ocrType').value || 'invoice');
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        const ocrList = document.getElementById('ocrList');
+        const tempItem = document.createElement('div');
+        tempItem.className = 'ocr-item';
+        tempItem.innerHTML = `<div class="d-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm text-primary"></span>
+            <div>
+                <div class="small fw-900 text-dark">${file.name}</div>
+                <div class="text-muted" style="font-size: 0.62rem">Extraction OCR en cours...</div>
+            </div>
+        </div>`;
+        ocrList.prepend(tempItem);
+
+        try {
+            const resp = await fetch('{% url "api_ocr_documents" %}', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            if (data.document) {
+                tempItem.outerHTML = renderOCRItem(data.document);
+                if (data.document.status === 'failed') {
+                    addMessage(`OCR échoué pour **${file.name}** : ${data.document.error_message || 'moteur indisponible'}`, 'ai');
+                } else {
+                    const summary = data.document.extracted_data?.summary || {};
+                    addMessage(`OCR terminé pour **${file.name}**.\n\n**Partenaire :** ${summary.partner_name || '-'}\n\n**Total :** ${summary.total || '-'} ${data.document.extracted_data?.currency || ''}\n\n**Confiance :** ${Math.round(data.document.confidence_score || 0)}%`, 'ai');
+                }
+            } else {
+                tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i><div>${data.error || 'Erreur OCR'}</div>`;
+            }
+        } catch (e) {
+            tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i><div>Erreur réseau OCR</div>`;
+        } finally {
+            input.value = '';
+        }
+    }
+
+    async function showOCRFromData(el) {
+        const id = el.dataset.id;
+        if (!id) return;
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/`);
+            const data = await resp.json();
+            if (!data.document) return;
+            const doc = data.document;
+            showOCRFromPayload(
+                encodeURIComponent(JSON.stringify(doc.extracted_data || {})),
+                encodeURIComponent(doc.raw_text || ''),
+                encodeURIComponent(doc.filename || ''),
+                doc.status_label || doc.status || '',
+                doc.confidence_score || '0'
+            );
+        } catch (e) {
+            addMessage("Impossible de charger le détail OCR pour ce document.", 'ai');
+        }
+    }
+
+    async function validateOCR(id, button) {
+        await runOCRValidation(id, { create_invoice: false }, button, (data) => {
+            addMessage(`Document OCR **${data.document.filename}** validé.`, 'ai');
+            refreshOCRCard(id, data.document);
+        });
+    }
+
+    async function createInvoiceFromOCR(id, invoiceType = 'supplier', button) {
+        await runOCRValidation(id, {
+            create_invoice: true,
+            invoice_type: invoiceType
+        }, button, (data) => {
+            const inv = data.invoice;
+            if (inv) {
+                addMessage(`Facture brouillon créée depuis OCR.\n\n**N° :** ${inv.invoice_number}\n\n**Partenaire :** ${inv.partner_name}\n\n**Total :** ${inv.total} ${inv.currency}`, 'ai');
+            } else {
+                addMessage("Document OCR validé, mais aucune facture n'a été créée.", 'ai');
+            }
+            refreshOCRCard(id, data.document);
+        });
+    }
+
+    async function retryOCR(id, button) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'OCR...';
+        }
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await resp.json();
+            if (data.document) {
+                refreshOCRCard(id, data.document);
+                addMessage(`OCR relancé pour **${data.document.filename}**. Statut : **${data.document.status_label}**.`, 'ai');
+            } else {
+                addMessage(data.error || "Impossible de relancer l'OCR.", 'ai');
+            }
+        } catch (e) {
+            addMessage("Erreur réseau pendant la relance OCR.", 'ai');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Relancer';
+            }
+        }
+    }
+
+    async function exportOCRLines(id, button) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Export...';
+        }
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/`);
+            const data = await resp.json();
+            const doc = data.document;
+            if (!doc) {
+                addMessage("Document OCR introuvable pour l'export.", 'ai');
+                return;
+            }
+            const extracted = doc.extracted_data || {};
+            const lines = extracted.inventory || extracted.line_items || extracted.invoice || extracted.bank_statement || [];
+            if (!lines.length) {
+                addMessage(`Aucune ligne exploitable détectée dans **${doc.filename}**.`, 'ai');
+                return;
+            }
+            const headers = Array.from(lines.reduce((set, line) => {
+                Object.keys(line || {}).forEach(key => set.add(key));
+                return set;
+            }, new Set(['description', 'quantity', 'unit', 'unit_price', 'total'])));
+            const csv = [
+                headers.join(','),
+                ...lines.map(line => headers.map(header => csvEscape(line?.[header] ?? '')).join(','))
+            ].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${(doc.filename || 'ocr-lines').replace(/\.[^.]+$/, '')}_lignes_ocr.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            addMessage(`Export CSV généré pour **${doc.filename}** avec **${lines.length} ligne(s)**.`, 'ai');
+        } catch (e) {
+            addMessage("Erreur pendant l'export CSV OCR.", 'ai');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Export CSV';
+            }
+        }
+    }
+
+    function csvEscape(value) {
+        const text = String(value ?? '').replaceAll('"', '""');
+        return /[",\n;]/.test(text) ? `"${text}"` : text;
+    }
+
+    async function runOCRValidation(id, payload, button, onSuccess) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = '...';
+        }
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/validate/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                addMessage(data.error || "Action OCR impossible.", 'ai');
+                return;
+            }
+            onSuccess(data);
+        } catch (e) {
+            addMessage("Erreur réseau pendant l'action OCR.", 'ai');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = payload.create_invoice ? 'Créer facture' : 'Valider';
+            }
+        }
+    }
+
+    function refreshOCRCard(id, doc) {
+        const current = document.querySelector(`.ocr-item[data-id="${id}"]`);
+        if (!current) return;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = renderOCRItem(doc);
+        const next = wrapper.firstElementChild;
+        next.dataset.id = id;
+        next.onclick = () => showOCRFromData(next);
+        current.replaceWith(next);
+    }
+
+    function showOCRFromPayload(encodedPayload, encodedText, encodedFilename, status, confidence) {
+        let data = {};
+        try {
+            const raw = decodeURIComponent(encodedPayload || '%7B%7D').replaceAll('&#39;', "'");
+            data = JSON.parse(raw || '{}');
+        } catch (e) {
+            data = {};
+        }
+        const rawText = decodeURIComponent(encodedText || '');
+        const filename = decodeURIComponent(encodedFilename || 'Document OCR');
+        const summary = data.summary || {};
+        const quality = data.quality || {};
+        const lines = data.invoice || data.line_items || data.inventory || data.bank_statement || [];
+        let text = `### OCR - ${filename}\n\n`;
+        text += `**Statut :** ${status || '-'}  \n`;
+        text += `**Confiance OCR :** ${Math.round(Number(confidence || 0))}%  \n`;
+        text += `**Score qualité :** ${quality.score || '-'}%  \n\n`;
+        text += `**Partenaire :** ${summary.partner_name || '-'}  \n`;
+        text += `**Référence :** ${summary.invoice_number || '-'}  \n`;
+        text += `**Date :** ${summary.invoice_date || '-'}  \n`;
+        text += `**Échéance :** ${summary.due_date || '-'}  \n`;
+        text += `**Total :** ${summary.total || '-'} ${data.currency || ''}  \n`;
+        if (summary.tax_amount) text += `**TVA/Taxe :** ${summary.tax_amount} ${data.currency || ''}  \n`;
+        if (lines.length) {
+            text += `\n**Lignes détectées :** ${lines.length}`;
+            const preview = lines.slice(0, 5).map((line, index) => {
+                const desc = line.description || line.desc || line.label || `Ligne ${index + 1}`;
+                const qty = line.quantity ? ` | Qté: ${line.quantity}` : '';
+                const amount = line.total ? ` | Total: ${line.total}` : '';
+                return `\n- ${desc}${qty}${amount}`;
+            }).join('');
+            text += preview;
+        }
+        if (rawText) text += `\n\n> Aperçu texte : ${rawText.slice(0, 420)}${rawText.length > 420 ? '...' : ''}`;
+        addMessage(text, 'ai');
+        focusAdvisorChat();
     }
 
     function renderChart(id, payload) {

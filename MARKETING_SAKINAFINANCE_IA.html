@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SakinaFinance IA - Document Marketing SaaS</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #5b6472;
+      --line: #e6eaf0;
+      --blue: #1358d8;
+      --cyan: #06a7b8;
+      --green: #0b8f63;
+      --gold: #c98216;
+      --bg: #f7f9fc;
+      --panel: #ffffff;
+      --soft-blue: #edf4ff;
+      --soft-gold: #fff7e8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.58;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 42px 24px 72px;
+    }
+
+    .cover {
+      background: linear-gradient(135deg, #0d1b35 0%, #143f8f 56%, #0b8f9f 100%);
+      color: #fff;
+      border-radius: 28px;
+      padding: 54px;
+      box-shadow: 0 26px 70px rgba(16, 31, 66, .22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover::after {
+      content: "";
+      position: absolute;
+      inset: auto -120px -170px auto;
+      width: 420px;
+      height: 420px;
+      background: rgba(255,255,255,.12);
+      border-radius: 50%;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #dbeafe;
+    }
+
+    h1, h2, h3 { line-height: 1.12; margin: 0; }
+
+    h1 {
+      margin-top: 28px;
+      max-width: 820px;
+      font-size: clamp(42px, 7vw, 78px);
+      letter-spacing: -.055em;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 22px 0 0;
+      font-size: 20px;
+      color: rgba(255,255,255,.84);
+    }
+
+    .tagline {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      max-width: 850px;
+    }
+
+    .tagline div {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 108px;
+    }
+
+    .tagline b {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .tagline span {
+      color: rgba(255,255,255,.76);
+      font-size: 13px;
+    }
+
+    .section {
+      margin-top: 30px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 34px;
+      box-shadow: 0 14px 36px rgba(17, 24, 39, .055);
+    }
+
+    .section h2 {
+      font-size: 28px;
+      letter-spacing: -.025em;
+      margin-bottom: 18px;
+    }
+
+    .section > p { color: var(--muted); margin: 0 0 16px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      background: #fff;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .card p, li {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    ul { margin: 10px 0 0; padding-left: 20px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--blue);
+      background: var(--soft-blue);
+      margin-bottom: 12px;
+    }
+
+    .quote {
+      border-left: 5px solid var(--blue);
+      background: var(--soft-blue);
+      border-radius: 14px;
+      padding: 22px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f2f6fb;
+      color: #263247;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .price { font-weight: 900; color: var(--green); white-space: nowrap; }
+
+    .steps {
+      counter-reset: step;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      border-radius: 18px;
+      padding: 18px;
+      background: #f9fbfe;
+      border: 1px solid var(--line);
+      min-height: 170px;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .step b { display: block; margin-bottom: 6px; }
+    .step span { color: var(--muted); font-size: 13px; }
+
+    .callout {
+      background: var(--soft-gold);
+      border: 1px solid #f1d49a;
+      border-radius: 18px;
+      padding: 20px;
+      color: #624207;
+    }
+
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { max-width: none; padding: 0; }
+      .section, .cover { box-shadow: none; break-inside: avoid; }
+    }
+
+    @media (max-width: 820px) {
+      .cover, .section { padding: 26px; border-radius: 20px; }
+      .grid, .tagline, .steps { grid-template-columns: 1fr; }
+      h1 { font-size: 42px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="cover">
+      <div class="eyebrow">FinanceOS IA pour l'espace OHADA</div>
+      <h1>SakinaFinance IA</h1>
+      <p class="lead">L'ERP financier intelligent qui centralise comptabilite SYSCOHADA, tresorerie, paie, achats, conformite, consolidation et IA Advisor dans une seule plateforme cloud.</p>
+      <div class="tagline">
+        <div><b>Pour les dirigeants</b><span>Voir le cash, la marge, les risques et les previsions sans attendre le bilan annuel.</span></div>
+        <div><b>Pour les DAF</b><span>Produire un reporting fiable, piloter les entites et anticiper les besoins de tresorerie.</span></div>
+        <div><b>Pour les cabinets</b><span>Reduire la ressaisie client et transformer le cabinet en partenaire financier augmente.</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Promesse De Marche</h2>
+      <div class="quote">Ne subissez plus votre comptabilite. Pilotez-la.</div>
+      <p style="margin-top:18px;">SakinaFinance IA doit etre vendu comme une solution de decision, pas comme un simple logiciel comptable. Sa force est de reunir le langage du terrain africain francophone avec la rigueur OHADA et la puissance d'un assistant IA capable d'expliquer les chiffres.</p>
+    </section>
+
+    <section class="section">
+      <h2>Analyse Fonctionnelle Du Produit</h2>
+      <div class="grid">
+        <article class="card"><span class="pill">Pilotage</span><h3>Dashboard financier</h3><p>CA, charges, resultat, EBITDA, marge, cash net, factures en attente, factures en retard, activite recente et alertes.</p></article>
+        <article class="card"><span class="pill">Conformite</span><h3>Comptabilite OHADA</h3><p>Plan comptable SYSCOHADA/OHADA/IFRS, journaux, ecritures, factures, etats financiers, fiscalite et immobilisations.</p></article>
+        <article class="card"><span class="pill">Cash</span><h3>Tresorerie</h3><p>Comptes bancaires, imports de releves, lignes bancaires, rapprochements et comparaison solde comptable/solde releve.</p></article>
+        <article class="card"><span class="pill">IA</span><h3>IA Advisor</h3><p>Chat financier, previsions Prophet, analyse EBITDA, burn rate, runway, detection de risques, RAG documentaire et sources.</p></article>
+        <article class="card"><span class="pill">Operations</span><h3>Achats et stocks</h3><p>Fournisseurs, appels d'offres, bons de commande, receptions, inventaire et mouvements de stock controles.</p></article>
+        <article class="card"><span class="pill">People</span><h3>RH et paie</h3><p>Employes, departements, postes, conges, periodes de paie, bulletins, CNSS, IPRES, IRPP et recrutements.</p></article>
+        <article class="card"><span class="pill">Risk</span><h3>Conformite fiscale</h3><p>Taxes, declarations, echeances, obligations reglementaires, risques, severite et plans de mitigation.</p></article>
+        <article class="card"><span class="pill">Groupe</span><h3>Projets et consolidation</h3><p>Budgets par projet, jalons, temps, ecarts, entites, filiales, vision executive et pilotage groupe.</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Positionnement Concurrentiel</h2>
+      <table>
+        <thead><tr><th>Concurrent</th><th>Faiblesse attaquee</th><th>Angle SakinaFinance IA</th></tr></thead>
+        <tbody>
+          <tr><td>Sage / Saari</td><td>Interface lourde, cout eleve, peu d'IA, installation et maintenance rigides.</td><td>Gardez la rigueur comptable. Supprimez la lourdeur.</td></tr>
+          <tr><td>Odoo</td><td>Puissant mais complexe, souvent dependant d'un integrateur pour l'adaptation OHADA.</td><td>Natif OHADA, pret a piloter plus vite.</td></tr>
+          <tr><td>QuickBooks / Xero / Zoho</td><td>Bonne UX mais decalage avec les normes locales.</td><td>UX moderne avec moteur legal OHADA.</td></tr>
+          <tr><td>Solutions locales</td><td>Conformes mais vieillissantes, peu connectees, rarement IA-first.</td><td>Conformite locale avec technologie de nouvelle generation.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Offres Recommandees</h2>
+      <table>
+        <thead><tr><th>Plan</th><th>Cible</th><th>Prix</th><th>Message de vente</th></tr></thead>
+        <tbody>
+          <tr><td>Startup / TPE</td><td>Freelances, boutiques, startups</td><td class="price">15 000 FCFA / mois</td><td>Le prix d'un abonnement internet pour tuer Excel.</td></tr>
+          <tr><td>PME</td><td>10 a 50 employes</td><td class="price">49 000 FCFA / mois</td><td>Moins cher qu'un stagiaire comptable.</td></tr>
+          <tr><td>Enterprise</td><td>+50 employes, multi-sites</td><td class="price">149 000 FCFA / mois</td><td>Remplace la lourdeur Sage et accelere le reporting.</td></tr>
+          <tr><td>Groupe</td><td>Holdings, filiales, multi-pays</td><td class="price">Sur devis des 399 000 FCFA</td><td>Rentabilise des la premiere cloture consolidee.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top:18px;">Point d'alignement : la strategie de penetration du PDF est plus agressive que certains prix visibles dans le produit. Pour accelerer l'adoption, harmoniser pricing public, limites d'usage et discours commercial.</div>
+    </section>
+
+    <section class="section">
+      <h2>Go-To-Market</h2>
+      <div class="steps">
+        <div class="step"><b>Cabinets comptables</b><span>Signer 5 cabinets beta. Un cabinet convaincu peut onboarder 50 a 100 PME.</span></div>
+        <div class="step"><b>LinkedIn B2B</b><span>Cibler CEO, DAF, DG, experts-comptables a Dakar, Abidjan, Douala, Cotonou.</span></div>
+        <div class="step"><b>Webinaires terrain</b><span>Controle fiscal, tresorerie, Excel, Sage, SYSCOHADA, cloture et reporting.</span></div>
+        <div class="step"><b>Demo en 15 min</b><span>Dashboard, factures en retard, question IA, prevision cash, comptabilite OHADA, offre.</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Messages Prets A Utiliser</h2>
+      <div class="grid">
+        <article class="card"><h3>Pitch court</h3><p>SakinaFinance IA est l'ERP financier intelligent concu pour l'Afrique francophone. Il centralise comptabilite OHADA, tresorerie, facturation, paie, achats, conformite et reporting, avec un IA Advisor qui analyse vos chiffres et vos documents.</p></article>
+        <article class="card"><h3>Pitch dirigeant</h3><p>Vous ne pilotez plus votre entreprise avec des fichiers Excel en retard. Vous voyez votre cash, vos marges, vos factures, vos risques et vos previsions en temps reel.</p></article>
+        <article class="card"><h3>Pitch cabinet</h3><p>Vos clients saisissent et pilotent au quotidien. Vous recuperez une comptabilite propre, moins de ressaisie et plus de temps pour le conseil.</p></article>
+        <article class="card"><h3>Pitch DAF</h3><p>Une base financiere unifiee pour accelerer le reporting, fiabiliser les analyses et anticiper les risques de tresorerie.</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Roadmap Commerciale 6 Mois</h2>
+      <div class="grid">
+        <article class="card"><h3>Mois 1</h3><p>Finaliser positionnement, prix, landing page, deck commercial, demo et liste de prospects.</p></article>
+        <article class="card"><h3>Mois 2</h3><p>Signer 5 cabinets beta, onboarder 20 a 50 PME, collecter les objections et produire des cas d'usage.</p></article>
+        <article class="card"><h3>Mois 3</h3><p>Lancement public, webinaire, campagne LinkedIn et offre annuelle avec onboarding.</p></article>
+        <article class="card"><h3>Mois 4 a 6</h3><p>Vente directe aux PME/ETI, partenariats banques-fintechs-incubateurs et force commerciale terrain.</p></article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Conclusion</h2>
+      <p>SakinaFinance IA possede une proposition forte : conformite OHADA, modules financiers complets et IA appliquee aux donnees reelles de l'entreprise. Le marketing doit vendre une transformation concrete : passer d'une gestion reactive, dispersee et annuelle a un pilotage financier quotidien, intelligent et conforme.</p>
+      <div class="quote">SakinaFinance IA n'est pas seulement un logiciel de comptabilite. C'est le copilote financier des entreprises africaines qui veulent piloter leur croissance avec rigueur, intelligence et confiance.</div>
+    </section>
+
+    <div class="footer">Document marketing SaaS - SakinaFinance IA</div>
+  </main>
+</body>
+</html>

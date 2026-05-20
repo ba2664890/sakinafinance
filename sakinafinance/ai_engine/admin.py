@@ -74,6 +74,25 @@ class DocumentOCRAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_filter = ['document_type', 'status', 'company']
     search_fields = ['filename']
     readonly_fields = ['created_at', 'processed_at', 'raw_text', 'extracted_data']
+    actions = ['process_ocr_documents']
+
+    def process_ocr_documents(self, request, queryset):
+        from .services_ocr import OCRService
+
+        service = OCRService()
+        processed = 0
+        failed = 0
+        for document in queryset:
+            result = service.process_document(document)
+            if result.status == DocumentOCR.Status.FAILED:
+                failed += 1
+            else:
+                processed += 1
+        self.message_user(
+            request,
+            f"OCR terminé : {processed} document(s) extrait(s), {failed} échec(s)."
+        )
+    process_ocr_documents.short_description = "Lancer / relancer l'OCR"
 
 
 @admin.register(AnomalyDetection)
