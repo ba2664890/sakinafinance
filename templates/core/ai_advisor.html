@@ -438,6 +438,83 @@
         color: var(--ai-primary);
         opacity: 0.5;
     }
+
+    .ai-floating-launcher {
+        position: fixed;
+        right: 2rem;
+        bottom: 2rem;
+        z-index: 1090;
+        display: inline-flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .9rem 1.15rem .9rem .95rem;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        background: linear-gradient(135deg, var(--ai-primary), var(--ai-secondary));
+        box-shadow: 0 18px 42px rgba(37, 99, 235, .35);
+        font-weight: 800;
+        letter-spacing: -.01em;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .ai-floating-launcher:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 24px 54px rgba(37, 99, 235, .45);
+    }
+
+    .ai-floating-launcher .launcher-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, .18);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+        position: relative;
+    }
+
+    .ai-floating-launcher .launcher-icon::after {
+        content: '';
+        position: absolute;
+        inset: -7px;
+        border-radius: inherit;
+        border: 2px solid rgba(37, 99, 235, .28);
+        animation: launcher-pulse 1.8s ease-out infinite;
+    }
+
+    .ai-floating-launcher small {
+        display: block;
+        font-size: .63rem;
+        font-weight: 700;
+        line-height: 1;
+        color: rgba(255, 255, 255, .72);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .ai-floating-launcher span {
+        display: block;
+        line-height: 1.1;
+    }
+
+    @keyframes launcher-pulse {
+        0% { opacity: .9; transform: scale(.82); }
+        100% { opacity: 0; transform: scale(1.35); }
+    }
+
+    @media (max-width: 575px) {
+        .ai-floating-launcher {
+            right: 1rem;
+            bottom: 1rem;
+            padding: .75rem;
+        }
+
+        .ai-floating-launcher .launcher-copy {
+            display: none;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -631,6 +708,14 @@
     </div>
 </div>
 
+<button class="ai-floating-launcher" type="button" onclick="focusAdvisorChat()" aria-label="Ouvrir IA Advisor">
+    <span class="launcher-icon"><i class="bi bi-robot fs-5"></i></span>
+    <span class="launcher-copy">
+        <small>Assistant</small>
+        <span>IA Advisor</span>
+    </span>
+</button>
+
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -641,6 +726,11 @@
 
     Chart.defaults.color = '#64748b';
     Chart.defaults.font.family = 'Outfit';
+
+    function focusAdvisorChat() {
+        document.querySelector('.chat-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => inputField?.focus(), 350);
+    }
 
     function addMessage(text, role = 'ai', chartData = null, items = null) {
         const msgDiv = document.createElement('div');
