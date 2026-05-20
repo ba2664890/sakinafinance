@@ -20,7 +20,7 @@
 
     .kpi-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     }
 
     .kpi-label {
@@ -107,7 +107,7 @@
     .btn-premium:hover {
         background: var(--primary-dark);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
 
     .status-badge {
@@ -268,7 +268,7 @@
                             Analyse en cours...
                         </p>
                     </div>
-                    
+
                     <div class="alert alert-warning border-0 rounded-16 small mb-0 d-none" id="conversion-alert">
                         <div class="d-flex gap-2">
                             <i class="bi bi-exclamation-triangle-fill fs-5"></i>
@@ -291,15 +291,15 @@
             const data = await response.json();
 
             const fmt = (num) => new Intl.NumberFormat('fr-FR').format(Math.round(num));
-            const fmtM = (num) => num >= 1e9 ? (num/1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num/1e6).toFixed(0) + 'M' : fmt(num));
+            const fmtM = (num) => num >= 1e9 ? (num / 1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num / 1e6).toFixed(0) + 'M' : fmt(num));
 
             // Update KPIs
-            document.getElementById('cons-ca').innerHTML = `${fmtM(data.kpis.group_revenue || 2400000000)} <small class="fs-6">XOF</small>`;
+            document.getElementById('cons-ca').innerHTML = `${fmtM(data.kpis.group_revenue)} <small class="fs-6">XOF</small>`;
             document.getElementById('cons-ca-trend').innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${data.kpis.income_change}% vs N-1`;
             document.getElementById('cons-net-income').innerHTML = `${fmtM(data.kpis.group_net_income)} <small class="fs-6">XOF</small>`;
             document.getElementById('cons-margin').innerHTML = `<i class="bi bi-dash-lg me-1"></i>Marge ${data.kpis.margin || 20}%`;
-            document.getElementById('cons-interco').innerHTML = `${fmtM(data.kpis.interco_volume || 124000000)} <small class="fs-6">XOF</small>`;
-            
+            document.getElementById('cons-interco').innerHTML = `${fmtM(data.kpis.interco_volume)} <small class="fs-6">XOF</small>`;
+
             const statusElem = document.getElementById('cons-status');
             statusElem.textContent = data.kpis.status;
             statusElem.className = `kpi-value text-${data.kpis.status === 'PUBLISHED' || data.kpis.status === 'READY' ? 'success' : 'primary'}`;
@@ -355,15 +355,15 @@
     }
 
     // Interactive Run Consolidation
-    document.getElementById('btn-run-cons').addEventListener('click', async function() {
+    document.getElementById('btn-run-cons').addEventListener('click', async function () {
         const btn = this;
         const text = document.getElementById('run-text');
         const spinner = document.getElementById('run-spinner');
-        
+
         btn.disabled = true;
         text.classList.add('d-none');
         spinner.classList.remove('d-none');
-        
+
         try {
             const response = await fetch('{% url "api_run_consolidation" %}', {
                 method: 'POST',
@@ -372,14 +372,14 @@
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             const result = await response.json();
-            
+
             if (response.ok) {
                 // Effet visuel sur la barre de progression
                 const workflow = document.getElementById('workflow-progress');
                 workflow.style.width = '100%';
-                
+
                 // Recharge les données après un court délai
                 setTimeout(() => {
                     loadConsolidationData();
@@ -401,4 +401,3 @@
     loadConsolidationData();
 </script>
 {% endblock %}
-
