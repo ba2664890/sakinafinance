@@ -388,6 +388,12 @@ GEMINI_FALLBACK_MODELS = [
 ]
 GEMINI_CACHE_TTL = int(os.getenv('GEMINI_CACHE_TTL', 900))
 
+# ------------------------------------------------------------------------------
+# PINECONE CONFIGURATION
+# ------------------------------------------------------------------------------
+PINECONE_API_KEY = os.getenv('PINECONE_API_KEY', '')
+PINECONE_INDEX_NAME = os.getenv('PINECONE_INDEX_NAME', 'sakina-vect')
+
 # HuggingFace Configuration (RAG embeddings)
 HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
 

@@ -24,23 +24,27 @@ logger = logging.getLogger('sakinafinance')
 # ---------------------------------------------------------------------------
 # Lazy-loaded singletons (chargés une seule fois au premier appel)
 # ---------------------------------------------------------------------------
-_chroma_client = None
+_pinecone_client = None
+_pinecone_index = None
 
-
-def _get_chroma_client():
-    """Initialise le client ChromaDB persistant une seule fois."""
-    global _chroma_client
-    if _chroma_client is None:
+def _get_pinecone_index():
+    """Initialise le client Pinecone et retourne l'index."""
+    global _pinecone_client, _pinecone_index
+    if _pinecone_index is None:
         try:
-            import chromadb
-            db_path = getattr(settings, 'CHROMA_DB_PATH', str(Path(settings.BASE_DIR) / 'chroma_db'))
-            Path(db_path).mkdir(parents=True, exist_ok=True)
-            _chroma_client = chromadb.PersistentClient(path=db_path)
-            logger.info(f"ChromaDB initialisé à : {db_path}")
+            from pinecone import Pinecone
+            api_key = getattr(settings, 'PINECONE_API_KEY', '')
+            if not api_key:
+                logger.error("PINECONE_API_KEY non défini.")
+                return None
+            _pinecone_client = Pinecone(api_key=api_key)
+            index_name = getattr(settings, 'PINECONE_INDEX_NAME', 'sakina-vect')
+            _pinecone_index = _pinecone_client.Index(index_name)
+            logger.info(f"Pinecone initialisé sur l'index : {index_name}")
         except Exception as e:
-            logger.error(f"Impossible d'initialiser ChromaDB: {e}")
-            _chroma_client = None
-    return _chroma_client
+            logger.error(f"Impossible d'initialiser Pinecone: {e}")
+            _pinecone_index = None
+    return _pinecone_index
 
 
 # ---------------------------------------------------------------------------
@@ -89,42 +93,33 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
 - RH, Achats, Projets : analyses croisées avec les données financières"""
 
     def __init__(self):
-        self.hf_token = getattr(settings, 'HUGGINGFACE_API_TOKEN', '')
-        self.hf_embed_model = "sentence-transformers/all-MiniLM-L6-v2"
+        self.pinecone_api_key = getattr(settings, 'PINECONE_API_KEY', '')
+        self.pinecone_model = "multilingual-e5-large"
         self.gemini_api_key = getattr(settings, 'GEMINI_API_KEY', '')
         self.gemini_model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash-lite')
         self.gemini_fallback_models = getattr(settings, 'GEMINI_FALLBACK_MODELS', [])
         self.gemini_cache_ttl = getattr(settings, 'GEMINI_CACHE_TTL', 900)
-        self._hf_client = None
 
-    def _get_hf_client(self):
-        """Lazy-load du client HuggingFace."""
-        if self._hf_client is None and self.hf_token:
-            try:
-                from huggingface_hub import InferenceClient
-                self._hf_client = InferenceClient(token=self.hf_token)
-                logger.info(f"HuggingFace InferenceClient initialisé.")
-            except Exception as e:
-                logger.error(f"Erreur initialisation InferenceClient: {e}")
-        return self._hf_client
-
-    def _get_embeddings_api(self, texts: list[str]) -> list[list[float]] | None:
-        """Récupère les embeddings via l'API HuggingFace (gain de RAM précieux)."""
-        client = self._get_hf_client()
-        if not client:
+    def _get_embeddings_api(self, texts: list[str], input_type: str = "passage") -> list[list[float]] | None:
+        """Récupère les embeddings via l'API Inference de Pinecone."""
+        global _pinecone_client
+        if not self.pinecone_api_key:
             return None
         try:
-            # L'API Inference utilise feature_extraction pour les embeddings
-            embeddings = client.feature_extraction(
-                text=texts,
-                model=self.hf_embed_model
+            if _pinecone_client is None:
+                from pinecone import Pinecone
+                _pinecone_client = Pinecone(api_key=self.pinecone_api_key)
+            
+            # Pinecone Inference API
+            response = _pinecone_client.inference.embed(
+                model=self.pinecone_model,
+                inputs=texts,
+                parameters={"input_type": input_type, "truncate": "END"}
             )
-            # Convertir en liste de listes si nécessaire (numpy array retourné par défaut)
-            if hasattr(embeddings, "tolist"):
-                return embeddings.tolist()
-            return embeddings
+            # Extrait les embeddings de la réponse Pinecone
+            return [data['values'] for data in response]
         except Exception as e:
-            logger.error(f"Erreur API Embeddings HF: {e}")
+            logger.error(f"Erreur API Embeddings Pinecone: {e}")
             return None
 
     # -----------------------------------------------------------------------
@@ -173,37 +168,17 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
     # Embeddings
     # -----------------------------------------------------------------------
 
-    def get_embeddings(self, texts: list[str]) -> list[list[float]]:
+    def get_embeddings(self, texts: list[str], input_type: str = "passage") -> list[list[float]]:
         """
-        Génère des embeddings avec sentence-transformers (all-MiniLM-L6-v2).
-        Retourne une liste de vecteurs de dimension 384.
+        Génère des embeddings via Pinecone Inference API.
         """
         if not texts:
             return []
-        embeddings = self._get_embeddings_api(texts)
+        embeddings = self._get_embeddings_api(texts, input_type=input_type)
         if embeddings is None:
             logger.error("Modèle d'embedding indisponible.")
             return []
         return embeddings
-
-    # -----------------------------------------------------------------------
-    # ChromaDB — Collection par entreprise
-    # -----------------------------------------------------------------------
-
-    def _get_collection(self, company_id):
-        """Récupère ou crée la collection ChromaDB pour une entreprise."""
-        client = _get_chroma_client()
-        if client is None:
-            return None
-        collection_name = f"company_{str(company_id).replace('-', '_')}"
-        try:
-            return client.get_or_create_collection(
-                name=collection_name,
-                metadata={"hnsw:space": "cosine"}
-            )
-        except Exception as e:
-            logger.error(f"Erreur get/create collection ChromaDB: {e}")
-            return None
 
     # -----------------------------------------------------------------------
     # Indexation complète d'un document
@@ -233,9 +208,9 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
             doc.chunk_count = len(chunks)
             doc.save()
 
-            # 3. Générer les embeddings par lots (plus efficace pour l'API)
-            logger.info(f"Génération des embeddings pour {len(chunks)} segments via API HF...")
-            embeddings = self._get_embeddings_api(chunks)
+            # 3. Générer les embeddings
+            logger.info(f"Génération des embeddings pour {len(chunks)} segments via API Pinecone...")
+            embeddings = self._get_embeddings_api(chunks, input_type="passage")
 
             if not embeddings or len(embeddings) != len(chunks):
                 logger.error("Échec de la génération des embeddings via API. Indexation annulée.")
@@ -244,27 +219,27 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
                 doc.save()
                 return False
 
-            # 4a. Stocker dans ChromaDB
-            collection = self._get_collection(doc.company_id)
-            if collection:
-                ids = [f"{doc_id}_{i}" for i in range(len(chunks))]
-                metadatas = [
-                    {
-                        "doc_id": str(doc_id),
-                        "filename": doc.filename,
-                        "chunk_index": i,
-                        "company_id": str(doc.company_id),
-                    }
-                    for i in range(len(chunks))
-                ]
-                # ChromaDB upsert (idempotent si re-indexation)
-                collection.upsert(
-                    ids=ids,
-                    embeddings=embeddings,
-                    documents=chunks,
-                    metadatas=metadatas,
-                )
-                logger.info(f"ChromaDB: {len(chunks)} chunks indexés pour '{doc.filename}'.")
+            # 4a. Stocker dans Pinecone
+            index = _get_pinecone_index()
+            if index:
+                vectors = []
+                for i in range(len(chunks)):
+                    vectors.append({
+                        "id": f"{doc_id}_{i}",
+                        "values": embeddings[i],
+                        "metadata": {
+                            "doc_id": str(doc_id),
+                            "filename": doc.filename,
+                            "chunk_index": i,
+                            "company_id": str(doc.company_id),
+                            "text": chunks[i] # On stocke le texte dans Pinecone metadata
+                        }
+                    })
+                
+                # Pinecone upsert par namespace (un namespace par compagnie)
+                namespace = f"company_{str(doc.company_id).replace('-', '_')}"
+                index.upsert(vectors=vectors, namespace=namespace)
+                logger.info(f"Pinecone: {len(chunks)} chunks indexés pour '{doc.filename}' dans le namespace '{namespace}'.")
 
             # 4b. Sauvegarder les KnowledgeChunks en DB (for audit/display)
             # Vider les anciens chunks si re-indexation
@@ -292,52 +267,52 @@ Avant de donner ta réponse finale, tu dois obligatoirement analyser la question
             return False
 
     # -----------------------------------------------------------------------
-    # Retrieval — Recherche sémantique dans ChromaDB
+    # Retrieval — Recherche sémantique dans Pinecone
     # -----------------------------------------------------------------------
 
     def retrieve_context(self, query: str, company, top_k: int = 5) -> list[dict]:
         """
-        Recherche sémantique : embed la query → requête ChromaDB → retourne les chunks pertinents.
+        Recherche sémantique : embed la query → requête Pinecone → retourne les chunks pertinents.
         """
-        query_embeddings = self._get_embeddings_api([query])
+        query_embeddings = self._get_embeddings_api([query], input_type="query")
         if not query_embeddings:
             return []
 
-        collection = self._get_collection(company.id)
-        if collection is None:
+        index = _get_pinecone_index()
+        if index is None:
             return []
 
         try:
-            # Vérifier que la collection n'est pas vide
-            if collection.count() == 0:
-                logger.info("ChromaDB: collection vide, aucun contexte disponible.")
-                return []
-
-            results = collection.query(
-                query_embeddings=[query_embeddings[0]],
-                n_results=min(top_k, collection.count()),
-                include=["documents", "metadatas", "distances"],
+            namespace = f"company_{str(company.id).replace('-', '_')}"
+            
+            results = index.query(
+                namespace=namespace,
+                vector=query_embeddings[0],
+                top_k=top_k,
+                include_metadata=True
             )
 
             context_items = []
-            for i, doc_text in enumerate(results['documents'][0]):
-                meta = results['metadatas'][0][i]
-                distance = results['distances'][0][i]
-                # distance cosine → score de similarité (1 - distance)
-                score = max(0.0, 1.0 - distance)
+            if not results.get('matches'):
+                logger.info(f"Pinecone: aucun match trouvé dans {namespace}.")
+                return []
+
+            for match in results['matches']:
+                meta = match.get('metadata', {})
+                # match.score is cosine similarity for cosine index
+                score = match.get('score', 0.0)
+                
                 context_items.append({
-                    'content': doc_text,
+                    'content': meta.get('text', ''),
                     'score': score,
                     'filename': meta.get('filename', 'Document inconnu'),
                     'chunk_index': meta.get('chunk_index', 0),
                 })
 
-            # Trier par score décroissant
-            context_items.sort(key=lambda x: x['score'], reverse=True)
             return context_items
 
         except Exception as e:
-            logger.error(f"Erreur retrieval ChromaDB: {e}")
+            logger.error(f"Erreur retrieval Pinecone: {e}")
             return []
 
     # -----------------------------------------------------------------------

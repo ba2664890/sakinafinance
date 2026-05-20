@@ -535,36 +535,40 @@ def api_ai_chat(request):
 
 @login_required
 def api_test_rag_service(request):
-    """API: Diagnostics complets du service RAG — Gemini, embeddings, ChromaDB"""
+    """API: Diagnostics complets du service RAG — Gemini, embeddings, Pinecone"""
     from .services_rag import RAGService
     rag = RAGService()
 
     results = {
         'gemini': rag.test_gemini_connection(),
         'embedding': rag.test_embedding(),
-        'chromadb': _test_chromadb(),
+        'pinecone': _test_pinecone(),
     }
     overall_ok = all(r['status'] == 'ok' for r in results.values())
     return JsonResponse({'status': 'ok' if overall_ok else 'degraded', 'tests': results})
 
 
-def _test_chromadb():
-    """Vérifie que ChromaDB est accessible et opérationnel."""
+def _test_pinecone():
+    """Vérifie que Pinecone est accessible et opérationnel."""
     try:
-        import chromadb
+        from pinecone import Pinecone
         from django.conf import settings
-        from pathlib import Path
-        db_path = getattr(settings, 'CHROMA_DB_PATH', '/tmp/chroma_db')
-        Path(db_path).mkdir(parents=True, exist_ok=True)
-        client = chromadb.PersistentClient(path=db_path)
-        # Test get_or_create
-        col = client.get_or_create_collection('healthcheck-ping')
-        col.upsert(ids=['ping'], documents=['pong'], embeddings=[[0.0] * 384])
-        res = col.get(ids=['ping'])
-        client.delete_collection('healthcheck-ping')
-        if res and res['ids'] == ['ping']:
-            return {'status': 'ok', 'message': f'ChromaDB opérationnel à {db_path}'}
-        return {'status': 'error', 'message': 'ChromaDB: données non retrouvées après upsert'}
+        
+        api_key = getattr(settings, 'PINECONE_API_KEY', '')
+        index_name = getattr(settings, 'PINECONE_INDEX_NAME', 'sakina-vect')
+        
+        if not api_key:
+            return {'status': 'error', 'message': 'PINECONE_API_KEY non défini'}
+            
+        pc = Pinecone(api_key=api_key)
+        
+        # Test describe index to see if it's reachable
+        index_stats = pc.Index(index_name).describe_index_stats()
+        
+        return {
+            'status': 'ok', 
+            'message': f'Pinecone opérationnel sur {index_name} (Dimension: {index_stats.get("dimension")})'
+        }
     except Exception as e:
         return {'status': 'error', 'message': str(e)}
 
