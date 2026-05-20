@@ -163,13 +163,20 @@
 
         <!-- Supplier list -->
         <div class="col-lg-4">
-            <div class="procurement-panel">
+            <div class="procurement-panel mb-4">
                 <div class="p-panel-header">
                     <h6>Top Fournisseurs</h6>
                     <a href="{% url 'supplier_create' %}" class="text-primary fw-bold small text-decoration-none">+ Nouveau</a>
                 </div>
                 <div class="p-panel-content" id="proc-suppliers-body">
                     <div class="text-center py-3 text-muted small">Chargement des fournisseurs...</div>
+                </div>
+            </div>
+
+            <!-- OCR Scanner (Factures fournisseurs) -->
+            <div class="procurement-panel">
+                <div class="p-panel-content p-3">
+                    {% include 'components/ocr_widget.html' with ocr_id='proc' ocr_title='Scanner Facture' ocr_subtitle='Facture Fournisseur, Reçu' ocr_default_type='supplier_invoice' %}
                 </div>
             </div>
         </div>

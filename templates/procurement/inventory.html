@@ -199,6 +199,13 @@
                 <p class="small mb-3 opacity-90">Basé sur vos tendances d'achat, 3 articles seront en rupture d'ici 10 jours.</p>
                 <button class="btn btn-light btn-sm w-100 fw-700">Générer Bons de Commande</button>
             </div>
+
+            <!-- OCR Scanner (Bon de livraison, stock) -->
+            <div class="i-panel mt-4">
+                <div class="p-3">
+                    {% include 'components/ocr_widget.html' with ocr_id='inv' ocr_title='Scanner Document Logistique' ocr_subtitle='Bons de livraison, Fiches' ocr_default_type='delivery_note' %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

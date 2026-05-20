@@ -1,0 +1,496 @@
+<style>
+    .ocr-type-select {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #475569;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .ocr-item {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.85rem;
+        margin-bottom: 0.65rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .ocr-item:hover {
+        border-color: var(--ai-primary, #2563eb);
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+    }
+
+    .ocr-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.58rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+    }
+
+    .ocr-status.extracted,
+    .ocr-status.validated {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .ocr-status.processing,
+    .ocr-status.uploaded {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .ocr-status.failed {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .ocr-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .ocr-field {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.55rem;
+        min-width: 0;
+    }
+
+    .ocr-field span {
+        display: block;
+        color: #64748b;
+        font-size: 0.55rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .ocr-field strong {
+        display: block;
+        color: #0f172a;
+        font-size: 0.72rem;
+        margin-top: 0.15rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ocr-actions {
+        display: flex;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+    }
+
+    .ocr-action-btn {
+        border: 1px solid #dbeafe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 999px;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.63rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .ocr-action-btn.success {
+        background: #ecfdf5;
+        border-color: #bbf7d0;
+        color: #047857;
+    }
+
+    .ocr-action-btn.warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+    }
+
+    .ocr-action-btn:disabled {
+        opacity: 0.55;
+        cursor: wait;
+    }
+
+    .upload-zone {
+        border: 2px dashed #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #f8fafc;
+    }
+
+    .upload-zone:hover {
+        border-color: #93c5fd;
+        background: #eff6ff;
+    }
+</style>
+
+<div class="ocr-widget-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-1">{{ ocr_title|default:"Scanner via OCR" }}</h6>
+            <div class="text-muted" style="font-size: 0.64rem">{{ ocr_subtitle|default:"Factures, reçus, documents" }}</div>
+        </div>
+        <button class="btn btn-sm btn-primary rounded-circle" style="width: 28px; height: 28px; padding: 0"
+            onclick="document.getElementById('ocrFile_{{ ocr_id|default:'1' }}').click()" title="Analyser un document">
+            <i class="bi bi-file-earmark-arrow-up"></i>
+        </button>
+    </div>
+
+    <div class="ocr-toolbar mb-3" {% if ocr_hide_type_selector %}style="display:none"{% endif %}>
+        <select id="ocrType_{{ ocr_id|default:'1' }}" class="ocr-type-select w-100 mb-2">
+            {% if ocr_default_type == 'supplier_invoice' or ocr_default_type == 'invoice' %}
+                <option value="supplier_invoice" {% if ocr_default_type == 'supplier_invoice' %}selected{% endif %}>Facture fournisseur</option>
+                <option value="receipt">Reçu d'achat</option>
+            {% elif ocr_default_type == 'delivery_note' or ocr_default_type == 'stock_count' %}
+                <option value="delivery_note" {% if ocr_default_type == 'delivery_note' %}selected{% endif %}>Bon de livraison</option>
+                <option value="receipt_note">Bon de réception</option>
+                <option value="stock_count">Fiche d'inventaire</option>
+            {% elif ocr_default_type == 'payslip' %}
+                <option value="payslip" selected>Bulletin de paie</option>
+                <option value="contract">Contrat RH</option>
+            {% else %}
+                <option value="invoice">Facture</option>
+                <option value="receipt">Reçu</option>
+                <option value="contract">Contrat</option>
+                <option value="other">Autre</option>
+            {% endif %}
+        </select>
+        <input type="file" id="ocrFile_{{ ocr_id|default:'1' }}" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp,.txt,.csv"
+            onchange="uploadOCR(this, '{{ ocr_id|default:'1' }}')">
+    </div>
+
+    <div id="ocrList_{{ ocr_id|default:'1' }}">
+        <div class="text-center p-4 text-muted small ocr-loading-state">
+            <i class="spinner-border spinner-border-sm text-primary mb-2"></i><br>
+            Chargement de l'historique...
+        </div>
+    </div>
+</div>
+
+<script>
+if (typeof window.ocrWidgetLoaded === 'undefined') {
+    window.ocrWidgetLoaded = true;
+
+    function renderOCRItem(doc, widgetId) {
+        const summary = doc.extracted_data?.summary || {};
+        const statusClass = doc.status || 'uploaded';
+        const total = summary.total || '-';
+        const confidence = Math.round(doc.confidence_score || 0);
+        const payload = JSON.stringify(doc.extracted_data || {}).replaceAll("'", "&#39;");
+        const rawText = (doc.raw_text || '').slice(0, 900).replaceAll("'", "&#39;");
+        const canCreateInvoice = (doc.allowed_actions || []).includes('create_supplier_invoice');
+        const canExportInventory = (doc.allowed_actions || []).includes('export_inventory_lines');
+        
+        return `<div class="ocr-item" onclick="showOCRFromData(this)" data-id="${doc.id}">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div class="overflow-hidden">
+                    <div class="small fw-900 text-dark text-truncate" style="max-width: 210px">${doc.filename}</div>
+                    <div class="text-muted" style="font-size: 0.62rem">${doc.document_type_label || doc.document_type}</div>
+                </div>
+                <span class="ocr-status ${statusClass}">${doc.status_label || statusClass}</span>
+            </div>
+            <div class="ocr-summary">
+                <div class="ocr-field"><span>Total</span><strong>${total}</strong></div>
+                <div class="ocr-field"><span>Confiance</span><strong>${confidence}%</strong></div>
+            </div>
+            <div class="ocr-actions">
+                ${canCreateInvoice ? `<button class="ocr-action-btn success" onclick="event.stopPropagation(); createInvoiceFromOCR('${doc.id}', 'supplier', this)">Créer facture</button>` : ''}
+                <button class="ocr-action-btn" onclick="event.stopPropagation(); validateOCR('${doc.id}', this)">Valider</button>
+                <button class="ocr-action-btn warning" onclick="event.stopPropagation(); retryOCR('${doc.id}', this)">Relancer</button>
+                ${canExportInventory ? `<button class="ocr-action-btn" onclick="event.stopPropagation(); exportOCRLines('${doc.id}', this)">Export CSV</button>` : ''}
+            </div>
+        </div>`;
+    }
+
+    async function fetchOCRHistory(widgetId, filterType) {
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/`);
+            const data = await resp.json();
+            const listEl = document.getElementById(`ocrList_${widgetId}`);
+            if (!listEl) return;
+            
+            listEl.innerHTML = '';
+            
+            // Filter documents based on widget context
+            let docs = data.documents || [];
+            if (filterType === 'supplier_invoice') {
+                docs = docs.filter(d => ['supplier_invoice', 'receipt', 'invoice', 'purchase_order'].includes(d.document_type));
+            } else if (filterType === 'delivery_note') {
+                docs = docs.filter(d => ['delivery_note', 'receipt_note', 'stock_count'].includes(d.document_type));
+            } else if (filterType === 'payslip') {
+                docs = docs.filter(d => ['payslip', 'contract'].includes(d.document_type));
+            }
+            
+            if (docs.length === 0) {
+                listEl.innerHTML = `
+                    <div class="upload-zone" onclick="document.getElementById('ocrFile_${widgetId}').click()">
+                        <i class="bi bi-file-earmark-text mb-2"></i>
+                        <div class="small fw-800 text-muted">Analyser un document</div>
+                        <div class="text-muted" style="font-size: 0.6rem">PDF, image, TXT ou CSV</div>
+                    </div>`;
+            } else {
+                docs.forEach(doc => {
+                    listEl.insertAdjacentHTML('beforeend', renderOCRItem(doc, widgetId));
+                });
+            }
+        } catch(e) {
+            console.error('OCR Fetch Error:', e);
+        }
+    }
+
+    async function uploadOCR(input, widgetId) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        const typeSelect = document.getElementById(`ocrType_${widgetId}`);
+        formData.append('document_type', typeSelect ? typeSelect.value : 'invoice');
+        
+        // Try to get CSRF token from page
+        const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfEl) formData.append('csrfmiddlewaretoken', csrfEl.value);
+
+        const ocrList = document.getElementById(`ocrList_${widgetId}`);
+        
+        // Remove empty state if present
+        const emptyState = ocrList.querySelector('.upload-zone');
+        if (emptyState) emptyState.remove();
+
+        const tempItem = document.createElement('div');
+        tempItem.className = 'ocr-item';
+        tempItem.innerHTML = `<div class="d-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm text-primary"></span>
+            <div>
+                <div class="small fw-900 text-dark">${file.name}</div>
+                <div class="text-muted" style="font-size: 0.62rem">Extraction OCR en cours...</div>
+            </div>
+        </div>`;
+        ocrList.prepend(tempItem);
+
+        try {
+            const resp = await fetch('/ai/api/ocr/documents/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfEl ? csrfEl.value : ''
+                }
+            });
+            const data = await resp.json();
+            if (data.document) {
+                tempItem.outerHTML = renderOCRItem(data.document, widgetId);
+                if (typeof addMessage === 'function') {
+                    if (data.document.status === 'failed') {
+                        addMessage(`OCR échoué pour **${file.name}** : ${data.document.error_message || 'moteur indisponible'}`, 'ai');
+                    } else {
+                        const summary = data.document.extracted_data?.summary || {};
+                        addMessage(`OCR terminé pour **${file.name}**.\n\n**Partenaire :** ${summary.partner_name || '-'}\n\n**Total :** ${summary.total || '-'} ${data.document.extracted_data?.currency || ''}\n\n**Confiance :** ${Math.round(data.document.confidence_score || 0)}%`, 'ai');
+                    }
+                }
+            } else {
+                tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i><div>${data.error || 'Erreur OCR'}</div>`;
+            }
+        } catch (e) {
+            tempItem.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i><div>Erreur réseau OCR</div>`;
+        } finally {
+            input.value = '';
+        }
+    }
+
+    async function showOCRFromData(el) {
+        const id = el.dataset.id;
+        if (!id) return;
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/`);
+            const data = await resp.json();
+            if (!data.document) return;
+            const doc = data.document;
+            
+            // If the chat function exists (we are on AI Advisor), use it
+            if (typeof showOCRFromPayload === 'function') {
+                showOCRFromPayload(
+                    encodeURIComponent(JSON.stringify(doc.extracted_data || {})),
+                    encodeURIComponent(doc.raw_text || ''),
+                    encodeURIComponent(doc.filename || ''),
+                    doc.status_label || doc.status || '',
+                    doc.confidence_score || '0'
+                );
+            } else {
+                // Otherwise show a simple alert or a modal if you prefer. 
+                // A better fallback is to alert the summary.
+                const summary = doc.extracted_data?.summary || {};
+                alert(`Document: ${doc.filename}\nPartenaire: ${summary.partner_name || '-'}\nTotal: ${summary.total || '-'}`);
+            }
+        } catch (e) {
+            console.error("Impossible de charger le détail OCR", e);
+        }
+    }
+
+    async function validateOCR(id, button) {
+        await runOCRValidation(id, { create_invoice: false }, button, (data) => {
+            if (typeof addMessage === 'function') addMessage(`Document OCR **${data.document.filename}** validé.`, 'ai');
+            refreshOCRCard(id, data.document);
+        });
+    }
+
+    async function createInvoiceFromOCR(id, invoiceType = 'supplier', button) {
+        await runOCRValidation(id, {
+            create_invoice: true,
+            invoice_type: invoiceType
+        }, button, (data) => {
+            const inv = data.invoice;
+            if (typeof addMessage === 'function') {
+                if (inv) {
+                    addMessage(`Facture brouillon créée depuis OCR.\n\n**N° :** ${inv.invoice_number}\n\n**Partenaire :** ${inv.partner_name}\n\n**Total :** ${inv.total} ${inv.currency}`, 'ai');
+                } else {
+                    addMessage("Document OCR validé, mais aucune facture n'a été créée.", 'ai');
+                }
+            } else {
+                if (inv) {
+                    alert(`Facture créée avec succès! (N° ${inv.invoice_number})`);
+                    location.reload();
+                }
+            }
+            refreshOCRCard(id, data.document);
+        });
+    }
+
+    async function retryOCR(id, button) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'OCR...';
+        }
+        try {
+            const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfEl ? csrfEl.value : '' }
+            });
+            const data = await resp.json();
+            if (data.document) {
+                refreshOCRCard(id, data.document);
+                if (typeof addMessage === 'function') addMessage(`OCR relancé pour **${data.document.filename}**. Statut : **${data.document.status_label}**.`, 'ai');
+            } else {
+                if (typeof addMessage === 'function') addMessage(data.error || "Impossible de relancer l'OCR.", 'ai');
+            }
+        } catch (e) {
+            if (typeof addMessage === 'function') addMessage("Erreur réseau pendant la relance OCR.", 'ai');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Relancer';
+            }
+        }
+    }
+
+    async function exportOCRLines(id, button) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Export...';
+        }
+        try {
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/`);
+            const data = await resp.json();
+            const doc = data.document;
+            if (!doc) return;
+            
+            const extracted = doc.extracted_data || {};
+            const lines = extracted.inventory || extracted.line_items || extracted.invoice || extracted.bank_statement || [];
+            if (!lines.length) {
+                alert("Aucune ligne détectée à exporter.");
+                return;
+            }
+            const headers = Array.from(lines.reduce((set, line) => {
+                Object.keys(line || {}).forEach(key => set.add(key));
+                return set;
+            }, new Set(['description', 'quantity', 'unit', 'unit_price', 'total'])));
+            const csv = [
+                headers.join(','),
+                ...lines.map(line => headers.map(header => {
+                    const value = String(line?.[header] ?? '').replaceAll('"', '""');
+                    return /[",\\n;]/.test(value) ? `"${value}"` : value;
+                }).join(','))
+            ].join('\\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${(doc.filename || 'ocr-lines').replace(/\\.[^.]+$/, '')}_lignes.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            if (typeof addMessage === 'function') addMessage(`Export CSV généré pour **${doc.filename}**.`, 'ai');
+        } catch (e) {
+            console.error("Erreur export CSV", e);
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Export CSV';
+            }
+        }
+    }
+
+    async function runOCRValidation(id, payload, button, onSuccess) {
+        if (button) {
+            button.disabled = true;
+            button.textContent = '...';
+        }
+        try {
+            const csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+            const resp = await fetch(`/ai/api/ocr/documents/${id}/validate/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfEl ? csrfEl.value : ''
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                if (typeof addMessage === 'function') addMessage(data.error || "Action OCR impossible.", 'ai');
+                else alert(data.error || "Action OCR impossible.");
+                return;
+            }
+            onSuccess(data);
+        } catch (e) {
+            if (typeof addMessage === 'function') addMessage("Erreur réseau pendant l'action OCR.", 'ai');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = payload.create_invoice ? 'Créer facture' : 'Valider';
+            }
+        }
+    }
+
+    function refreshOCRCard(id, doc) {
+        const current = document.querySelector(`.ocr-item[data-id="${id}"]`);
+        if (!current) return;
+        const widgetId = current.closest('.ocr-widget-container').querySelector('input[type="file"]').id.split('_')[1];
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = renderOCRItem(doc, widgetId);
+        const next = wrapper.firstElementChild;
+        next.dataset.id = id;
+        current.replaceWith(next);
+    }
+}
+
+// Init fetch for this specific widget instance
+document.addEventListener('DOMContentLoaded', () => {
+    fetchOCRHistory('{{ ocr_id|default:"1" }}', '{{ ocr_default_type|default:"" }}');
+});
+</script>

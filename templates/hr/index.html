@@ -440,13 +440,20 @@
 
         <!-- Dept Distribution -->
         <div class="col-lg-4">
-            <div class="hr-panel">
+            <div class="hr-panel mb-4">
                 <div class="hr-panel-header"><h6>Répartition par Département</h6></div>
                 <div class="hr-panel-content">
                     <canvas id="deptChart" style="max-height: 180px; margin-bottom: 1.5rem;"></canvas>
                     <div id="dept_list">
                         <!-- Dynamic -->
                     </div>
+                </div>
+            </div>
+
+            <!-- OCR Scanner (RH) -->
+            <div class="hr-panel">
+                <div class="hr-panel-content p-3">
+                    {% include 'components/ocr_widget.html' with ocr_id='hr' ocr_title='Scanner Document RH' ocr_subtitle='Bulletins de paie, Contrats' ocr_default_type='payslip' %}
                 </div>
             </div>
         </div>
