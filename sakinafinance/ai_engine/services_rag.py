@@ -420,7 +420,7 @@ Factures Récentes :
             response = self._call_gemini(
                 system_prompt=self.SYSTEM_PROMPT,
                 user_prompt=user_prompt,
-                max_tokens=800,
+                max_tokens=4096,
                 temperature=0.3,
             )
             if response:
@@ -445,7 +445,7 @@ Factures Récentes :
         """Construit une clé de cache stable sans stocker le prompt complet en clé."""
         import hashlib
         digest = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
-        return f"rag:gemini:{self.gemini_model}:{digest}"
+        return f"rag:gemini:v2:{self.gemini_model}:{digest}"
 
     def _call_gemini_model(
         self,
