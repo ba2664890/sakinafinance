@@ -294,11 +294,11 @@
             const fmtM = (num) => num >= 1e9 ? (num / 1e9).toFixed(1) + 'B' : (num >= 1e6 ? (num / 1e6).toFixed(0) + 'M' : fmt(num));
 
             // Update KPIs
-            document.getElementById('cons-ca').innerHTML = `${fmtM(data.kpis.group_revenue)} <small class="fs-6">XOF</small>`;
-            document.getElementById('cons-ca-trend').innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${data.kpis.income_change}% vs N-1`;
-            document.getElementById('cons-net-income').innerHTML = `${fmtM(data.kpis.group_net_income)} <small class="fs-6">XOF</small>`;
-            document.getElementById('cons-margin').innerHTML = `<i class="bi bi-dash-lg me-1"></i>Marge ${data.kpis.margin || 20}%`;
-            document.getElementById('cons-interco').innerHTML = `${fmtM(data.kpis.interco_volume)} <small class="fs-6">XOF</small>`;
+            document.getElementById('cons-ca').innerHTML = `${fmtM(data.kpis.group_revenue || 0)} <small class="fs-6">XOF</small>`;
+            document.getElementById('cons-ca-trend').innerHTML = `<i class="bi bi-arrow-up-right me-1"></i>+${data.kpis.income_change || 0}% vs N-1`;
+            document.getElementById('cons-net-income').innerHTML = `${fmtM(data.kpis.group_net_income || 0)} <small class="fs-6">XOF</small>`;
+            document.getElementById('cons-margin').innerHTML = `<i class="bi bi-dash-lg me-1"></i>Marge ${data.kpis.margin || 0}%`;
+            document.getElementById('cons-interco').innerHTML = `${fmtM(data.kpis.interco_volume || 0)} <small class="fs-6">XOF</small>`;
 
             const statusElem = document.getElementById('cons-status');
             statusElem.textContent = data.kpis.status;
