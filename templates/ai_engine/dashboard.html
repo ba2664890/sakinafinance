@@ -7,19 +7,19 @@
 {% block extra_css %}
 <style>
     .ai-hero {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         border-radius: 24px;
         padding: 3rem 2rem;
-        color: white;
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     .ai-hero-glow {
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.15), transparent 60%);
+        background: radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.08), transparent 60%);
         z-index: 0;
     }
 
@@ -414,24 +414,25 @@
 <div class="fade-in">
     <!-- AI Hero Header -->
     <div class="ai-hero mb-4">
-        <div class="row align-items-center">
+        <div class="ai-hero-glow"></div>
+        <div class="row align-items-center position-relative" style="z-index: 1;">
             <div class="col-md-8">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div
-                        style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;">
-                        <i class="bi bi-robot fs-4 text-white"></i>
+                        style="width:52px;height:52px;background:rgba(37,99,235,.1);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-robot fs-4 text-primary"></i>
                     </div>
                     <div>
-                        <h4 class="text-white mb-0 fw-bold">SakinaFinance Advisor</h4>
-                        <div class="text-white opacity-75 small">Moteur d'Intelligence Financière — Prophet + Isolation
+                        <h4 class="text-dark mb-0 fw-bold">SakinaFinance Advisor</h4>
+                        <div class="text-muted fw-semibold small">Moteur d'Intelligence Financière — Prophet + Isolation
                             Forest</div>
                     </div>
                 </div>
-                <p class="text-white opacity-75 mb-0">Analyses prédictives, détection d'anomalies et recommandations IA
+                <p class="text-muted mb-0">Analyses prédictives, détection d'anomalies et recommandations IA
                     en temps réel sur vos données financières.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <button onclick="refreshForecast()" class="btn btn-light me-2">
+                <button onclick="refreshForecast()" class="btn btn-outline-primary bg-white me-2">
                     <i class="bi bi-arrow-repeat me-1"></i>Actualiser
                 </button>
                 <span class="confidence-badge">
