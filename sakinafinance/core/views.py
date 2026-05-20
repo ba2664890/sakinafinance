@@ -97,8 +97,25 @@ def consolidation_view(request):
 
 @login_required
 def ai_advisor_view(request):
-    """AI Advisor View — Redirects to the new AI Engine Dashboard"""
-    return redirect('ai_engine_dashboard')
+    """AI Advisor View — assistant IA premium avec RAG et données ERP."""
+    from sakinafinance.ai_engine.models import AIInsight, AnomalyDetection, KnowledgeDocument
+
+    user = request.user
+    company = user.company
+
+    context = {
+        'page_title': 'IA Advisor',
+        'suggested_analyses': [
+            {'icon': 'bi-graph-up', 'title': 'Prévision de trésorerie', 'prompt': 'Fais-moi une prévision de trésorerie sur 6 mois.'},
+            {'icon': 'bi-pie-chart', 'title': 'Analyse de marge EBITDA', 'prompt': 'Analyse ma rentabilité et ma marge EBITDA.'},
+            {'icon': 'bi-shield-exclamation', 'title': 'Détection de risques', 'prompt': 'Quels sont les risques financiers actuels ?'},
+        ],
+        'insights': AIInsight.objects.filter(company=company, is_dismissed=False)[:5] if company else [],
+        'anomalies': AnomalyDetection.objects.filter(company=company, is_false_positive=False)[:5] if company else [],
+        'knowledge_documents': KnowledgeDocument.objects.filter(company=company).order_by('-created_at')[:8] if company else [],
+        'confidence': 82,
+    }
+    return render(request, 'core/ai_advisor.html', context)
 
 
 @login_required

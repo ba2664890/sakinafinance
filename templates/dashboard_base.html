@@ -235,8 +235,8 @@
 </main>
 
 <!-- Global AI Floating Button -->
-<a href="{% url 'ai_engine_dashboard' %}" class="ai-floating-launcher" aria-label="Ouvrir IA Advisor"
-   {% if request.resolver_match.url_name == 'ai_engine_dashboard' %}onclick="event.preventDefault(); focusAdvisorChat();"{% endif %}>
+<a href="{% url 'ai_advisor' %}" class="ai-floating-launcher" aria-label="Ouvrir IA Advisor"
+   {% if request.resolver_match.url_name == 'ai_advisor' %}onclick="event.preventDefault(); focusAdvisorChat();"{% endif %}>
     <span class="launcher-icon"><i class="bi bi-robot fs-5"></i></span>
     <span class="launcher-copy">
         <small>Assistant</small>
