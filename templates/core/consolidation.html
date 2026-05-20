@@ -258,23 +258,23 @@
                 <div class="card-header border-0 bg-transparent py-3">
                     <h5 class="mb-0 text-primary-emphasis fw-bold">Intelligence Groupe</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="ai-insights-container">
                     <div class="ai-insight-panel mb-4">
                         <div class="d-flex align-items-center mb-3">
                             <i class="bi bi-cpu text-white me-2 fs-5"></i>
-                            <h6 class="mb-0 text-white fw-bold">Analyse Consolidated</h6>
+                            <h6 class="mb-0 text-white fw-bold">Analyse Consolidée</h6>
                         </div>
-                        <p class="small text-white-90 mb-0">
-                            L'IA a détecté <span class="bg-primary px-2 rounded">3 flux intra-groupe</span> non éliminés entre Sakina CI et Senegal pour un montant total de 45M XOF.
+                        <p class="small text-white-90 mb-0" id="ai-insight-text">
+                            Analyse en cours...
                         </p>
                     </div>
                     
-                    <div class="alert alert-warning border-0 rounded-16 small mb-0">
+                    <div class="alert alert-warning border-0 rounded-16 small mb-0 d-none" id="conversion-alert">
                         <div class="d-flex gap-2">
                             <i class="bi bi-exclamation-triangle-fill fs-5"></i>
                             <div>
-                                <strong>Écart de Conversion :</strong>
-                                <p class="mb-0 mt-1">L'euro a varié de 0.2% par rapport au taux historique, générant un écart de 1.5M XOF.</p>
+                                <strong>Alerte :</strong>
+                                <p class="mb-0 mt-1" id="conversion-alert-text"></p>
                             </div>
                         </div>
                     </div>
@@ -303,6 +303,18 @@
             const statusElem = document.getElementById('cons-status');
             statusElem.textContent = data.kpis.status;
             statusElem.className = `kpi-value text-${data.kpis.status === 'PUBLISHED' || data.kpis.status === 'READY' ? 'success' : 'primary'}`;
+
+            // Update AI Insights
+            if (data.ai_insights) {
+                document.getElementById('ai-insight-text').textContent = data.ai_insights.main_text;
+                if (data.ai_insights.alert_text) {
+                    const alertEl = document.getElementById('conversion-alert');
+                    alertEl.classList.remove('d-none');
+                    document.getElementById('conversion-alert-text').textContent = data.ai_insights.alert_text;
+                } else {
+                    document.getElementById('conversion-alert').classList.add('d-none');
+                }
+            }
 
             // Update Subsidiaries Table
             const tableBody = document.getElementById('cons-subsidiary-table-body');
