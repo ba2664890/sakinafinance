@@ -302,6 +302,8 @@ class OCRService:
         )
 
     def _ocr_with_gemini(self, image_path: Path) -> str:
+        import time
+        max_retries = 5
         try:
             mime = mimetypes.guess_type(str(image_path))[0] or "image/png"
             payload = {
@@ -321,10 +323,18 @@ class OCRService:
                 "generationConfig": {"temperature": 0, "maxOutputTokens": 8192},
             }
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent"
-            response = requests.post(url, params={"key": self.gemini_api_key}, json=payload, timeout=90)
-            response.raise_for_status()
-            data = response.json()
-            return self._extract_gemini_text(data).strip()
+            
+            for attempt in range(max_retries):
+                response = requests.post(url, params={"key": self.gemini_api_key}, json=payload, timeout=90)
+                if response.status_code == 429 and attempt < max_retries - 1:
+                    sleep_time = (2 ** attempt) * 2
+                    logger.warning("Gemini API rate limited (429). Retrying in %s seconds...", sleep_time)
+                    time.sleep(sleep_time)
+                    continue
+                response.raise_for_status()
+                data = response.json()
+                return self._extract_gemini_text(data).strip()
+            return ""
         except Exception as exc:
             logger.warning("Gemini OCR failed: %s", exc)
             return ""
