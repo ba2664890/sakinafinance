@@ -326,15 +326,21 @@ class OCRService:
             
             for attempt in range(max_retries):
                 response = requests.post(url, params={"key": self.gemini_api_key}, json=payload, timeout=90)
-                if response.status_code == 429 and attempt < max_retries - 1:
-                    sleep_time = (2 ** attempt) * 2
-                    logger.warning("Gemini API rate limited (429). Retrying in %s seconds...", sleep_time)
-                    time.sleep(sleep_time)
-                    continue
+                if response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        sleep_time = (2 ** attempt) * 4  # 4s, 8s, 16s, 32s
+                        logger.warning("Gemini API rate limited (429). Retrying in %s seconds...", sleep_time)
+                        time.sleep(sleep_time)
+                        continue
+                    else:
+                        raise ValueError("Le quota de l'API Gemini est dépassé (Erreur 429). Veuillez vérifier vos limites sur Google AI Studio ou réessayer plus tard.")
+                
                 response.raise_for_status()
                 data = response.json()
                 return self._extract_gemini_text(data).strip()
             return ""
+        except ValueError as ve:
+            raise ve
         except Exception as exc:
             logger.warning("Gemini OCR failed: %s", exc)
             return ""
