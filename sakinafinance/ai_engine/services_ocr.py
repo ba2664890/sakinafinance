@@ -90,10 +90,16 @@ class OCRService:
 
         tmp_file_path = None
         try:
+            ext = Path(document.file.name).suffix
+            if not ext and getattr(document, 'filename', ''):
+                ext = Path(document.filename).suffix
+
             try:
                 file_path = Path(document.file.path)
+                if not file_path.suffix and ext:
+                    # Si le fichier local n'a pas d'extension, forcer la création d'un fichier temporaire
+                    raise NotImplementedError("Force temp file to add extension")
             except NotImplementedError:
-                ext = Path(document.file.name).suffix
                 with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp_file:
                     with document.file.open('rb') as f:
                         shutil.copyfileobj(f, tmp_file)
