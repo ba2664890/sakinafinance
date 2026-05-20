@@ -435,9 +435,9 @@
                 <button onclick="refreshForecast()" class="btn btn-outline-primary bg-white me-2">
                     <i class="bi bi-arrow-repeat me-1"></i>Actualiser
                 </button>
-                <span class="confidence-badge">
+                <span class="confidence-badge {% if confidence == 0 %}bg-secondary{% endif %}">
                     <i class="bi bi-shield-check me-1"></i>
-                    Confiance: {{ confidence }}%
+                    {% if confidence > 0 %}Confiance: {{ confidence }}%{% else %}Données Insuffisantes{% endif %}
                 </span>
             </div>
         </div>
@@ -458,7 +458,7 @@
             <div class="ai-kpi-lbl">Anomalies Détectées</div>
         </div>
         <div class="ai-kpi">
-            <div class="ai-kpi-val text-success">{{ confidence }}%</div>
+            <div class="ai-kpi-val {% if confidence > 0 %}text-success{% else %}text-muted{% endif %}">{% if confidence > 0 %}{{ confidence }}%{% else %}N/A{% endif %}</div>
             <div class="ai-kpi-lbl">Confiance Modèle IA</div>
         </div>
     </div>
@@ -612,14 +612,44 @@
     let forecastChart;
 
     function renderForecastChart(data) {
+        const forecastCanvas = document.getElementById('forecastChart');
+        if (!forecastCanvas) return;
+        const container = forecastCanvas.parentElement;
+
+        if (!data || data.length === 0) {
+            forecastCanvas.style.display = 'none';
+            const legend = container.querySelector('.d-flex.gap-4.mt-3');
+            if (legend) legend.style.display = 'none';
+            
+            let msg = document.getElementById('noDataMsg');
+            if (!msg) {
+                msg = document.createElement('div');
+                msg.id = 'noDataMsg';
+                msg.className = 'text-center py-5';
+                msg.innerHTML = `
+                    <i class="bi bi-database-x text-muted" style="font-size: 3rem;"></i>
+                    <h6 class="mt-3 fw-bold text-muted">Données insuffisantes pour l'IA</h6>
+                    <p class="text-muted small mb-0">Le modèle prédictif (Prophet / Isolation Forest) nécessite un historique d'au moins 10 transactions comptables pour s'entraîner et générer des prévisions fiables.</p>
+                `;
+                container.insertBefore(msg, forecastCanvas);
+            } else {
+                msg.style.display = 'block';
+            }
+            return;
+        }
+
+        const msg = document.getElementById('noDataMsg');
+        if (msg) msg.style.display = 'none';
+        forecastCanvas.style.display = 'block';
+        const legend = container.querySelector('.d-flex.gap-4.mt-3');
+        if (legend) legend.style.display = 'flex';
+
         const labels = data.map(d => d.ds);
         const yhat = data.map(d => d.yhat);
         const lower = data.map(d => d.yhat_lower);
         const upper = data.map(d => d.yhat_upper);
-        const forecastCanvas = document.getElementById('forecastChart');
-        if (forecastCanvas) {
-            const ctx = forecastCanvas.getContext('2d');
-            if (forecastChart) forecastChart.destroy();
+        const ctx = forecastCanvas.getContext('2d');
+        if (forecastChart) forecastChart.destroy();
 
             forecastChart = new Chart(ctx, {
                 type: 'line',

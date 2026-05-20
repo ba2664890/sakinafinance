@@ -159,8 +159,8 @@ def _generate_prophet_forecast(company, horizon_months=12):
         ).order_by('date')
 
         if transactions.count() < 10:
-            # Pas assez de données historiques: retourner données de simulation
-            return _simulated_forecast(horizon_months)
+            # Pas assez de données historiques: retourner vide
+            return [], 0.0
 
         # Préparer les données pour Prophet
         records = []
@@ -196,31 +196,13 @@ def _generate_prophet_forecast(company, horizon_months=12):
         return result, round(85.0, 1)
 
     except Exception as e:
-        return _simulated_forecast(horizon_months)
+        logger.error(f"Erreur Prophet: {e}")
+        return [], 0.0
 
 
 def _simulated_forecast(horizon_months=12):
-    """Données de simulation pour démonstration"""
-    import random
-    from datetime import date
-    from dateutil.relativedelta import relativedelta
-
-    result = []
-    base = 3_500_000
-    today = date.today()
-    for i in range(1, horizon_months + 1):
-        period_date = today + relativedelta(months=i)
-        variation = random.uniform(-0.15, 0.25)
-        yhat = round(base * (1 + variation))
-        result.append({
-            'ds': period_date.strftime('%Y-%m'),
-            'yhat': yhat,
-            'yhat_lower': round(yhat * 0.75),
-            'yhat_upper': round(yhat * 1.25),
-        })
-        base = yhat
-
-    return result, 72.0
+    # OBSOLÈTE : Suppression des valeurs fictives conformément à la demande
+    return [], 0.0
 
 
 @login_required
@@ -253,9 +235,8 @@ def ai_dashboard(request):
             forecast_data = latest_forecast.forecast_data
             confidence = latest_forecast.confidence_score
         else:
-            forecast_data, confidence = _simulated_forecast(12)
-            if isinstance(forecast_data, tuple):
-                forecast_data, confidence = forecast_data
+            # Calcul en direct s'il y a assez de données, sinon vide
+            forecast_data, confidence = _generate_prophet_forecast(company, 12)
 
     context = {
         'page_title': 'IA Advisor',
@@ -439,7 +420,15 @@ def api_ai_chat(request):
     # CASHFLOW & FORECAST
     if any(k in message for k in ['cash', 'trésorerie', 'forecast', 'prévision']):
         forecast, confidence = _generate_prophet_forecast(company, 6)
-        if not forecast: forecast, confidence = _simulated_forecast(6)
+        if not forecast:
+            return _chat_response(session, {
+                'text': f"L'analyse prédictive (Prophet) requiert plus de données historiques pour fonctionner de manière fiable. Actuellement, vos données sont insuffisantes pour générer une prévision. Votre solde de trésorerie actuel est de **{float(cash):,.0f} XOF**.",
+                'type': 'text',
+                'insights': [
+                    f"Trésorerie nette : {float(cash):,.0f} XOF.",
+                    "Données insuffisantes pour prévision IA."
+                ]
+            })
         
         return _chat_response(session, {
             'text': f"L'analyse prédictive de votre trésorerie sur 6 mois indique une trajectoire **{'positive' if cash > 0 else 'à surveiller'}**. Votre solde actuel est de **{float(cash):,.0f} XOF**.",
@@ -449,7 +438,7 @@ def api_ai_chat(request):
             'insights': [
                 f"Trésorerie nette : {float(cash):,.0f} XOF.",
                 "Flux d'exploitation stable sur le mois en cours.",
-                "Indice de confiance des prévisions : 85%."
+                f"Indice de confiance des prévisions : {confidence}%."
             ]
         })
 
