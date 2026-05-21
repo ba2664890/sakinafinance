@@ -174,7 +174,7 @@
             onchange="uploadOCR(this, '{{ ocr_id|default:'1' }}')">
     </div>
 
-    <div id="ocrList_{{ ocr_id|default:'1' }}">
+    <div id="ocrList_{{ ocr_id|default:'1' }}" style="max-height: 280px; overflow-y: auto;">
         <div class="text-center p-4 text-muted small ocr-loading-state">
             <i class="spinner-border spinner-border-sm text-primary mb-2"></i><br>
             Chargement de l'historique...
