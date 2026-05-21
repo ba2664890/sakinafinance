@@ -186,7 +186,7 @@
 if (typeof window.ocrWidgetLoaded === 'undefined') {
     window.ocrWidgetLoaded = true;
 
-    function renderOCRItem(doc, widgetId) {
+    window.renderOCRItem = function renderOCRItem(doc, widgetId) {
         const summary = doc.extracted_data?.summary || {};
         const statusClass = doc.status || 'uploaded';
         const total = summary.total || '-';
@@ -217,7 +217,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         </div>`;
     }
 
-    async function fetchOCRHistory(widgetId, filterType) {
+    window.fetchOCRHistory = async function fetchOCRHistory(widgetId, filterType) {
         try {
             const resp = await fetch(`/ai/api/ocr/documents/`);
             const data = await resp.json();
@@ -253,7 +253,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         }
     }
 
-    async function uploadOCR(input, widgetId) {
+    window.uploadOCR = async function uploadOCR(input, widgetId) {
         if (!input.files || !input.files[0]) return;
         const file = input.files[0];
         const formData = new FormData();
@@ -311,7 +311,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         }
     }
 
-    async function showOCRFromData(el) {
+    window.showOCRFromData = async function showOCRFromData(el) {
         const id = el.dataset.id;
         if (!id) return;
         try {
@@ -340,14 +340,14 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         }
     }
 
-    async function validateOCR(id, button) {
+    window.validateOCR = async function validateOCR(id, button) {
         await runOCRValidation(id, { create_invoice: false }, button, (data) => {
             if (typeof addMessage === 'function') addMessage(`Document OCR **${data.document.filename}** validé.`, 'ai');
             refreshOCRCard(id, data.document);
         });
     }
 
-    async function createInvoiceFromOCR(id, invoiceType = 'supplier', button) {
+    window.createInvoiceFromOCR = async function createInvoiceFromOCR(id, invoiceType = 'supplier', button) {
         await runOCRValidation(id, {
             create_invoice: true,
             invoice_type: invoiceType
@@ -369,7 +369,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         });
     }
 
-    async function retryOCR(id, button) {
+    window.retryOCR = async function retryOCR(id, button) {
         if (button) {
             button.disabled = true;
             button.textContent = 'OCR...';
@@ -397,7 +397,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         }
     }
 
-    async function exportOCRLines(id, button) {
+    window.exportOCRLines = async function exportOCRLines(id, button) {
         if (button) {
             button.disabled = true;
             button.textContent = 'Export...';
@@ -445,7 +445,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         }
     }
 
-    async function runOCRValidation(id, payload, button, onSuccess) {
+    window.runOCRValidation = async function runOCRValidation(id, payload, button, onSuccess) {
         if (button) {
             button.disabled = true;
             button.textContent = '...';
@@ -477,7 +477,7 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         }
     }
 
-    function refreshOCRCard(id, doc) {
+    window.refreshOCRCard = function refreshOCRCard(id, doc) {
         const current = document.querySelector(`.ocr-item[data-id="${id}"]`);
         if (!current) return;
         const widgetId = current.closest('.ocr-widget-container').querySelector('input[type="file"]').id.split('_')[1];
