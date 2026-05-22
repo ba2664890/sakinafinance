@@ -1,183 +1,346 @@
 <style>
-    .ocr-type-select {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0.45rem 0.85rem;
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: #475569;
+    /* CSS styles */
+    .ocr-premium-card {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(16px) saturate(120%);
+        -webkit-backdrop-filter: blur(16px) saturate(120%);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .ocr-premium-card:hover {
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .ocr-grid-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 992px) {
+        .ocr-grid-layout {
+            grid-template-columns: 1.2fr 2fr;
+        }
+    }
+
+    /* Left upload container */
+    .ocr-upload-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .ocr-premium-zone {
+        border: 2px dashed rgba(37, 99, 235, 0.3);
+        background: rgba(37, 99, 235, 0.02);
+        border-radius: 20px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ocr-premium-zone:hover {
+        border-color: #2563eb;
+        background: rgba(37, 99, 235, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .ocr-upload-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .ocr-premium-zone:hover .ocr-upload-icon-wrapper {
+        background: #2563eb;
+        color: #fff;
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+    }
+
+    .ocr-type-select-premium {
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #334155;
         outline: none;
         cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
     }
 
-    .ocr-item {
+    .ocr-type-select-premium:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Right items list */
+    .ocr-history-container {
+        display: flex;
+        flex-direction: column;
+        border-left: none;
+        padding-left: 0;
+    }
+
+    @media (min-width: 992px) {
+        .ocr-history-container {
+            border-left: 1px solid rgba(226, 232, 240, 0.8);
+            padding-left: 1.5rem;
+        }
+    }
+
+    .ocr-history-list {
+        max-height: 320px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    /* Scrollbar customization */
+    .ocr-history-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .ocr-history-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .ocr-history-list::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 4px;
+    }
+    .ocr-history-list::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.5);
+    }
+
+    /* Premium OCR Item styling */
+    .ocr-item-premium {
         background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 0.85rem;
-        margin-bottom: 0.65rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 18px;
+        padding: 1.25rem;
+        margin-bottom: 0.85rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
-        transition: all 0.2s;
+        position: relative;
     }
 
-    .ocr-item:hover {
-        border-color: var(--ai-primary, #2563eb);
-        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+    .ocr-item-premium:hover {
+        transform: translateY(-2px);
+        border-color: #2563eb;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.06);
     }
 
-    .ocr-status {
+    .ocr-status-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.3rem 0.75rem;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .ocr-status-badge.extracted,
+    .ocr-status-badge.validated {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #d1fae5;
+    }
+
+    .ocr-status-badge.processing,
+    .ocr-status-badge.uploaded {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+    }
+
+    .ocr-status-badge.failed {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fee2e2;
+    }
+
+    .ocr-metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .ocr-metric-card {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 0.65rem;
+    }
+
+    .ocr-metric-card span {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ocr-metric-card strong {
+        display: block;
+        color: #1e293b;
+        font-size: 0.85rem;
+        font-weight: 900;
+    }
+
+    .ocr-action-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .ocr-btn-premium {
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0.45rem 0.85rem;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
         gap: 0.3rem;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        font-size: 0.58rem;
-        font-weight: 900;
-        letter-spacing: 0.05em;
+        text-decoration: none;
     }
 
-    .ocr-status.extracted,
-    .ocr-status.validated {
-        background: #ecfdf5;
-        color: #047857;
-    }
-
-    .ocr-status.processing,
-    .ocr-status.uploaded {
+    .ocr-btn-premium.primary {
         background: #eff6ff;
         color: #2563eb;
+        border-color: #dbeafe;
+    }
+    .ocr-btn-premium.primary:hover {
+        background: #2563eb;
+        color: #fff;
     }
 
-    .ocr-status.failed {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    .ocr-summary {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-
-    .ocr-field {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 0.55rem;
-        min-width: 0;
-    }
-
-    .ocr-field span {
-        display: block;
-        color: #64748b;
-        font-size: 0.55rem;
-        font-weight: 900;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
-
-    .ocr-field strong {
-        display: block;
-        color: #0f172a;
-        font-size: 0.72rem;
-        margin-top: 0.15rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .ocr-actions {
-        display: flex;
-        gap: 0.45rem;
-        flex-wrap: wrap;
-        margin-top: 0.75rem;
-    }
-
-    .ocr-action-btn {
-        border: 1px solid #dbeafe;
-        background: #eff6ff;
-        color: #1d4ed8;
-        border-radius: 999px;
-        padding: 0.35rem 0.65rem;
-        font-size: 0.63rem;
-        font-weight: 900;
-        line-height: 1;
-    }
-
-    .ocr-action-btn.success {
+    .ocr-btn-premium.success {
         background: #ecfdf5;
-        border-color: #bbf7d0;
-        color: #047857;
+        color: #059669;
+        border-color: #d1fae5;
+    }
+    .ocr-btn-premium.success:hover {
+        background: #059669;
+        color: #fff;
     }
 
-    .ocr-action-btn.warning {
+    .ocr-btn-premium.warning {
         background: #fffbeb;
-        border-color: #fde68a;
-        color: #b45309;
+        color: #d97706;
+        border-color: #fef3c7;
+    }
+    .ocr-btn-premium.warning:hover {
+        background: #d97706;
+        color: #fff;
     }
 
-    .ocr-action-btn:disabled {
-        opacity: 0.55;
-        cursor: wait;
-    }
-
-    .upload-zone {
-        border: 2px dashed #e2e8f0;
-        border-radius: 16px;
-        padding: 2rem 1rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        background: #f8fafc;
-    }
-
-    .upload-zone:hover {
-        border-color: #93c5fd;
-        background: #eff6ff;
+    /* Uploader container zone */
+    .ocr-header-zone {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        padding-bottom: 0.75rem;
     }
 </style>
 
-<div class="ocr-widget-container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h6 class="text-muted small fw-800 tracking-widest uppercase mb-1">{{ ocr_title|default:"Scanner via OCR" }}</h6>
-            <div class="text-muted" style="font-size: 0.64rem">{{ ocr_subtitle|default:"Factures, reçus, documents" }}</div>
+<div class="ocr-premium-card">
+    <div class="ocr-grid-layout">
+        <!-- Left: Upload & Options -->
+        <div class="ocr-upload-container">
+            <div>
+                <div class="ocr-header-zone">
+                    <div>
+                        <h5 class="fw-900 text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1rem">
+                            <i class="bi bi-cpu text-primary"></i> {{ ocr_title|default:"Scanner via OCR" }}
+                        </h5>
+                        <div class="text-muted" style="font-size: 0.68rem; font-weight:600">{{ ocr_subtitle|default:"Factures, reçus, documents" }}</div>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-2.5 py-1.5 rounded-pill" style="font-size: 0.6rem; font-weight: 800">IA COMPLIANT</span>
+                </div>
+
+                <div class="ocr-toolbar mb-3" {% if ocr_hide_type_selector %}style="display:none"{% endif %}>
+                    <label class="form-label small fw-800 text-muted text-uppercase mb-2" style="font-size: 0.6rem; letter-spacing:0.05em">Type de document</label>
+                    <select id="ocrType_{{ ocr_id|default:'1' }}" class="ocr-type-select-premium w-100 mb-2">
+                        {% if ocr_default_type == 'supplier_invoice' or ocr_default_type == 'invoice' %}
+                            <option value="supplier_invoice" {% if ocr_default_type == 'supplier_invoice' %}selected{% endif %}>Facture fournisseur</option>
+                            <option value="receipt">Reçu d'achat</option>
+                        {% elif ocr_default_type == 'delivery_note' or ocr_default_type == 'stock_count' %}
+                            <option value="delivery_note" {% if ocr_default_type == 'delivery_note' %}selected{% endif %}>Bon de livraison</option>
+                            <option value="receipt_note">Bon de réception</option>
+                            <option value="stock_count">Fiche d'inventaire</option>
+                        {% elif ocr_default_type == 'payslip' %}
+                            <option value="payslip" selected>Bulletin de paie</option>
+                            <option value="contract">Contrat RH</option>
+                        {% else %}
+                            <option value="invoice">Facture</option>
+                            <option value="receipt">Reçu</option>
+                            <option value="contract">Contrat</option>
+                            <option value="other">Autre</option>
+                        {% endif %}
+                    </select>
+                    <input type="file" id="ocrFile_{{ ocr_id|default:'1' }}" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp,.txt,.csv"
+                        onchange="uploadOCR(this, '{{ ocr_id|default:'1' }}')">
+                </div>
+            </div>
+
+            <div class="ocr-premium-zone w-100 py-4" onclick="document.getElementById('ocrFile_{{ ocr_id|default:'1' }}').click()">
+                <div class="ocr-upload-icon-wrapper">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <div class="small fw-800 text-dark mb-1">Téléverser vos documents</div>
+                <div class="text-muted" style="font-size: 0.65rem">Glissez-déposez ou cliquez ici (PDF, images, etc.)</div>
+            </div>
         </div>
-        <button class="btn btn-sm btn-primary rounded-circle" style="width: 28px; height: 28px; padding: 0"
-            onclick="document.getElementById('ocrFile_{{ ocr_id|default:'1' }}').click()" title="Analyser un document">
-            <i class="bi bi-file-earmark-arrow-up"></i>
-        </button>
-    </div>
 
-    <div class="ocr-toolbar mb-3" {% if ocr_hide_type_selector %}style="display:none"{% endif %}>
-        <select id="ocrType_{{ ocr_id|default:'1' }}" class="ocr-type-select w-100 mb-2">
-            {% if ocr_default_type == 'supplier_invoice' or ocr_default_type == 'invoice' %}
-                <option value="supplier_invoice" {% if ocr_default_type == 'supplier_invoice' %}selected{% endif %}>Facture fournisseur</option>
-                <option value="receipt">Reçu d'achat</option>
-            {% elif ocr_default_type == 'delivery_note' or ocr_default_type == 'stock_count' %}
-                <option value="delivery_note" {% if ocr_default_type == 'delivery_note' %}selected{% endif %}>Bon de livraison</option>
-                <option value="receipt_note">Bon de réception</option>
-                <option value="stock_count">Fiche d'inventaire</option>
-            {% elif ocr_default_type == 'payslip' %}
-                <option value="payslip" selected>Bulletin de paie</option>
-                <option value="contract">Contrat RH</option>
-            {% else %}
-                <option value="invoice">Facture</option>
-                <option value="receipt">Reçu</option>
-                <option value="contract">Contrat</option>
-                <option value="other">Autre</option>
-            {% endif %}
-        </select>
-        <input type="file" id="ocrFile_{{ ocr_id|default:'1' }}" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff,.bmp,.txt,.csv"
-            onchange="uploadOCR(this, '{{ ocr_id|default:'1' }}')">
-    </div>
-
-    <div id="ocrList_{{ ocr_id|default:'1' }}" style="max-height: 280px; overflow-y: auto;">
-        <div class="text-center p-4 text-muted small ocr-loading-state">
-            <i class="spinner-border spinner-border-sm text-primary mb-2"></i><br>
-            Chargement de l'historique...
+        <!-- Right: Scanned History & Live Queue -->
+        <div class="ocr-history-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="small fw-800 text-muted text-uppercase" style="font-size: 0.6rem; letter-spacing:0.05em">Historique des numérisations</span>
+                <button class="btn btn-sm text-primary p-0 fw-800" style="font-size: 0.68rem" onclick="fetchOCRHistory('{{ ocr_id|default:'1' }}', '{{ ocr_default_type|default:'' }}')">
+                    <i class="bi bi-arrow-clockwise"></i> Actualiser
+                </button>
+            </div>
+            
+            <div id="ocrList_{{ ocr_id|default:'1' }}" class="ocr-history-list">
+                <div class="text-center p-4 text-muted small ocr-loading-state">
+                    <i class="spinner-border spinner-border-sm text-primary mb-2"></i><br>
+                    Chargement de l'historique...
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -196,23 +359,23 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         const canCreateInvoice = (doc.allowed_actions || []).includes('create_supplier_invoice');
         const canExportInventory = (doc.allowed_actions || []).includes('export_inventory_lines');
         
-        return `<div class="ocr-item" onclick="showOCRFromData(this)" data-id="${doc.id}">
+        return `<div class="ocr-item-premium" onclick="showOCRFromData(this)" data-id="${doc.id}">
             <div class="d-flex justify-content-between align-items-start gap-2">
                 <div class="overflow-hidden">
-                    <div class="small fw-900 text-dark text-truncate" style="max-width: 210px">${doc.filename}</div>
-                    <div class="text-muted" style="font-size: 0.62rem">${doc.document_type_label || doc.document_type}</div>
+                    <div class="fw-900 text-dark text-truncate" style="max-width: 280px; font-size: 0.85rem">${doc.filename}</div>
+                    <div class="text-muted" style="font-size: 0.68rem; font-weight: 600"><i class="bi bi-file-earmark-text me-1"></i>${doc.document_type_label || doc.document_type}</div>
                 </div>
-                <span class="ocr-status ${statusClass}">${doc.status_label || statusClass}</span>
+                <span class="ocr-status-badge ${statusClass}">${doc.status_label || statusClass}</span>
             </div>
-            <div class="ocr-summary">
-                <div class="ocr-field"><span>Total</span><strong>${total}</strong></div>
-                <div class="ocr-field"><span>Confiance</span><strong>${confidence}%</strong></div>
+            <div class="ocr-metric-grid">
+                <div class="ocr-metric-card"><span>Total</span><strong>${total}</strong></div>
+                <div class="ocr-metric-card"><span>Confiance</span><strong>${confidence}%</strong></div>
             </div>
-            <div class="ocr-actions">
-                ${canCreateInvoice ? `<button class="ocr-action-btn success" onclick="event.stopPropagation(); createInvoiceFromOCR('${doc.id}', 'supplier', this)">Créer facture</button>` : ''}
-                <button class="ocr-action-btn" onclick="event.stopPropagation(); validateOCR('${doc.id}', this)">Valider</button>
-                <button class="ocr-action-btn warning" onclick="event.stopPropagation(); retryOCR('${doc.id}', this)">Relancer</button>
-                ${canExportInventory ? `<button class="ocr-action-btn" onclick="event.stopPropagation(); exportOCRLines('${doc.id}', this)">Export CSV</button>` : ''}
+            <div class="ocr-action-bar">
+                ${canCreateInvoice ? `<button class="ocr-btn-premium success" onclick="event.stopPropagation(); createInvoiceFromOCR('${doc.id}', 'supplier', this)"><i class="bi bi-file-earmark-plus"></i> Créer facture</button>` : ''}
+                <button class="ocr-btn-premium primary" onclick="event.stopPropagation(); validateOCR('${doc.id}', this)"><i class="bi bi-check2"></i> Valider</button>
+                <button class="ocr-btn-premium warning" onclick="event.stopPropagation(); retryOCR('${doc.id}', this)"><i class="bi bi-arrow-clockwise"></i> Relancer</button>
+                ${canExportInventory ? `<button class="ocr-btn-premium primary" onclick="event.stopPropagation(); exportOCRLines('${doc.id}', this)"><i class="bi bi-download"></i> Export CSV</button>` : ''}
             </div>
         </div>`;
     }
@@ -238,10 +401,12 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
             
             if (docs.length === 0) {
                 listEl.innerHTML = `
-                    <div class="upload-zone" onclick="document.getElementById('ocrFile_${widgetId}').click()">
-                        <i class="bi bi-file-earmark-text mb-2"></i>
-                        <div class="small fw-800 text-muted">Analyser un document</div>
-                        <div class="text-muted" style="font-size: 0.6rem">PDF, image, TXT ou CSV</div>
+                    <div class="ocr-premium-zone py-5" onclick="document.getElementById('ocrFile_${widgetId}').click()">
+                        <div class="ocr-upload-icon-wrapper">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                        </div>
+                        <div class="small fw-800 text-dark mb-1">Aucun document traité</div>
+                        <div class="text-muted" style="font-size: 0.65rem">Glissez un fichier ici ou cliquez pour l'analyser.</div>
                     </div>`;
             } else {
                 docs.forEach(doc => {
@@ -268,16 +433,16 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
         const ocrList = document.getElementById(`ocrList_${widgetId}`);
         
         // Remove empty state if present
-        const emptyState = ocrList.querySelector('.upload-zone');
+        const emptyState = ocrList.querySelector('.ocr-premium-zone');
         if (emptyState) emptyState.remove();
 
         const tempItem = document.createElement('div');
-        tempItem.className = 'ocr-item';
-        tempItem.innerHTML = `<div class="d-flex align-items-center gap-2">
-            <span class="spinner-border spinner-border-sm text-primary"></span>
+        tempItem.className = 'ocr-item-premium';
+        tempItem.innerHTML = `<div class="d-flex align-items-center gap-3">
+            <span class="spinner-border spinner-border-sm text-primary" style="width: 1.25rem; height: 1.25rem;"></span>
             <div>
-                <div class="small fw-900 text-dark">${file.name}</div>
-                <div class="text-muted" style="font-size: 0.62rem">Extraction OCR en cours...</div>
+                <div class="fw-900 text-dark" style="font-size: 0.85rem">${file.name}</div>
+                <div class="text-muted" style="font-size: 0.68rem; font-weight:600">Extraction OCR intelligente en cours...</div>
             </div>
         </div>`;
         ocrList.prepend(tempItem);
@@ -478,9 +643,9 @@ if (typeof window.ocrWidgetLoaded === 'undefined') {
     }
 
     window.refreshOCRCard = function refreshOCRCard(id, doc) {
-        const current = document.querySelector(`.ocr-item[data-id="${id}"]`);
+        const current = document.querySelector(`.ocr-item-premium[data-id="${id}"]`);
         if (!current) return;
-        const widgetId = current.closest('.ocr-widget-container').querySelector('input[type="file"]').id.split('_')[1];
+        const widgetId = current.closest('.ocr-premium-card').querySelector('input[type="file"]').id.split('_')[1];
         const wrapper = document.createElement('div');
         wrapper.innerHTML = renderOCRItem(doc, widgetId);
         const next = wrapper.firstElementChild;

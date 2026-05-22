@@ -100,6 +100,11 @@
 
 {% block content %}
 <div class="fade-in">
+    <!-- IA OCR Scanner Hub -->
+    <div class="mb-4">
+        {% include 'components/ocr_widget.html' with ocr_id='proc' ocr_title='Scanner Facture' ocr_subtitle='Facture Fournisseur, Reçu' ocr_default_type='supplier_invoice' %}
+    </div>
+
     <!-- Top Stats -->
     <div class="procurement-stats">
         <div class="p-stat-card">
@@ -173,16 +178,7 @@
                 </div>
             </div>
 
-            <!-- OCR Scanner (Factures fournisseurs) -->
-            <div class="procurement-panel" style="height: auto; max-height: 420px; overflow: hidden; display: flex; flex-direction: column;">
-                <div class="p-panel-header">
-                    <h6>🔍 Scanner Facture</h6>
-                    <span class="badge bg-soft-blue text-primary" style="font-size: 0.6rem;">OCR IA</span>
-                </div>
-                <div class="p-panel-content p-3" style="overflow-y: auto; flex: 1;">
-                    {% include 'components/ocr_widget.html' with ocr_id='proc' ocr_title='Scanner Facture' ocr_subtitle='Facture Fournisseur, Reçu' ocr_default_type='supplier_invoice' %}
-                </div>
-            </div>
+
         </div>
     </div>
 

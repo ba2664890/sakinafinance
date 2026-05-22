@@ -381,6 +381,11 @@
     <div class="tab-content">
         <!-- Tab 1: Dashboard -->
         <div class="tab-pane fade show active" id="hr-dashboard-pane" role="tabpanel">
+            <!-- IA OCR Scanner Hub -->
+            <div class="mb-4">
+                {% include 'components/ocr_widget.html' with ocr_id='hr' ocr_title='Scanner Document RH' ocr_subtitle='Bulletins de paie, Contrats' ocr_default_type='payslip' %}
+            </div>
+
             <!-- Top Stats -->
             <div class="hr-stats-grid">
         <div class="stat-card-glass">
@@ -450,12 +455,7 @@
                 </div>
             </div>
 
-            <!-- OCR Scanner (RH) -->
-            <div class="hr-panel">
-                <div class="hr-panel-content p-3">
-                    {% include 'components/ocr_widget.html' with ocr_id='hr' ocr_title='Scanner Document RH' ocr_subtitle='Bulletins de paie, Contrats' ocr_default_type='payslip' %}
-                </div>
-            </div>
+
         </div>
     </div>
 
