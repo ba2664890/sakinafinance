@@ -394,13 +394,15 @@ GEMINI_CACHE_TTL = int(os.getenv('GEMINI_CACHE_TTL', 900))
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY', '')
 PINECONE_INDEX_NAME = os.getenv('PINECONE_INDEX_NAME', 'sakina-vect')
 
-# HuggingFace Configuration (RAG embeddings)
+# HuggingFace Configuration (RAG embeddings + OCR vision fallback)
 HUGGINGFACE_API_TOKEN = os.getenv('HUGGINGFACE_API_TOKEN', '')
+HF_API_KEY = os.getenv('HF_API_KEY', os.getenv('HUGGINGFACE_API_TOKEN', ''))
+HF_OCR_MODEL = os.getenv('HF_OCR_MODEL', 'Qwen/Qwen2-VL-7B-Instruct')
 
 # OCR Configuration
 OCR_PROVIDER_ORDER = [
     provider.strip()
-    for provider in os.getenv('OCR_PROVIDER_ORDER', 'native_pdf,gemini_vision,openai_vision,tesseract').split(',')
+    for provider in os.getenv('OCR_PROVIDER_ORDER', 'native_pdf,gemini_vision,openai_vision,huggingface_vision,tesseract').split(',')
     if provider.strip()
 ]
 OCR_GEMINI_MODEL = os.getenv('OCR_GEMINI_MODEL', 'gemini-2.0-flash')

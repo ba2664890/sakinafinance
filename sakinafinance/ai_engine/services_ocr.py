@@ -4,8 +4,9 @@ OCR Service — SakinaFinance
 Pipeline hybride production-friendly :
 - PDF texte : extraction native via pypdf (rapide et fiable)
 - PDF scanné / image : Gemini Vision ou OpenAI Vision si configuré
-- Fallback local : binaire tesseract si installé sur le serveur
-- Parsing métier : facture, reçu, relevé bancaire, contrat, bulletin
+- Fallback cloud  : HuggingFace Inference API (Qwen2-VL / Pixtral)
+- Fallback local  : binaire tesseract si installé sur le serveur
+- Parsing métier  : facture, reçu, relevé bancaire, contrat, bulletin
 """
 
 from __future__ import annotations
@@ -74,10 +75,16 @@ class OCRService:
         self.openai_model = getattr(settings, "OCR_OPENAI_MODEL", "gpt-4o-mini")
         self.max_pages = int(getattr(settings, "OCR_MAX_PDF_PAGES", 6))
         self.min_pdf_text_chars = int(getattr(settings, "OCR_MIN_PDF_TEXT_CHARS", 160))
+        self.hf_api_key = getattr(settings, "HF_API_KEY", "")
+        self.hf_ocr_model = getattr(
+            settings,
+            "HF_OCR_MODEL",
+            "Qwen/Qwen2-VL-7B-Instruct",
+        )
         self.provider_order = getattr(
             settings,
             "OCR_PROVIDER_ORDER",
-            ["native_pdf", "gemini_vision", "openai_vision", "tesseract"],
+            ["native_pdf", "gemini_vision", "openai_vision", "huggingface_vision", "tesseract"],
         )
 
     def process_document(self, document: DocumentOCR | str) -> DocumentOCR:
@@ -314,6 +321,17 @@ class OCRService:
                 else:
                     warnings.append("OpenAI Vision n'a pas retourné de texte.")
 
+            if "huggingface_vision" in self.provider_order and self.hf_api_key:
+                try:
+                    text = self._ocr_with_huggingface(prepared)
+                    if text:
+                        return OCRResult(text=text, engine=f"huggingface:{self.hf_ocr_model}", confidence=Decimal("82.00"), pages_processed=1)
+                except Exception as exc:
+                    logger.warning("HuggingFace Vision provider error: %s", exc)
+                    warnings.append(f"HuggingFace error: {exc}")
+                else:
+                    warnings.append("HuggingFace Vision n'a pas retourné de texte.")
+
             if "tesseract" in self.provider_order and shutil.which("tesseract"):
                 try:
                     text = self._ocr_with_tesseract(prepared)
@@ -429,6 +447,42 @@ class OCRService:
             return (response.choices[0].message.content or "").strip()
         except Exception as exc:
             logger.warning("OpenAI OCR failed: %s", exc)
+            return ""
+
+    def _ocr_with_huggingface(self, image_path: Path) -> str:
+        """OCR via HuggingFace Inference API (chat completions endpoint — vision models)."""
+        try:
+            mime = mimetypes.guess_type(str(image_path))[0] or "image/png"
+            image_b64 = base64.b64encode(image_path.read_bytes()).decode("ascii")
+            image_data_url = f"data:{mime};base64,{image_b64}"
+
+            url = f"https://api-inference.huggingface.co/models/{self.hf_ocr_model}/v1/chat/completions"
+            payload = {
+                "model": self.hf_ocr_model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "image_url", "image_url": {"url": image_data_url}},
+                            {"type": "text", "text": self._ocr_prompt()},
+                        ],
+                    }
+                ],
+                "max_tokens": 4096,
+            }
+            headers = {
+                "Authorization": f"Bearer {self.hf_api_key}",
+                "Content-Type": "application/json",
+            }
+            response = requests.post(url, headers=headers, json=payload, timeout=45)
+            if response.status_code == 503:
+                logger.warning("HuggingFace model loading (503) — skipping.")
+                return ""
+            response.raise_for_status()
+            data = response.json()
+            return (data.get("choices", [{}])[0].get("message", {}).get("content") or "").strip()
+        except Exception as exc:
+            logger.warning("HuggingFace OCR failed: %s", exc)
             return ""
 
     def _ocr_with_tesseract(self, image_path: Path) -> str:
