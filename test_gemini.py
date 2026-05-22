@@ -1,6 +1,6 @@
 import requests
 
-key = "AIzaSyDwHLFhMQb5mOZTB7k_P4FHYhpZso8vsEQ"
+key = "AIzaSyDzipwVtVQs0KNvttNFVBMFAYu56rFG4g8"
 url_list = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
 r_list = requests.get(url_list)
 if r_list.status_code != 200:

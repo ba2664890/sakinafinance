@@ -255,22 +255,37 @@ class OCRService:
         warnings: list[str] = []
         try:
             if "gemini_vision" in self.provider_order and self.gemini_api_key:
-                text = self._ocr_with_gemini(prepared)
-                if text:
-                    return OCRResult(text=text, engine=f"gemini:{self.gemini_model}", confidence=Decimal("88.00"), pages_processed=1)
-                warnings.append("Gemini Vision n'a pas retourné de texte.")
+                try:
+                    text = self._ocr_with_gemini(prepared)
+                    if text:
+                        return OCRResult(text=text, engine=f"gemini:{self.gemini_model}", confidence=Decimal("88.00"), pages_processed=1)
+                except Exception as exc:
+                    logger.warning("Gemini Vision provider error: %s", exc)
+                    warnings.append(f"Gemini error: {exc}")
+                else:
+                    warnings.append("Gemini Vision n'a pas retourné de texte.")
 
             if "openai_vision" in self.provider_order and self.openai_api_key:
-                text = self._ocr_with_openai(prepared)
-                if text:
-                    return OCRResult(text=text, engine=f"openai:{self.openai_model}", confidence=Decimal("86.00"), pages_processed=1)
-                warnings.append("OpenAI Vision n'a pas retourné de texte.")
+                try:
+                    text = self._ocr_with_openai(prepared)
+                    if text:
+                        return OCRResult(text=text, engine=f"openai:{self.openai_model}", confidence=Decimal("86.00"), pages_processed=1)
+                except Exception as exc:
+                    logger.warning("OpenAI Vision provider error: %s", exc)
+                    warnings.append(f"OpenAI error: {exc}")
+                else:
+                    warnings.append("OpenAI Vision n'a pas retourné de texte.")
 
             if "tesseract" in self.provider_order and shutil.which("tesseract"):
-                text = self._ocr_with_tesseract(prepared)
-                if text:
-                    return OCRResult(text=text, engine="tesseract:local", confidence=Decimal("76.00"), pages_processed=1)
-                warnings.append("Tesseract n'a pas retourné de texte.")
+                try:
+                    text = self._ocr_with_tesseract(prepared)
+                    if text:
+                        return OCRResult(text=text, engine="tesseract:local", confidence=Decimal("76.00"), pages_processed=1)
+                except Exception as exc:
+                    logger.warning("Tesseract provider error: %s", exc)
+                    warnings.append(f"Tesseract error: {exc}")
+                else:
+                    warnings.append("Tesseract n'a pas retourné de texte.")
 
             return OCRResult(text="", engine="unavailable", confidence=Decimal("0.00"), pages_processed=1, warnings=warnings)
         finally:
@@ -339,8 +354,6 @@ class OCRService:
                 data = response.json()
                 return self._extract_gemini_text(data).strip()
             return ""
-        except ValueError as ve:
-            raise ve
         except Exception as exc:
             logger.warning("Gemini OCR failed: %s", exc)
             return ""
