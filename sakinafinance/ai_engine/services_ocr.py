@@ -116,8 +116,19 @@ class OCRService:
                         pass
 
             if not result.text.strip():
-                raise ValueError(
-                    "Aucun texte exploitable n'a pu être extrait. Configurez GEMINI_API_KEY/OPENAI_API_KEY ou installez tesseract pour les scans."
+                # Fallback to manual input structure if all engines failed
+                result = OCRResult(
+                    text=(
+                        f"ÉCHEC OCR — COMPTE DE SECOURS MANUEL\n"
+                        f"Fichier : {document.filename or 'Document'}\n"
+                        f"Date d'importation : {timezone.now().strftime('%d/%m/%Y')}\n\n"
+                        f"Le traitement automatique par l'IA a échoué (limite de quota API dépassée ou timeout système).\n"
+                        f"Veuillez vérifier et saisir manuellement les informations du document ci-dessous."
+                    ),
+                    engine="fallback:manual_input",
+                    confidence=Decimal("10.00"),
+                    pages_processed=1,
+                    warnings=(result.warnings or []) + ["Tous les moteurs OCR ont échoué ou expiré."],
                 )
 
             extracted = self.extract_structured_data(
@@ -299,9 +310,10 @@ class OCRService:
         image = image.convert("L")
         image = ImageOps.autocontrast(image)
         width, height = image.size
-        if max(width, height) < 1600:
+        # Only double the size if the image is very small (max dimension < 1000px)
+        if max(width, height) < 1000:
             image = image.resize((width * 2, height * 2), Image.Resampling.LANCZOS)
-        image = image.point(lambda p: 255 if p > 185 else 0)
+        # Avoid hard thresholding to preserve Tesseract's built-in Otsu thresholding performance
 
         tmp = tempfile.NamedTemporaryFile(prefix="sakina_ocr_img_", suffix=".png", delete=False)
         tmp_path = Path(tmp.name)
@@ -395,12 +407,13 @@ class OCRService:
     def _ocr_with_tesseract(self, image_path: Path) -> str:
         try:
             languages = getattr(settings, "OCR_TESSERACT_LANGUAGES", "fra+eng")
+            # Use PSM 3 (Fully automatic) and limit timeout to 20s for Gunicorn worker protection
             result = subprocess.run(
-                ["tesseract", str(image_path), "stdout", "-l", languages, "--psm", "6"],
+                ["tesseract", str(image_path), "stdout", "-l", languages, "--psm", "3"],
                 capture_output=True,
                 text=True,
                 check=False,
-                timeout=60,
+                timeout=20,
             )
             return result.stdout.strip()
         except Exception as exc:
