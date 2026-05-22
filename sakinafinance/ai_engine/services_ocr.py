@@ -118,18 +118,45 @@ class OCRService:
             if not result.text.strip():
                 # Fallback to manual input structure if all engines failed
                 result = OCRResult(
-                    text=(
-                        f"ÉCHEC OCR — COMPTE DE SECOURS MANUEL\n"
-                        f"Fichier : {document.filename or 'Document'}\n"
-                        f"Date d'importation : {timezone.now().strftime('%d/%m/%Y')}\n\n"
-                        f"Le traitement automatique par l'IA a échoué (limite de quota API dépassée ou timeout système).\n"
-                        f"Veuillez vérifier et saisir manuellement les informations du document ci-dessous."
-                    ),
+                    text="",
                     engine="fallback:manual_input",
-                    confidence=Decimal("10.00"),
+                    confidence=Decimal("0.00"),
                     pages_processed=1,
                     warnings=(result.warnings or []) + ["Tous les moteurs OCR ont échoué ou expiré."],
                 )
+
+            if result.engine == "fallback:manual_input":
+                # Do NOT run extract_structured_data on the fallback text —
+                # it would produce fake partner names, amounts and dates.
+                extracted = {
+                    "ocr": {
+                        "engine": result.engine,
+                        "pages_processed": 1,
+                        "warnings": result.warnings or [],
+                        "processed_at": timezone.now().isoformat(),
+                    },
+                    "summary": {},
+                }
+                document.raw_text = ""
+                document.extracted_data = extracted
+                document.confidence_score = Decimal("0.00")
+                document.status = DocumentOCR.Status.FAILED
+                document.error_message = (
+                    "Extraction automatique impossible (quota API dépassé ou timeout). "
+                    "Cliquez sur « Réessayer » ou saisissez les informations manuellement."
+                )
+                document.processed_at = timezone.now()
+                document.save(
+                    update_fields=[
+                        "raw_text",
+                        "extracted_data",
+                        "confidence_score",
+                        "status",
+                        "error_message",
+                        "processed_at",
+                    ]
+                )
+                return document
 
             extracted = self.extract_structured_data(
                 raw_text=result.text,
